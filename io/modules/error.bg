@@ -1,0 +1,52 @@
+; Platform error helpers for the I/O library.
+
+#if OS, "windows"
+; EN : Returns the last-error value for the calling Windows thread.
+;
+; ES : Devuelve el valor de último error de la hebra Windows llamadora.
+;
+@unsafe
+public func last_error() uint32:
+    return Win.GetLastError()
+
+; EN : Clears the last-error value for the calling Windows thread.
+;
+; ES : Limpia el valor de último error de la hebra Windows llamadora.
+;
+@unsafe
+public func clear_error() void:
+    Win.SetLastError(Win.ERROR_SUCCESS)
+    return
+#elif OS, "linux"
+; EN : Returns zero; raw Linux syscalls return negative errno directly.
+;
+; ES : Devuelve cero; las syscalls Linux crudas retornan el errno negativo directamente.
+;
+@unsafe
+public func last_error() uint32:
+    return 0
+
+; EN : Keeps the Linux error helper compatible; raw syscall results remain direct.
+;
+; ES : Mantiene compatible el helper de error Linux; los resultados crudos siguen directos.
+;
+@unsafe
+public func clear_error() void:
+    return
+#else
+; EN : Returns no platform error when the selected target has no I/O backend.
+;
+; ES : Devuelve cero cuando el target seleccionado no tiene backend de I/O.
+;
+@unsafe
+public func last_error() uint32:
+    return 0
+
+; EN : Keeps the error API available on targets without an I/O backend.
+;
+; ES : Mantiene disponible la API de errores en targets sin backend de I/O.
+;
+@unsafe
+public func clear_error() void:
+    return
+#end

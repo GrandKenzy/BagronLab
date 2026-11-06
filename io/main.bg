@@ -1,3 +1,13 @@
 ; Library source root for the standard I/O API.
+#if OS, "windows"
 clause System "windows"
 clause Arch "amd"
+library "windows.lib" as Win
+#elif OS, "linux"
+clause System "linux"
+clause Arch "amd"
+library "gnulibrary.lib" as Gnu
+#else
+clause System "auto"
+clause Arch "auto"
+#end

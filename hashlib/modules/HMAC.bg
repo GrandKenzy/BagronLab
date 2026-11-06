@@ -1,0 +1,74 @@
+import { SHA256Digest, sha256, sha256_prefix64 } from SHA_256
+
+; The byte view uses the host representation; reversing its four bytes
+; reconstructs the SHA-256 digest's required big-endian order.
+mold HMACWordView:
+    numeric: uint32
+    bytes: byte[4]
+
+@unsafe
+private func write_digest_byte(
+    digest: SHA256Digest,
+    index: uint32
+) byte:
+    ; EN : Returns one digest byte in big-endian order.
+    ;
+    ; ES : Devuelve un byte del digest en orden big-endian.
+    word_index: uint32 = index / 4
+    byte_index: uint32 = index % 4
+    word: uint32 = digest.word0
+    if word_index == 1:
+        word = digest.word1
+    if word_index == 2:
+        word = digest.word2
+    if word_index == 3:
+        word = digest.word3
+    if word_index == 4:
+        word = digest.word4
+    if word_index == 5:
+        word = digest.word5
+    if word_index == 6:
+        word = digest.word6
+    if word_index == 7:
+        word = digest.word7
+    view: HMACWordView
+    view.numeric = word
+    return view.bytes[3 - byte_index]
+
+@unsafe
+public func hmac_sha256(
+    key: byte[],
+    key_length: Len_t,
+    key_element_size: Size_t,
+    data: byte[],
+    data_length: Len_t,
+    data_element_size: Size_t
+) SHA256Digest:
+    ; EN : Computes HMAC-SHA-256 for arbitrary byte arrays.
+    ; Keys longer than the SHA-256 block size are hashed first.
+    ;
+    ; ES : Calcula HMAC-SHA-256 para arrays de bytes arbitrarios.
+    ; Las claves mayores que el bloque de SHA-256 se hashean primero.
+    key_block: byte[64]
+    for index: uint32 ran (0, 64, 1):
+        key_block[index] = 0
+    if key_length > 64:
+        hashed_key: SHA256Digest = sha256(key)
+        for index: uint32 ran (0, 32, 1):
+            key_block[index] = write_digest_byte(hashed_key, index)
+    else:
+        for index: uint32 ran (0, 64, 1):
+            if index < key_length:
+                key_block[index] = key[index]
+
+    inner_pad: byte[64]
+    outer_pad: byte[64]
+    for index: uint32 ran (0, 64, 1):
+        inner_pad[index] = key_block[index] ^ 0x36
+        outer_pad[index] = key_block[index] ^ 0x5C
+
+    inner_digest: SHA256Digest = sha256_prefix64(inner_pad, data)
+    inner_bytes: byte[32]
+    for index: uint32 ran (0, 32, 1):
+        inner_bytes[index] = write_digest_byte(inner_digest, index)
+    return sha256_prefix64(outer_pad, inner_bytes)

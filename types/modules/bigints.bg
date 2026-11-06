@@ -8,7 +8,7 @@ func print_hexu64(value: uint64) void:
 
     while true:
         digit = (value >> shift) & 15
-        io.print_char(HexadecimalUpperString[digit])
+        io.print_char(HexadecimalUpperString[digit], false)
 
         if shift == 0:
             break
@@ -24,7 +24,7 @@ func print_hex64(value: int64) void:
 
     while true:
         digit = (value >> shift) & 15
-        io.print_char(HexadecimalUpperString[digit])
+        io.print_char(HexadecimalUpperString[digit], false)
 
         if shift == 0:
             break

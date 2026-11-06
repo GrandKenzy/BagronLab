@@ -1,0 +1,93 @@
+; Standard input for the platform selected by the I/O library.
+
+@assembler
+private func _input_count(value: usize) uint32:
+    ; EN : Narrows a native buffer length to the Win32 byte-count ABI.
+    ;
+    ; ES : Reduce la longitud de un buffer al ABI de conteo de bytes de Win32.
+    #assembler "intel"
+        mov eax, ecx
+    #end
+    return asm
+
+; EN : Reads one line from stdin into caller-owned storage.
+; The result excludes the trailing CR/LF pair and reserves one byte for NUL.
+;
+; ES : Lee una línea desde stdin en almacenamiento propiedad del llamador.
+; El resultado excluye el par CR/LF final y reserva un byte para NUL.
+;
+@unsafe
+public func input(target: buffer[], length: Len_t) uint32:
+    if length == 0:
+        return 0
+
+#if OS, "windows"
+    stdin_handle: HANDLE = Win.GetStdHandle(Win.STD_INPUT_HANDLE)
+    bytes_to_read: usize = length
+    bytes_to_read -= 1
+    if bytes_to_read > 4095:
+        bytes_to_read = 4095
+
+    staging: byte[4096]
+    bytes_read: uint32 = 0
+    result: int32 = Win.ReadFile(
+        stdin_handle,
+        $staging[0],
+        _input_count(bytes_to_read),
+        $bytes_read,
+        Null
+    )
+    if result == 0:
+        return 0
+
+    if bytes_read > 0 && staging[bytes_read - 1] == 10:
+        bytes_read -= 1
+    if bytes_read > 0 && staging[bytes_read - 1] == 13:
+        bytes_read -= 1
+
+    index: usize = 0
+    while index < bytes_read:
+        target[index] = staging[index]
+        index += 1
+    target[index] = 0
+    return bytes_read
+#elif OS, "linux"
+    bytes_to_read: usize = length
+    bytes_to_read -= 1
+    if bytes_to_read > 4095:
+        bytes_to_read = 4095
+
+    staging: byte[4096]
+    clear_index: usize = 0
+    while clear_index < 4096:
+        staging[clear_index] = 0
+        clear_index += 1
+
+    result: int64 = Gnu.read(
+        Gnu.STDIN,
+        $staging[0],
+        bytes_to_read
+    )
+    if result <= 0:
+        target[0] = 0
+        return 0
+
+    bytes_read: uint32 = 0
+    while bytes_read < 4095 && staging[bytes_read] != 0:
+        bytes_read += 1
+
+    if bytes_read > 0 && staging[bytes_read - 1] == 10:
+        bytes_read -= 1
+    if bytes_read > 0 && staging[bytes_read - 1] == 13:
+        bytes_read -= 1
+
+    index: usize = 0
+    while index < bytes_read:
+        target[index] = staging[index]
+        index += 1
+    target[index] = 0
+    return bytes_read
+#else
+    target[0] = 0
+    return 0
+#end

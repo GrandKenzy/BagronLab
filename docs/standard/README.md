@@ -6,7 +6,7 @@ librería tiene su propio `main.bg` y su carpeta `modules/`:
 
 ```text
 BagronLab/
-├── io/main.bg       └── io/modules/io.bg
+├── io/main.bg       └── io/modules/{error,input,output}.bg
 ├── time/main.bg     └── time/modules/time.bg
 ├── mmap/main.bg     └── mmap/modules/mmap.bg
 ├── mem/main.bg      └── mem/modules/mem.bg
@@ -47,6 +47,14 @@ Las librerías ofrecen interfaces cómodas como `os.File`, `io.print`, funciones
 de tiempo y utilidades de memoria. `windows` y `gnulibrary` siguen siendo la
 fuente de verdad de sus respectivas ABI; `standard` no es una libc ni un
 reemplazo de las librerías nativas.
+
+En `io`, `print` y `println` conservan sus firmas actuales. Las demás funciones
+de salida reciben directamente un parámetro obligatorio `nl: bool`: al pasar
+`true` agregan un salto de línea y al pasar `false` continúan en la misma línea.
+No existen funciones separadas `newline` ni `println_*`.
+
+`io/main.bg` selecciona `windows.lib` para Windows y `gnulibrary.lib` para Linux
+con `#if OS`/`#elif OS`; la API de `io` no expone diferencias entre ambos targets.
 
 ### Archivos y rutas
 

@@ -1,36 +1,51 @@
-; io.bg - Entrada y salida de texto y enteros mediante la ABI de Windows.
-; Descripción: Este módulo proporciona funciones para la entrada y salida de texto y enteros en sistemas Windows utilizando la API de Windows. Incluye funciones para imprimir caracteres, cadenas, enteros y leer líneas desde la entrada estándar.
+; Standard output, buffering, and formatting for Windows.
 
-; Salida de texto y enteros mediante la ABI de Windows.
-
-private stdout_handle: HANDLE
 private stdout_initialized: bool = false
 private stdout_buffer: char[4096]
 private stdout_position: usize = 0
 
+#if OS, "windows"
+private stdout_handle: HANDLE
+#end
+
 import { NumericString } from alphabet
 
 @assembler
-private func _win32_count(value: usize) uint32:
+private func _output_count(value: usize) uint32:
+    ; EN : Narrows a native buffer length to the Win32 byte-count ABI.
+    ;
+    ; ES : Reduce la longitud de un buffer al ABI de conteo de bytes de Win32.
     #assembler "intel"
         mov eax, ecx
     #end
     return asm
 
 @unsafe
-private func _flush_stdout() void:
-    if stdout_position == 0:
-        return
+private func _write_direct(data *: void, count: usize) void:
+    ; EN : Writes bytes directly to the native standard-output endpoint.
+    ;
+    ; ES : Escribe bytes directamente en el endpoint nativo de salida estándar.
+#if OS, "windows"
     if not stdout_initialized:
         stdout_handle = Win.GetStdHandle(Win.STD_OUTPUT_HANDLE)
         stdout_initialized = true
     Win.WriteFile(
         stdout_handle,
-        $stdout_buffer[0],
-        _win32_count(stdout_position),
+        data,
+        _output_count(count),
         Null,
         Null
     )
+#elif OS, "linux"
+    Gnu.write(Gnu.STDOUT, data, count)
+#end
+    return
+
+@unsafe
+private func _flush_stdout() void:
+    if stdout_position == 0:
+        return
+    _write_direct($stdout_buffer[0], stdout_position)
     stdout_position = 0
     return
 
@@ -40,6 +55,9 @@ private func _append_chain(
     length: Len_t,
     count: usize
 ) void:
+    ; EN : Appends a bounded chain to the buffered stdout stream.
+    ;
+    ; ES : Agrega una cadena acotada al flujo stdout almacenado.
     if count > length:
         return
 
@@ -59,6 +77,9 @@ private func _append_chars(
     size: Size_t,
     count: usize
 ) void:
+    ; EN : Appends a bounded character array to the buffered stdout stream.
+    ;
+    ; ES : Agrega un array de caracteres acotado al flujo stdout almacenado.
     if size != 1 || count > length:
         return
 
@@ -79,6 +100,9 @@ private func _append_chars_at(
     start: usize,
     count: usize
 ) void:
+    ; EN : Appends a bounded character-array slice to buffered stdout.
+    ;
+    ; ES : Agrega un segmento acotado de caracteres al stdout almacenado.
     if size != 1 || start > length || count > length - start:
         return
 
@@ -92,22 +116,39 @@ private func _append_chars_at(
     return
 
 @unsafe
+private inline func _append_line_break() void:
+    ; EN : Appends one newline to the buffered stdout stream.
+    ;
+    ; ES : Agrega un salto de línea al flujo stdout almacenado.
+    _append_chain("\n", 1)
+    return
+
+@unsafe
 public func write_chars(
     buffer: char[],
     length: Len_t,
     size: Size_t,
-    count: usize
+    count: usize,
+    nl: bool
 ) void:
+    ; EN : Writes a bounded character array to buffered stdout.
+    ;
+    ; ES : Escribe un array de caracteres acotado en stdout almacenado.
     if size != 1:
         return
     if count > length:
         return
     if count > 0:
         _append_chars(buffer, count)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
 public func print(text: chain, length: Len_t) void:
+    ; EN : Appends a NUL-terminated chain without its terminator.
+    ;
+    ; ES : Agrega una cadena terminada en NUL sin su terminador.
     count: usize = 0
     if length > 0:
         count = length
@@ -118,79 +159,54 @@ public func print(text: chain, length: Len_t) void:
 
 @unsafe
 public inline func println(text: chain, length: Len_t) void:
+    ; EN : Prints a chain followed by a newline.
+    ;
+    ; ES : Imprime una cadena seguida de un salto de línea.
     print(text)
     print("\n")
     return
 
 @unsafe
-public inline func newline() void:
-    print("\n")
-    return
+public inline func flush() void:
+    ; EN : Flushes buffered stdout to the native handle.
+    ;
+    ; ES : Vacía el stdout almacenado hacia el handle nativo.
+    _flush_stdout()
 
 @unsafe
-public inline func flush() void: _flush_stdout()
-
-; Lee una línea desde stdin en un buffer propiedad del caller.
-; Len_t se expande automáticamente desde la capacidad del buffer.
-@unsafe
-public func input(target: buffer[], length: Len_t) uint32:
-    if length == 0:
-        return 0
-
-    stdin_handle: HANDLE = Win.GetStdHandle(Win.STD_INPUT_HANDLE)
-    bytes_to_read: usize = length
-    bytes_to_read -= 1
-    if bytes_to_read > 4095:
-        bytes_to_read = 4095
-
-    staging: byte[4096]
-    bytes_read: uint32 = 0
-    result: int32 = Win.ReadFile(
-        stdin_handle,
-        $staging[0],
-        _win32_count(bytes_to_read),
-        $bytes_read,
-        Null
-    )
-    if result == 0:
-        return 0
-
-    if bytes_read > 0 && staging[bytes_read - 1] == 10:
-        bytes_read -= 1
-    if bytes_read > 0 && staging[bytes_read - 1] == 13:
-        bytes_read -= 1
-
-    index: usize = 0
-    while index < bytes_read:
-        target[index] = staging[index]
-        index += 1
-    target[index] = 0
-    return bytes_read
-
-@unsafe
-public inline func print_char(value: char) void:
+public inline func print_char(value: char, nl: bool) void:
+    ; EN : Prints one character.
+    ;
+    ; ES : Imprime un carácter.
     buffer: char[2]
     buffer[0] = value
     buffer[1] = "\0"
-    write_chars(buffer, 1)
+    write_chars(buffer, 1, nl)
     return
 
 @unsafe
-public inline func print_bool(value: bool) void:
+public inline func print_bool(value: bool, nl: bool) void:
+    ; EN : Prints a boolean as true or false.
+    ;
+    ; ES : Imprime un booleano como true o false.
     if value:
         print("true")
     else:
         print("false")
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
 public func print_chars(
     buffer: char[],
     length: Len_t,
-    size: Size_t
+    size: Size_t,
+    nl: bool
 ) void:
-    ; Print a array of chars treated as text terminated by zero.
-    ; Len_t is automatically expanded from the buffer capacity.
+    ; EN : Prints a character array up to its first NUL byte.
+    ;
+    ; ES : Imprime un array de caracteres hasta su primer byte NUL.
     if size != 1:
         return
     count: usize = 0
@@ -198,13 +214,15 @@ public func print_chars(
         count += 1
     if count > 0:
         _append_chars(buffer, count)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
-public func print_buffer(data: buffer[], length: Len_t) void:
-    ; Print a buffer of bytes treated as text terminated by zero.
-    ; Len_t is automatically expanded from the buffer capacity.
-
+public func print_buffer(data: buffer[], length: Len_t, nl: bool) void:
+    ; EN : Writes a byte buffer as NUL-terminated text.
+    ;
+    ; ES : Escribe un buffer de bytes como texto terminado en NUL.
     if length == 0:
         return
 
@@ -215,39 +233,29 @@ public func print_buffer(data: buffer[], length: Len_t) void:
         count += 1
 
     _flush_stdout()
-    if not stdout_initialized:
-        stdout_handle = Win.GetStdHandle(Win.STD_OUTPUT_HANDLE)
-        stdout_initialized = true
-    Win.WriteFile(
-        stdout_handle,
-        $staging[0],
-        _win32_count(count),
-        Null,
-        Null
-    )
+    _write_direct($staging[0], count)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
-public func write_byte(value: byte) void:
-    ; write a single byte to stdout, including zero.
-
+public func write_byte(value: byte, nl: bool) void:
+    ; EN : Writes one byte directly to stdout, including zero.
+    ;
+    ; ES : Escribe un byte directamente en stdout, incluido el cero.
     raw: byte[1]
     raw[0] = value
     _flush_stdout()
-    if not stdout_initialized:
-        stdout_handle = Win.GetStdHandle(Win.STD_OUTPUT_HANDLE)
-        stdout_initialized = true
-    Win.WriteFile(
-        stdout_handle,
-        $raw[0],
-        1,
-        Null,
-        Null
-    )
+    _write_direct($raw[0], 1)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
 private func _print_int64(value: int64) void:
+    ; EN : Formats a signed 64-bit value into the output buffer.
+    ;
+    ; ES : Formatea un valor signed de 64 bits en el buffer de salida.
     buffer: char[32]
     cursor: int64 = value
     digit: int64 = 0
@@ -280,6 +288,9 @@ private func _print_int64(value: int64) void:
 
 @unsafe
 private func _print_uint64(value: uint64) void:
+    ; EN : Formats an unsigned 64-bit value into the output buffer.
+    ;
+    ; ES : Formatea un valor unsigned de 64 bits en el buffer de salida.
     buffer: char[32]
     cursor: uint64 = value
     digit: uint64 = 0
@@ -303,6 +314,9 @@ private func _print_uint64(value: uint64) void:
 
 @unsafe
 private func _print_usize(value: usize) void:
+    ; EN : Formats a target-sized unsigned value into the output buffer.
+    ;
+    ; ES : Formatea un valor unsigned del tamaño del target en el buffer.
     buffer: char[32]
     cursor: usize = value
     digit: usize = 0
@@ -326,6 +340,9 @@ private func _print_usize(value: usize) void:
 
 @unsafe
 private func _print_isize(value: isize) void:
+    ; EN : Formats a target-sized signed value into the output buffer.
+    ;
+    ; ES : Formatea un valor signed del tamaño del target en el buffer.
     buffer: char[32]
     cursor: isize = value
     digit: isize = 0
@@ -358,56 +375,39 @@ private func _print_isize(value: isize) void:
 
 @unsafe
 private inline func _print_usize_value(value: usize) void:
+    ; EN : Prints a target-sized unsigned value.
+    ;
+    ; ES : Imprime un valor unsigned del tamaño del target.
     _print_usize(value)
     return
 
-; Los enteros pequeños se ensanchan de forma segura al tipo común.
 @unsafe
-public inline func print_int(value: isize) void:
+public inline func print_int(value: isize, nl: bool) void:
+    ; EN : Prints a target-sized signed integer.
+    ;
+    ; ES : Imprime un entero signed del tamaño del target.
     _print_isize(value)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
-public inline func print_uint(value: usize) void:
+public inline func print_uint(value: usize, nl: bool) void:
+    ; EN : Prints a target-sized unsigned integer.
+    ;
+    ; ES : Imprime un entero unsigned del tamaño del target.
     _print_usize_value(value)
+    if nl:
+        _append_line_break()
     return
 
 @unsafe
-public inline func print_size(value: usize, value_size: Size_t) void:
+public inline func print_size(value: usize, value_size: Size_t, nl: bool) void:
+    ; EN : Prints a size value when its element width is supported.
+    ;
+    ; ES : Imprime un valor de tamaño cuando su ancho de elemento es compatible.
     if value_size == 4 || value_size == 8:
         _print_usize_value(value)
-    return
-
-@unsafe
-public inline func println_int(value: isize) void:
-    print_int(value)
-    print("\n")
-    return
-
-@unsafe
-public inline func println_uint(value: usize) void:
-    print_uint(value)
-    print("\n")
-    return
-
-@unsafe
-public inline func println_bool(value: bool) void:
-    print_bool(value)
-    print("\n")
-    return
-
-@unsafe
-public inline func println_chars(
-    buffer: char[],
-    length: Len_t,
-    size: Size_t
-) void:
-    print_chars(buffer)
-    print("\n")
-    return
-
-@unsafe
-public inline func println_buffer(data: buffer[], length: Len_t) void:
-    print_buffer(data)
-    print("\n")
+    if nl:
+        _append_line_break()
     return

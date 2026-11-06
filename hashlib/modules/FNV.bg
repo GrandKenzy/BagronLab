@@ -1,0 +1,48 @@
+mold FNVByteView:
+    raw: byte
+    numeric: uint8
+
+public FNV1A32_OFFSET: const uint32 = 0x811C9DC5
+public FNV1A32_PRIME: const uint32 = 0x01000193
+public FNV1A64_OFFSET: const uint64 = 14695981039346656037
+public FNV1A64_PRIME: const uint64 = 1099511628211
+
+@unsafe
+public func fnv1a32(
+    data: byte[],
+    length: Len_t,
+    element_size: Size_t
+) uint32:
+    ; EN : Computes the 32-bit FNV-1a hash of a byte array.
+    ; This hash is non-cryptographic and intended for fast indexing and lookup.
+    ;
+    ; ES : Calcula el hash FNV-1a de 32 bits de un array de bytes.
+    ; No es criptografico; sirve para indexacion y busqueda rapidas.
+    hash: uint32 = FNV1A32_OFFSET
+    index: usize = 0
+    while index < length:
+        view: FNVByteView
+        view.raw = data[index]
+        hash = (hash ^ view.numeric) * FNV1A32_PRIME
+        index += 1
+    return hash
+
+@unsafe
+public func fnv1a64(
+    data: byte[],
+    length: Len_t,
+    element_size: Size_t
+) uint64:
+    ; EN : Computes the 64-bit FNV-1a hash of a byte array.
+    ; This hash is non-cryptographic and intended for fast indexing and lookup.
+    ;
+    ; ES : Calcula el hash FNV-1a de 64 bits de un array de bytes.
+    ; No es criptografico; sirve para indexacion y busqueda rapidas.
+    hash: uint64 = FNV1A64_OFFSET
+    index: usize = 0
+    while index < length:
+        view: FNVByteView
+        view.raw = data[index]
+        hash = (hash ^ view.numeric) * FNV1A64_PRIME
+        index += 1
+    return hash
