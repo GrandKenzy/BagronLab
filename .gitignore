@@ -5,6 +5,8 @@
 
 # Generated compiler output
 **/build/
+!/build/
+!/build/**
 **/__pycache__/
 *.py[cod]
 *.exe
