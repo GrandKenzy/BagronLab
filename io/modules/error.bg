@@ -7,7 +7,7 @@
 ;
 @unsafe
 public func last_error() uint32:
-    return Win.GetLastError()
+    return Win.last_error()
 
 ; EN : Clears the last-error value for the calling Windows thread.
 ;

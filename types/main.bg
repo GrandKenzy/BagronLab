@@ -1,8 +1,3 @@
+; Library source root for reusable integer types.
 clause Arch "amd"
 clause System "windows"
-
-
-
-func main() int32:
-
-    return 0

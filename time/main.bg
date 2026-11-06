@@ -1,3 +1,4 @@
 ; Library source root for the standard time API.
 clause System "windows"
 clause Arch "amd"
+library "windows.lib" as Win

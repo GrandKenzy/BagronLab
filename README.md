@@ -6,9 +6,10 @@ the source of truth for the language, compiler, frontend, backend, and general
 language documentation.
 
 This repository intentionally excludes the experimental `net/` and `Brixel/`
-projects. Generated `build/` directories and compiler binaries are ignored;
-source modules, library packages deliberately kept outside `build/`, and
-library-specific documentation belong here.
+projects from this cleanup. The `string/` and `alphabet` sources are also
+left untouched. The root `build/` directory is the single clean location for
+all precompiled `lib1` packages; source modules and library documentation
+remain outside it.
 
 ## Goals
 
@@ -36,6 +37,7 @@ library-specific documentation belong here.
 | `math/` | Mathematical algorithms and constants. |
 | `types/` | Reusable type experiments and integer helpers. |
 | `standard/` | Historical compatibility project and dependency artifacts. |
+| `build/` | Precompiled, validated `lib1` packages ready for consumers. |
 | `docs/` | Documentation specific to laboratory libraries. |
 
 ## Tooling
@@ -48,8 +50,11 @@ bagron <source.bg> -o <output> [--execute]
 
 Do not use the compiler repository's `vnma` entry point for laboratory
 projects. Build and smoke-test a module with the installed `bagron` command.
-Keep generated output under a library's `build/` directory so it remains
-ignored by Git.
+Keep every precompiled library in the root `build/` directory. Do not leave
+published output packages in source trees or nested build caches. A source
+library may retain the `.lib` dependencies declared by its `main.bg` under its
+own `libs/` directory; for example, `os/libs/` keeps `gnulibrary.lib` and
+`windows.lib` because `os` consumes both targets.
 
 ## Library packages
 
@@ -65,12 +70,23 @@ bagron library --v1 <library-source> -o <library>.lib \
 For example:
 
 ```text
-bagron library --v1 gnulibrary -o gnulibrary/gnulibrary.lib \
-    --name gnulibrary --version 1.1.1
+bagron library --v1 gnulibrary -o build/gnulibrary.lib \
+    --name gnulibrary --version 1.1.3
 ```
 
 Use `lib2` only when a compiled, target-specific package is explicitly needed.
-Do not commit generated intermediate files from `build/`.
+
+The validated packages currently exposed by this lab are:
+
+- `build/gnulibrary.lib` and `build/windows.lib` — canonical native targets.
+- `build/io.lib` — cross-platform system I/O helpers.
+- `build/hashlib.lib` and `build/math.lib` — portable Bagron libraries.
+- `build/string.lib` — retained precompiled string package.
+
+`mmap`, `time`, `mem`, `types`, and the historical `standard` tree are not
+published until their completeness and targets are confirmed. `net/` and `Brixel/`
+remain explicitly omitted from this cleanup; the `string/` and `alphabet`
+sources were not modified.
 
 ## API documentation and VSIX support
 

@@ -1,0 +1,3 @@
+; Library source root for the native Windows ABI.
+clause System "windows"
+clause Arch "amd"
