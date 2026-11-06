@@ -109,6 +109,7 @@ belong in each library's `main.bg`; modules inherit the selected target.
 
 - `docs/gnulibrary/` documents Linux compatibility APIs.
 - `docs/windows/` documents the Windows native API.
+- `docs/string/` documents string operations and the `alphabet` constants.
 - `docs/standard/` documents the standard-library laboratory layout.
 
 When adding a library, create its documentation directory under `docs/` and

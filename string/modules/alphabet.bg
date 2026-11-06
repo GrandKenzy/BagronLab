@@ -1,4 +1,7 @@
-; Conjuntos de caracteres publicos para escaneo, validacion y serializacion.
+; EN : Public character sets for scanning, validation, and serialization.
+; Each chain is an alphabet with intentional ordering and no hidden runtime logic.
+;
+; ES : Conjuntos de caracteres publicos para escaneo, validacion y serializacion.
 ; Cada cadena funciona como un alfabeto: el orden es intencional y no hay
 ; logica runtime escondida en este modulo.
 
