@@ -1,0 +1,72 @@
+import { sqrt } from sqrt
+
+#if ARCHB, "64"
+public func hypot(x: double, y: double) double:
+    ; EN : Returns the Euclidean length of the pair (x, y).
+    ; Scales by the larger magnitude to avoid unnecessary overflow or underflow.
+    ;
+    ; ES : Devuelve la longitud euclidiana del par (x, y).
+    ; Escala por la mayor magnitud para evitar overflow o underflow innecesarios.
+    absolute_x: double = x
+    if absolute_x < 0.0:
+        absolute_x = 0.0 - absolute_x
+
+    absolute_y: double = y
+    if absolute_y < 0.0:
+        absolute_y = 0.0 - absolute_y
+
+    if absolute_x == 0.0:
+        return absolute_y
+    if absolute_y == 0.0:
+        return absolute_x
+    if absolute_x == absolute_x * 2.0:
+        return absolute_x
+    if absolute_y == absolute_y * 2.0:
+        return absolute_y
+
+    larger: double = absolute_x
+    smaller: double = absolute_y
+    if absolute_y > absolute_x:
+        larger = absolute_y
+        smaller = absolute_x
+
+    ratio: double = smaller / larger
+    return larger * sqrt(1.0 + ratio * ratio)
+
+#elif ARCHB, "32"
+public func hypot(x: float, y: float) float:
+    ; EN : Returns the Euclidean length of the pair (x, y) for 32-bit floats.
+    ; Scales by the larger magnitude to avoid unnecessary overflow or underflow.
+    ;
+    ; ES : Devuelve la longitud euclidiana del par (x, y) para floats de 32 bits.
+    ; Escala por la mayor magnitud para evitar overflow o underflow innecesarios.
+    absolute_x: float = x
+    if absolute_x < 0.0:
+        absolute_x = 0.0 - absolute_x
+
+    absolute_y: float = y
+    if absolute_y < 0.0:
+        absolute_y = 0.0 - absolute_y
+
+    if absolute_x == 0.0:
+        return absolute_y
+    if absolute_y == 0.0:
+        return absolute_x
+    if absolute_x == absolute_x * 2.0:
+        return absolute_x
+    if absolute_y == absolute_y * 2.0:
+        return absolute_y
+
+    larger: float = absolute_x
+    smaller: float = absolute_y
+    if absolute_y > absolute_x:
+        larger = absolute_y
+        smaller = absolute_x
+
+    ratio: float = smaller / larger
+    return larger * sqrt(1.0 + ratio * ratio)
+
+#else
+
+
+#end

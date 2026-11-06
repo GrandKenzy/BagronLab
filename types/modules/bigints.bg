@@ -1,0 +1,182 @@
+import io
+import { HexadecimalUpperString } from alphabet
+
+@unsafe
+func print_hexu64(value: uint64) void:
+    shift: uint32 = 60
+    digit: uint64 = 0
+
+    while true:
+        digit = (value >> shift) & 15
+        io.print_char(HexadecimalUpperString[digit])
+
+        if shift == 0:
+            break
+
+        shift -= 4
+
+    return
+
+@unsafe
+func print_hex64(value: int64) void:
+    shift: int64 = 60
+    digit: int64 = 0
+
+    while true:
+        digit = (value >> shift) & 15
+        io.print_char(HexadecimalUpperString[digit])
+
+        if shift == 0:
+            break
+
+        shift -= 4
+
+    return
+    
+@packed
+class uint128:
+    func __init__(high: uint64, low: uint64) void:
+        self.low = low
+        self.high = high
+
+    @unsafe
+    func print() void:
+        print_hexu64(self.high)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return
+
+
+@packed
+class uint256:
+    func __init__(
+        high3: uint64,
+        high2: uint64,
+        high1: uint64,
+        low: uint64
+    ) void:
+        self.high3 = high3
+        self.high2 = high2
+        self.high1 = high1
+        self.low = low
+
+    @unsafe
+    func print() void:
+        print_hexu64(self.high3)
+        print_hexu64(self.high2)
+        print_hexu64(self.high1)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return
+
+
+@packed
+class uint512:
+    func __init__(
+        high7: uint64,
+        high6: uint64,
+        high5: uint64,
+        high4: uint64,
+        high3: uint64,
+        high2: uint64,
+        high1: uint64,
+        low: uint64
+    ) void:
+        self.high7 = high7
+        self.high6 = high6
+        self.high5 = high5
+        self.high4 = high4
+        self.high3 = high3
+        self.high2 = high2
+        self.high1 = high1
+        self.low = low
+
+    @unsafe
+    func print() void:
+        print_hexu64(self.high7)
+        print_hexu64(self.high6)
+        print_hexu64(self.high5)
+        print_hexu64(self.high4)
+        print_hexu64(self.high3)
+        print_hexu64(self.high2)
+        print_hexu64(self.high1)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return
+
+@packed
+class int128:
+    func __init__(high: int64, low: uint64) void:
+        self.high = high
+        self.low = low
+
+    @unsafe
+    func print() void:
+        print_hex64(self.high)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return
+
+
+@packed
+class int256:
+    func __init__(
+        high3: int64,
+        high2: uint64,
+        high1: uint64,
+        low: uint64
+    ) void:
+        self.high3 = high3
+        self.high2 = high2
+        self.high1 = high1
+        self.low = low
+
+    @unsafe
+    func print() void:
+        print_hex64(self.high3)
+        print_hexu64(self.high2)
+        print_hexu64(self.high1)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return
+
+
+@packed
+class int512:
+    func __init__(
+        high7: int64,
+        high6: uint64,
+        high5: uint64,
+        high4: uint64,
+        high3: uint64,
+        high2: uint64,
+        high1: uint64,
+        low: uint64
+    ) void:
+        self.high7 = high7
+        self.high6 = high6
+        self.high5 = high5
+        self.high4 = high4
+        self.high3 = high3
+        self.high2 = high2
+        self.high1 = high1
+        self.low = low
+
+    @unsafe
+    func print() void:
+        print_hex64(self.high7)
+        print_hexu64(self.high6)
+        print_hexu64(self.high5)
+        print_hexu64(self.high4)
+        print_hexu64(self.high3)
+        print_hexu64(self.high2)
+        print_hexu64(self.high1)
+        print_hexu64(self.low)
+        io.println('')
+        io.flush()
+        return

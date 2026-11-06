@@ -1,0 +1,57 @@
+; EN: Bagron process and scheduler helpers built on Kernel32.
+;
+; ES: Ayudas de procesos y planificación de Bagron construidas sobre Kernel32.
+
+import {
+    ExitProcess,
+    GetCurrentProcessId,
+    GetLastError,
+    SetLastError,
+    Sleep,
+    SwitchToThread
+} from kernel32
+
+; EN: Returns the identifier of the current Windows process.
+;
+; ES: Devuelve el identificador del proceso actual de Windows.
+@unsafe
+public func process_id() uint32:
+    return GetCurrentProcessId()
+
+; EN: Terminates the current process with the supplied exit code.
+;
+; ES: Termina el proceso actual con el código de salida indicado.
+@unsafe
+public func exit_process(code: uint32) void:
+    ExitProcess(code)
+    return
+
+; EN: Suspends the current thread for the requested number of milliseconds.
+;
+; ES: Suspende la hebra actual durante los milisegundos solicitados.
+@unsafe
+public func sleep_ms(milliseconds: uint32) void:
+    Sleep(milliseconds)
+    return
+
+; EN: Yields the current thread and reports whether another thread was scheduled.
+;
+; ES: Cede la hebra actual e indica si se planificó otra hebra.
+@unsafe
+public func yield_thread() bool:
+    return SwitchToThread() != 0
+
+; EN: Reads the last-error value associated with the current thread.
+;
+; ES: Lee el valor de último error asociado con la hebra actual.
+@unsafe
+public func last_error() uint32:
+    return GetLastError()
+
+; EN: Sets the last-error value associated with the current thread.
+;
+; ES: Establece el valor de último error asociado con la hebra actual.
+@unsafe
+public func set_last_error(error_code: uint32) void:
+    SetLastError(error_code)
+    return

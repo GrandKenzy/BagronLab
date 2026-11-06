@@ -1,0 +1,21 @@
+# Excluded laboratory projects
+/net/
+/Brixel/
+/brixel/
+
+# Generated compiler output
+**/build/
+**/__pycache__/
+*.py[cod]
+*.exe
+*.obj
+*.o
+*.ll
+*.pdb
+*.ilk
+*.log
+/log/
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db

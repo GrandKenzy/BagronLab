@@ -1,0 +1,111 @@
+
+#if ARCHB, "64"
+public func sqrt(value: double) double:
+    ; EN : Returns the square root of a double value using Newton-Raphson.
+    ; Zero and negative inputs return zero; finite extreme values are scaled.
+    ;
+    ; ES : Devuelve la raiz cuadrada de un valor double mediante Newton-Raphson.
+    ; Las entradas cero y negativas devuelven cero; los extremos finitos se escalan.
+    if value <= 0.0:
+        return 0.0
+
+    normalized: double = value
+    scale: double = 1.0
+    scale_steps: uint32 = 0
+    while normalized > 4.0 && scale_steps < 1024:
+        normalized = normalized / 4.0
+        scale = scale * 2.0
+        scale_steps = scale_steps + 1
+    while normalized < 1.0 && scale_steps < 1024:
+        normalized = normalized * 4.0
+        scale = scale / 2.0
+        scale_steps = scale_steps + 1
+
+    guess: double = (normalized + 1.0) / 2.0
+    iteration: uint32 = 0
+    while iteration < 16:
+        guess = (guess + normalized / guess) / 2.0
+        iteration = iteration + 1
+
+    return guess * scale
+
+
+public func usqrt(value: uint64) uint64:
+    ; EN : Returns the truncated integer square root of a uint64 value.
+    ; Uses overflow-safe binary search; for example, usqrt(15) returns 3.
+    ;
+    ; ES : Devuelve la raiz cuadrada entera truncada de un valor uint64.
+    ; Usa busqueda binaria segura contra overflow; por ejemplo, usqrt(15) devuelve 3.
+    if value < 2:
+        return value
+
+    low: uint64 = 1
+    high: uint64 = value
+    result: uint64 = 1
+
+    while low <= high:
+        midpoint: uint64 = low + (high - low) / 2
+        if midpoint <= value / midpoint:
+            result = midpoint
+            low = midpoint + 1
+        else:
+            high = midpoint - 1
+
+    return result
+
+#elif ARCHB, "32"
+public func sqrt(value: float) float:
+    ; EN : Returns the square root of a 32-bit floating-point value.
+    ; Zero and negative inputs return zero; finite extreme values are scaled.
+    ;
+    ; ES : Devuelve la raiz cuadrada de un valor flotante de 32 bits.
+    ; Las entradas cero y negativas devuelven cero; los extremos finitos se escalan.
+    if value <= 0.0:
+        return 0.0
+
+    normalized: float = value
+    scale: float = 1.0
+    scale_steps: uint32 = 0
+    while normalized > 4.0 && scale_steps < 1024:
+        normalized = normalized / 4.0
+        scale = scale * 2.0
+        scale_steps = scale_steps + 1
+    while normalized < 1.0 && scale_steps < 1024:
+        normalized = normalized * 4.0
+        scale = scale / 2.0
+        scale_steps = scale_steps + 1
+
+    guess: float = (normalized + 1.0) / 2.0
+    iteration: uint32 = 0
+    while iteration < 8:
+        guess = (guess + normalized / guess) / 2.0
+        iteration = iteration + 1
+
+    return guess * scale
+
+public func usqrt(value: uint32) uint32:
+    ; EN : Returns the truncated integer square root of a uint32 value.
+    ; Uses overflow-safe binary search; for example, usqrt(15) returns 3.
+    ;
+    ; ES : Devuelve la raiz cuadrada entera truncada de un valor uint32.
+    ; Usa busqueda binaria segura contra overflow; por ejemplo, usqrt(15) devuelve 3.
+    if value < 2:
+        return value
+
+    low: uint32 = 1
+    high: uint32 = value
+    result: uint32 = 1
+
+    while low <= high:
+        midpoint: uint32 = low + (high - low) / 2
+        if midpoint <= value / midpoint:
+            result = midpoint
+            low = midpoint + 1
+        else:
+            high = midpoint - 1
+
+    return result
+#else
+
+
+#end

@@ -1,0 +1,25 @@
+
+; linux.bg - Frontera ABI Linux/POSIX
+
+
+clause System 'linux'
+
+public STDIN_FILENO: const int32 = 0
+public STDOUT_FILENO: const int32 = 1
+public STDERR_FILENO: const int32 = 2
+
+@unsafe
+public func read(
+    fd: int64,
+    data *: void,
+    count: usize
+) int64:
+    return Gnu.read(fd, data, count)
+
+@unsafe
+public func write(
+    fd: int64,
+    data *: void,
+    count: usize
+) int64:
+    return Gnu.write(fd, data, count)

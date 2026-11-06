@@ -1,0 +1,95 @@
+import { CRC32, crc32 } from CRC32
+import { SHA256Digest, sha256 } from SHA_256
+
+func digest_matches(
+    digest: SHA256Digest,
+    word0: uint32,
+    word1: uint32,
+    word2: uint32,
+    word3: uint32,
+    word4: uint32,
+    word5: uint32,
+    word6: uint32,
+    word7: uint32
+) bool:
+    if digest.word0 != word0:
+        return false
+    if digest.word1 != word1:
+        return false
+    if digest.word2 != word2:
+        return false
+    if digest.word3 != word3:
+        return false
+    if digest.word4 != word4:
+        return false
+    if digest.word5 != word5:
+        return false
+    if digest.word6 != word6:
+        return false
+    if digest.word7 != word7:
+        return false
+    return true
+
+@unsafe
+func main() int32:
+    data: byte[9] = {
+        49, 50, 51, 52, 53,
+        54, 55, 56, 57
+    }
+
+    checksum: CRC32 = CRC32()
+    checksum.update(data)
+
+    result: uint32 = checksum.finalize()
+
+    if result == 0xCBF43926:
+        chunked: CRC32 = CRC32()
+        first: byte[4] = {49, 50, 51, 52}
+        second: byte[5] = {53, 54, 55, 56, 57}
+        chunked.update(first)
+        chunked.update(second)
+
+        if chunked.finalize() != result:
+            return 1
+        if not chunked.verify(result):
+            return 1
+
+        chunked.reset()
+        if chunked.finalize() != 0:
+            return 1
+        if crc32(data) != result:
+            return 1
+
+        empty: CRC32 = CRC32()
+        if empty.finalize() != 0:
+            return 1
+
+        abc: byte[3] = {97, 98, 99}
+        abc_digest: SHA256Digest = sha256(abc)
+        if not digest_matches(
+            abc_digest,
+            0xBA7816BF, 0x8F01CFEA, 0x414140DE, 0x5DAE2223,
+            0xB00361A3, 0x96177A9C, 0xB410FF61, 0xF20015AD
+        ):
+            return 1
+
+        boundary: byte[56] = {
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97
+        }
+        boundary_digest: SHA256Digest = sha256(boundary)
+        if not digest_matches(
+            boundary_digest,
+            0xB35439A4, 0xAC6F0948, 0xB6D6F9E3, 0xC6AF0F5F,
+            0x590CE20F, 0x1BDE7090, 0xEF797068, 0x6EC6738A
+        ):
+            return 1
+
+        return 0
+
+    return 1

@@ -1,0 +1,99 @@
+
+#if ARCHB, "64"
+public func abs(value: double) double:
+    ; EN : Returns the absolute value of a double.
+    ; The result keeps the input magnitude without changing its type.
+    ;
+    ; ES : Devuelve el valor absoluto de un double.
+    ; El resultado conserva la magnitud de entrada sin cambiar su tipo.
+    if value < 0.0:
+        return 0.0 - value
+    return value
+
+public func fabs(value: double) double:
+    ; EN : Returns the floating-point absolute value of a double.
+    ; This is the explicit floating-point alias of abs.
+    ;
+    ; ES : Devuelve el valor absoluto de punto flotante de un double.
+    ; Es el alias explicito de punto flotante para abs.
+    return abs(value)
+
+public func min(a: double, b: double) double:
+    ; EN : Returns the smaller of two double values.
+    ;
+    ; ES : Devuelve el menor de dos valores double.
+    if a < b:
+        return a
+    return b
+
+public func max(a: double, b: double) double:
+    ; EN : Returns the larger of two double values.
+    ;
+    ; ES : Devuelve el mayor de dos valores double.
+    if a > b:
+        return a
+    return b
+
+public func clamp(value: double, low: double, high: double) double:
+    ; EN : Restricts a double value to the inclusive range [low, high].
+    ; Requires low to be less than or equal to high.
+    ;
+    ; ES : Limita un valor double al rango inclusivo [low, high].
+    ; Requiere que low sea menor o igual que high.
+    if value < low:
+        return low
+    if value > high:
+        return high
+    return value
+
+#elif ARCHB, "32"
+public func abs(value: float) float:
+    ; EN : Returns the absolute value of a 32-bit float.
+    ; The result keeps the input magnitude without changing its type.
+    ;
+    ; ES : Devuelve el valor absoluto de un float de 32 bits.
+    ; El resultado conserva la magnitud de entrada sin cambiar su tipo.
+    if value < 0.0:
+        return 0.0 - value
+    return value
+
+public func fabs(value: float) float:
+    ; EN : Returns the floating-point absolute value of a 32-bit float.
+    ; This is the explicit floating-point alias of abs.
+    ;
+    ; ES : Devuelve el valor absoluto de punto flotante de un float de 32 bits.
+    ; Es el alias explicito de punto flotante para abs.
+    return abs(value)
+
+public func min(a: float, b: float) float:
+    ; EN : Returns the smaller of two 32-bit floating-point values.
+    ;
+    ; ES : Devuelve el menor de dos valores de punto flotante de 32 bits.
+    if a < b:
+        return a
+    return b
+
+public func max(a: float, b: float) float:
+    ; EN : Returns the larger of two 32-bit floating-point values.
+    ;
+    ; ES : Devuelve el mayor de dos valores de punto flotante de 32 bits.
+    if a > b:
+        return a
+    return b
+
+public func clamp(value: float, low: float, high: float) float:
+    ; EN : Restricts a 32-bit float to the inclusive range [low, high].
+    ; Requires low to be less than or equal to high.
+    ;
+    ; ES : Limita un float de 32 bits al rango inclusivo [low, high].
+    ; Requiere que low sea menor o igual que high.
+    if value < low:
+        return low
+    if value > high:
+        return high
+    return value
+
+#else
+
+
+#end

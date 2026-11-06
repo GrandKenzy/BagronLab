@@ -1,0 +1,88 @@
+; Linux constants shared by gnulibrary modules and consumers.
+
+; File descriptors
+public STDIN: const int32 = 0
+public STDOUT: const int32 = 1
+public STDERR: const int32 = 2
+
+; Directory-relative operations
+public AT_FDCWD: const int32 = -100
+public AT_SYMLINK_NOFOLLOW: const uint32 = 256
+public AT_REMOVEDIR: const uint32 = 512
+public AT_SYMLINK_FOLLOW: const uint32 = 1024
+public AT_EMPTY_PATH: const uint32 = 4096
+
+; Open flags
+public O_RDONLY: const uint32 = 0
+public O_WRONLY: const uint32 = 1
+public O_RDWR: const uint32 = 2
+public O_CREAT: const uint32 = 64
+public O_EXCL: const uint32 = 128
+public O_NOCTTY: const uint32 = 256
+public O_TRUNC: const uint32 = 512
+public O_APPEND: const uint32 = 1024
+public O_NONBLOCK: const uint32 = 2048
+public O_DSYNC: const uint32 = 4096
+public O_DIRECT: const uint32 = 16384
+public O_DIRECTORY: const uint32 = 65536
+public O_NOFOLLOW: const uint32 = 131072
+public O_CLOEXEC: const uint32 = 524288
+public O_PATH: const uint32 = 2097152
+
+; File offsets
+public SEEK_SET: const int32 = 0
+public SEEK_CUR: const int32 = 1
+public SEEK_END: const int32 = 2
+public SEEK_DATA: const int32 = 3
+public SEEK_HOLE: const int32 = 4
+
+; File permission bits
+public S_IRUSR: const uint32 = 256
+public S_IWUSR: const uint32 = 128
+public S_IXUSR: const uint32 = 64
+public S_IRGRP: const uint32 = 32
+public S_IWGRP: const uint32 = 16
+public S_IXGRP: const uint32 = 8
+public S_IROTH: const uint32 = 4
+public S_IWOTH: const uint32 = 2
+public S_IXOTH: const uint32 = 1
+public MODE_USER_READ_WRITE: const uint32 = 420
+public MODE_USER_READ_WRITE_EXEC: const uint32 = 493
+
+; mmap protection and mapping flags
+public PROT_NONE: const uint32 = 0
+public PROT_READ: const uint32 = 1
+public PROT_WRITE: const uint32 = 2
+public PROT_EXEC: const uint32 = 4
+public MAP_SHARED: const uint32 = 1
+public MAP_PRIVATE: const uint32 = 2
+public MAP_FIXED: const uint32 = 16
+public MAP_ANONYMOUS: const uint32 = 32
+public MAP_GROWSDOWN: const uint32 = 256
+public MAP_NORESERVE: const uint32 = 16384
+public MAP_POPULATE: const uint32 = 32768
+public MAP_STACK: const uint32 = 131072
+
+; renameat2 flags
+public RENAME_NOREPLACE: const uint32 = 1
+public RENAME_EXCHANGE: const uint32 = 2
+public RENAME_WHITEOUT: const uint32 = 4
+
+; clock IDs
+public CLOCK_REALTIME: const int32 = 0
+public CLOCK_MONOTONIC: const int32 = 1
+public CLOCK_PROCESS_CPUTIME_ID: const int32 = 2
+public CLOCK_THREAD_CPUTIME_ID: const int32 = 3
+public CLOCK_MONOTONIC_RAW: const int32 = 4
+public CLOCK_REALTIME_COARSE: const int32 = 5
+public CLOCK_MONOTONIC_COARSE: const int32 = 6
+public CLOCK_BOOTTIME: const int32 = 7
+
+; getrandom flags
+public GRND_NONBLOCK: const uint32 = 1
+public GRND_RANDOM: const uint32 = 2
+public GRND_INSECURE: const uint32 = 4
+
+; Signal numbers used by low-level process control.
+public SIGTRAP: const uint32 = 5
+public SIGABRT: const uint32 = 6

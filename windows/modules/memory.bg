@@ -1,0 +1,60 @@
+; EN: Bagron-owned virtual-memory operations built on Kernel32.
+;
+; ES: Operaciones de memoria virtual propias de Bagron construidas sobre Kernel32.
+
+import {
+    MEM_COMMIT,
+    MEM_RELEASE,
+    MEM_RESERVE,
+    MEMORY_REGION,
+    PAGE_READWRITE,
+    VirtualAlloc,
+    VirtualFree,
+    VirtualProtect,
+    VirtualQuery
+} from kernel32
+
+; EN: Reserves and commits a read/write memory region owned by the caller.
+;
+; ES: Reserva y confirma una región de memoria de lectura/escritura propiedad del llamador.
+@unsafe
+public func allocate(size: uint64) MEMORY_REGION:
+    return VirtualAlloc(Null, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
+
+; EN: Releases a complete region previously returned by allocate.
+; The address must be the allocation base; it cannot be used after success.
+;
+; ES: Libera una región completa obtenida previamente mediante allocate.
+; La dirección debe ser la base de la asignación; no puede usarse tras el éxito.
+@unsafe
+public func release(address: MEMORY_REGION) bool:
+    return VirtualFree(address, 0, MEM_RELEASE) != 0
+
+; EN: Changes protection and stores the previous protection in old_protection.
+;
+; ES: Cambia la protección y guarda la protección anterior en old_protection.
+@unsafe
+public func protect(
+    address: MEMORY_REGION,
+    size: uint64,
+    new_protection: uint32,
+    old_protection *: uint32
+) bool:
+    if size == 0:
+        return false
+    return VirtualProtect(address, size, new_protection, old_protection) != 0
+
+; EN: Queries a virtual-memory region into a caller-provided native buffer.
+; The buffer must fit a Windows x64 MEMORY_BASIC_INFORMATION structure.
+;
+; ES: Consulta una región de memoria virtual en un buffer nativo del llamador.
+; El buffer debe alojar una estructura MEMORY_BASIC_INFORMATION de Windows x64.
+@unsafe
+public func query(
+    address: MEMORY_REGION,
+    information *: void,
+    information_size: uint64
+) uint64:
+    if information_size == 0:
+        return 0
+    return VirtualQuery(address, information, information_size)

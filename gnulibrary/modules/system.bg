@@ -1,0 +1,220 @@
+
+
+@assembler
+public func exit(code: int32) Never:
+    ; EN: Terminates the calling thread; use exit_group to end the entire process.
+    ; The code is already in %edi under System V.
+    ;
+    ; ES: Termina la hebra llamadora; usa exit_group para finalizar todo el proceso.
+    ; El código ya está en %edi según System V.
+    #assembler "att"
+        movq $60, %rax
+        syscall
+    #end
+
+@assembler
+public func exit_group(code: int32) Never:
+    ; EN: Terminates every thread in the current process with the given code.
+    ;
+    ; ES: Termina todas las hebras del proceso actual con el código indicado.
+    #assembler "att"
+        movq $231, %rax
+        syscall
+    #end
+
+@assembler
+public func getpid() int64:
+    ; EN: Returns the process identifier.
+    ; ES: Retorna el identificador de un proceso
+    #assembler "att"
+        movq $39, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getpid32() uint32:
+    ; EN: Returns the process identifier in the native pid_t-sized integer range.
+    ; ES: Retorna el identificador del proceso en el rango entero nativo de pid_t.
+    #assembler "att"
+        movq $39, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func kill(pid: uint32, signal: uint32) int64:
+    ; EN: Sends a signal to a process and returns the raw kernel result.
+    ; ES: Envía una señal a un proceso y retorna el resultado crudo del kernel.
+    #assembler "att"
+        movq $62, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func read(fd: int64, buf *: void, size: usize) int64:
+    ; EN: Reads up to size bytes from fd into buf.
+    ; ES: Lee los bytes de un archivo y los mete en un buffer.
+    #assembler "att"
+        movq $0, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func write(fd: int64, buf *: void, size: usize) int64:
+    ; EN: Writes up to size bytes from buf to fd.
+    ; ES: Escribe bytes desde un buffer a un archivo.
+    #assembler "att"
+        movq $1, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func close(fd: int64) int64:
+    ; EN: Closes a file descriptor.
+    ; ES: Cierra el descriptor de un archivo.
+    #assembler "att"
+        movq $3, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getppid() int64:
+    ; EN: Returns the parent process identifier.
+    ; ES: Retorna el identificador del proceso padre.
+    #assembler "att"
+        movq $110, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getuid() int64:
+    ; EN: Returns the real user identifier of the calling process.
+    ; ES: Retorna el identificador real de usuario del proceso llamador.
+    #assembler "att"
+        movq $102, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func geteuid() int64:
+    ; EN: Returns the effective user identifier of the calling process.
+    ; ES: Retorna el identificador efectivo de usuario del proceso llamador.
+    #assembler "att"
+        movq $107, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getgid() int64:
+    ; EN: Returns the real group identifier of the calling process.
+    ; ES: Retorna el identificador real de grupo del proceso llamador.
+    #assembler "att"
+        movq $104, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getegid() int64:
+    ; EN: Returns the effective group identifier of the calling process.
+    ; ES: Retorna el identificador efectivo de grupo del proceso llamador.
+    #assembler "att"
+        movq $108, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func sched_yield() int64:
+    ; EN: Voluntarily yields the processor to another runnable thread.
+    ; ES: Cede voluntariamente el procesador a otro hilo ejecutable.
+    #assembler "att"
+        movq $24, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func mmap(addr *: void, length: uint64, prot: uint32, map_flags: uint32, fd: int64, offset: uint64) int64:
+    ; EN: Maps anonymous or file-backed memory and returns the raw kernel result.
+    ; The raw int64 preserves negative errno values and pointer bits.
+    ; ES: Mapea memoria anónima o respaldada por archivo y retorna el resultado crudo.
+    ; El int64 conserva los errno negativos y los bits del puntero.
+    #assembler "att"
+        movl %ecx, %r10d
+        movq $9, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func munmap(addr *: void, length: uint64) int64:
+    ; EN: Unmaps a memory range previously returned by mmap.
+    ; ES: Desmapea un rango de memoria obtenido previamente mediante mmap.
+    #assembler "att"
+        movq $11, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func clock_gettime(clock_id: int32, timespec *: void) int64:
+    ; EN: Writes a clock reading to a caller-provided timespec buffer.
+    ; ES: Escribe la lectura de un reloj en un buffer timespec proporcionado por el llamador.
+    #assembler "att"
+        movq $228, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func nanosleep(request *: void, remainder *: void) int64:
+    ; EN: Suspends execution according to a caller-provided timespec buffer.
+    ; ES: Suspende la ejecución según un buffer timespec proporcionado por el llamador.
+    #assembler "att"
+        movq $35, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func getrandom(buffer *: void, size: uint64, random_flags: uint32) int64:
+    ; EN: Fills a buffer with bytes from the kernel random source.
+    ;
+    ; ES: Llena un buffer con bytes provenientes de la fuente aleatoria del kernel.
+    #assembler "att"
+        movq $318, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func nanosleep_ms(milliseconds: uint32) int64:
+    ; EN: Suspends the calling thread for a millisecond interval using nanosleep.
+    ; ES: Suspende la hebra llamadora durante un intervalo de milisegundos usando nanosleep.
+    #assembler "att"
+        subq $24, %rsp
+        movl %edi, %eax
+        xorl %edx, %edx
+        movl $1000, %ecx
+        divl %ecx
+        movq %rax, (%rsp)
+        movl %edx, %eax
+        movl $1000000, %ecx
+        mull %ecx
+        movq %rax, 8(%rsp)
+        movq %rsp, %rdi
+        xorl %esi, %esi
+        movq $35, %rax
+        syscall
+        addq $24, %rsp
+    #end
+    return asm

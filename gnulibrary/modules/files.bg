@@ -1,0 +1,165 @@
+@assembler
+public func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
+    ; EN: Opens or creates a path relative to a directory file descriptor.
+    ; The fourth System V argument arrives in %ecx and must move to %r10d for Linux.
+    ;
+    ; ES: Abre o crea una ruta relativa a un descriptor de directorio.
+    ; El cuarto argumento System V llega en %ecx y debe pasar a %r10d para Linux.
+    #assembler "att"
+        movl %ecx, %r10d
+        movq $257, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func lseek(fd: int64, offset: int64, whence: int32) int64:
+    ; EN: Changes the file offset and returns the raw resulting position.
+    ; ES: Cambia la posición del archivo y retorna la posición resultante cruda.
+    #assembler "att"
+        movq $8, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func dup3(oldfd: int32, newfd: int32, dup_flags: uint32) int64:
+    ; EN: Duplicates a file descriptor with explicit close-on-exec flags.
+    ; ES: Duplica un descriptor con flags explícitos de close-on-exec.
+    #assembler "att"
+        movq $292, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func pipe2(pipefd *: int32, pipe_flags: uint32) int64:
+    ; EN: Creates a pipe and writes its two descriptors to pipefd.
+    ; ES: Crea un pipe y escribe sus dos descriptores en pipefd.
+    #assembler "att"
+        movq $293, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func unlinkat(dirfd: int32, path *: void, unlink_flags: uint32) int64:
+    ; EN: Removes a file or directory relative to a directory file descriptor.
+    ;
+    ; ES: Elimina un archivo o directorio relativo a un descriptor de directorio.
+    #assembler "att"
+        movq $263, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func mkdirat(dirfd: int32, path *: void, mode: uint32) int64:
+    ; EN: Creates a directory relative to a directory file descriptor.
+    ;
+    ; ES: Crea un directorio relativo a un descriptor de directorio.
+    #assembler "att"
+        movq $258, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func renameat2(old_dirfd: int32, old_path *: void, new_dirfd: int32, new_path *: void, rename_flags: uint32) int64:
+    ; EN: Renames a path between directory descriptors with explicit flags.
+    ;
+    ; ES: Renombra una ruta entre descriptores de directorio con flags explícitos.
+    #assembler "att"
+        movq %rcx, %r10
+        movq $316, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func readlinkat(dirfd: int32, path *: void, buffer *: void, size: uint64) int64:
+    ; EN: Reads a symbolic link target relative to a directory descriptor.
+    ;
+    ; ES: Lee el destino de un enlace simbólico relativo a un descriptor de directorio.
+    #assembler "att"
+        movq %rcx, %r10
+        movq $267, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func pread64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
+    ; EN: Reads at an absolute offset without changing the descriptor's position.
+    ; A short read or a negative kernel error is returned unchanged.
+    ;
+    ; ES: Lee en una posición absoluta sin cambiar la posición del descriptor.
+    ; Retorna sin modificar una lectura parcial o un error negativo del kernel.
+    #assembler "att"
+        movq %rcx, %r10
+        movq $17, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func pwrite64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
+    ; EN: Writes at an absolute offset without changing the descriptor's position.
+    ; Linux may still append when the descriptor has O_APPEND.
+    ;
+    ; ES: Escribe en una posición absoluta sin cambiar la posición del descriptor.
+    ; Linux puede añadir al final si el descriptor tiene O_APPEND.
+    #assembler "att"
+        movq %rcx, %r10
+        movq $18, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func fsync(fd: int64) int64:
+    ; EN: Flushes file data and metadata to the backing storage.
+    ;
+    ; ES: Sincroniza los datos y metadatos del archivo con el almacenamiento.
+    #assembler "att"
+        movq $74, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func fdatasync(fd: int64) int64:
+    ; EN: Flushes file data and metadata required to read that data later.
+    ;
+    ; ES: Sincroniza los datos y metadatos necesarios para leerlos después.
+    #assembler "att"
+        movq $75, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func ftruncate(fd: int64, length: int64) int64:
+    ; EN: Resizes an open file to the requested length.
+    ;
+    ; ES: Cambia el tamaño de un archivo abierto a la longitud indicada.
+    #assembler "att"
+        movq $77, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func newfstatat(dirfd: int32, path *: void, stat_buffer *: void, stat_flags: uint32) int64:
+    ; EN: Reads path metadata without opening a file descriptor.
+    ; The fourth System V argument arrives in %ecx and must move to %r10d.
+    ;
+    ; ES: Lee los metadatos de una ruta sin abrir un descriptor de archivo.
+    ; El cuarto argumento System V llega en %ecx y debe pasar a %r10d.
+    #assembler "att"
+        movl %ecx, %r10d
+        movq $262, %rax
+        syscall
+    #end
+    return asm
+

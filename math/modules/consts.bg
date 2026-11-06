@@ -1,0 +1,29 @@
+
+#if ARCHB, "64"
+public PI: const double = 3.141592653589793
+public EULER: const double = 2.718281828459045
+public TAU: const double = 6.283185307179586
+public HALF_PI: const double = 1.5707963267948966
+public LN2: const double = 0.6931471805599453
+public LN10: const double = 2.302585092994046
+public SQRT2: const double = 1.4142135623730951
+public INV_SQRT2: const double = 0.7071067811865475
+public DEG_TO_RAD: const double = 0.017453292519943295
+public RAD_TO_DEG: const double = 57.29577951308232
+
+#elif ARCHB, "32"
+public PI: const float = 3.141592653589793
+public EULER: const float = 2.718281828459045
+public TAU: const float = 6.283185307179586
+public HALF_PI: const float = 1.5707963267948966
+public LN2: const float = 0.6931471805599453
+public LN10: const float = 2.302585092994046
+public SQRT2: const float = 1.4142135623730951
+public INV_SQRT2: const float = 0.7071067811865475
+public DEG_TO_RAD: const float = 0.017453292519943295
+public RAD_TO_DEG: const float = 57.29577951308232
+
+#else
+
+
+#end

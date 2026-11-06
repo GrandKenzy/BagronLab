@@ -1,0 +1,346 @@
+; EN: Native Kernel32 ABI declarations for Bagron on Windows x64.
+;
+; ES: Declaraciones de la ABI nativa de Kernel32 para Bagron en Windows x64.
+
+; EN: This module declares Windows DLL symbols; it does not implement C wrappers.
+;
+; ES: Este módulo declara símbolos de DLL de Windows; no implementa wrappers C.
+
+; EN: HANDLE is an opaque pointer-sized operating-system resource.
+;
+; ES: HANDLE es un recurso opaco del sistema con tamaño de puntero.
+public opaque HANDLE: void*
+
+; EN: MEMORY_REGION is an opaque pointer-sized virtual-memory allocation.
+;
+; ES: MEMORY_REGION es una asignación opaca de memoria virtual con tamaño de puntero.
+public opaque MEMORY_REGION: void*
+
+; EN: File access and sharing constants.
+;
+; ES: Constantes de acceso y compartición de archivos.
+public GENERIC_READ: const uint32 = 2147483648
+public GENERIC_WRITE: const uint32 = 1073741824
+public GENERIC_READ_WRITE: const uint32 = 3221225472
+public FILE_SHARE_NONE: const uint32 = 0
+public FILE_SHARE_READ: const uint32 = 1
+public FILE_SHARE_WRITE: const uint32 = 2
+public FILE_SHARE_DELETE: const uint32 = 4
+public FILE_SHARE_READ_WRITE: const uint32 = 3
+public FILE_SHARE_ALL: const uint32 = 7
+
+; EN: File creation dispositions.
+;
+; ES: Modos de creación de archivos.
+public CREATE_NEW: const uint32 = 1
+public CREATE_ALWAYS: const uint32 = 2
+public OPEN_EXISTING: const uint32 = 3
+public OPEN_ALWAYS: const uint32 = 4
+public TRUNCATE_EXISTING: const uint32 = 5
+
+; EN: File attributes and creation flags.
+;
+; ES: Atributos y flags de creación de archivos.
+public FILE_ATTRIBUTE_READONLY: const uint32 = 1
+public FILE_ATTRIBUTE_HIDDEN: const uint32 = 2
+public FILE_ATTRIBUTE_SYSTEM: const uint32 = 4
+public FILE_ATTRIBUTE_DIRECTORY: const uint32 = 16
+public FILE_ATTRIBUTE_ARCHIVE: const uint32 = 32
+public FILE_ATTRIBUTE_NORMAL: const uint32 = 128
+public FILE_ATTRIBUTE_TEMPORARY: const uint32 = 256
+public FILE_ATTRIBUTE_REPARSE_POINT: const uint32 = 1024
+public INVALID_FILE_ATTRIBUTES: const uint32 = 4294967295
+public FILE_FLAG_WRITE_THROUGH: const uint32 = 2147483648
+public FILE_FLAG_OVERLAPPED: const uint32 = 1073741824
+public FILE_FLAG_NO_BUFFERING: const uint32 = 536870912
+public FILE_FLAG_RANDOM_ACCESS: const uint32 = 268435456
+public FILE_FLAG_SEQUENTIAL_SCAN: const uint32 = 134217728
+public FILE_FLAG_DELETE_ON_CLOSE: const uint32 = 67108864
+public FILE_FLAG_BACKUP_SEMANTICS: const uint32 = 33554432
+public FILE_FLAG_POSIX_SEMANTICS: const uint32 = 16777216
+
+; EN: File positioning and resource-type constants.
+;
+; ES: Constantes de posicionamiento y tipo de recurso.
+public FILE_BEGIN: const uint32 = 0
+public FILE_CURRENT: const uint32 = 1
+public FILE_END: const uint32 = 2
+public FILE_TYPE_UNKNOWN: const uint32 = 0
+public FILE_TYPE_DISK: const uint32 = 1
+public FILE_TYPE_CHAR: const uint32 = 2
+public FILE_TYPE_PIPE: const uint32 = 3
+
+; EN: Standard console handles and the invalid-handle sentinel.
+;
+; ES: Handles de consola estándar y el sentinel de handle inválido.
+public STD_INPUT_HANDLE: const uint32 = 4294967286
+public STD_OUTPUT_HANDLE: const uint32 = 4294967285
+public STD_ERROR_HANDLE: const uint32 = 4294967284
+public INVALID_HANDLE_VALUE: const uint64 = 18446744073709551615
+
+; EN: Move-file flags and common Win32 error codes.
+;
+; ES: Flags de movimiento y códigos de error Win32 comunes.
+public MOVEFILE_REPLACE_EXISTING: const uint32 = 1
+public MOVEFILE_COPY_ALLOWED: const uint32 = 2
+public MOVEFILE_DELAY_UNTIL_REBOOT: const uint32 = 4
+public MOVEFILE_WRITE_THROUGH: const uint32 = 8
+public ERROR_SUCCESS: const uint32 = 0
+public ERROR_FILE_NOT_FOUND: const uint32 = 2
+public ERROR_PATH_NOT_FOUND: const uint32 = 3
+public ERROR_ACCESS_DENIED: const uint32 = 5
+public ERROR_INVALID_HANDLE: const uint32 = 6
+public ERROR_ALREADY_EXISTS: const uint32 = 183
+
+; EN: Virtual-memory allocation and protection flags.
+;
+; ES: Flags de asignación y protección de memoria virtual.
+public MEM_COMMIT: const uint32 = 4096
+public MEM_RESERVE: const uint32 = 8192
+public MEM_DECOMMIT: const uint32 = 16384
+public MEM_RELEASE: const uint32 = 32768
+public MEM_RESET: const uint32 = 524288
+public PAGE_NOACCESS: const uint32 = 1
+public PAGE_READONLY: const uint32 = 2
+public PAGE_READWRITE: const uint32 = 4
+public PAGE_WRITECOPY: const uint32 = 8
+public PAGE_EXECUTE: const uint32 = 16
+public PAGE_EXECUTE_READ: const uint32 = 32
+public PAGE_EXECUTE_READWRITE: const uint32 = 64
+public PAGE_EXECUTE_WRITECOPY: const uint32 = 128
+public PAGE_GUARD: const uint32 = 256
+public PAGE_NOCACHE: const uint32 = 512
+public PAGE_WRITECOMBINE: const uint32 = 1024
+
+extern windows "kernel32":
+
+    ; EN: Creates or opens an ANSI path using the native file-handle ABI.
+    ;
+    ; ES: Crea o abre una ruta ANSI usando la ABI nativa de handles.
+    CreateFileA(
+        file_name *: const char,
+        desired_access: uint32,
+        share_mode: uint32,
+        security_attributes *: void,
+        creation_disposition: uint32,
+        flags_and_attributes: uint32,
+        template_file *: void
+    ) HANDLE
+
+    ; EN: Creates or opens a UTF-16 path using the native file-handle ABI.
+    ;
+    ; ES: Crea o abre una ruta UTF-16 usando la ABI nativa de handles.
+    CreateFileW(
+        file_name *: const uint16,
+        desired_access: uint32,
+        share_mode: uint32,
+        security_attributes *: void,
+        creation_disposition: uint32,
+        flags_and_attributes: uint32,
+        template_file *: void
+    ) HANDLE
+
+    ; EN: Closes an operating-system handle and returns Win32 success status.
+    ;
+    ; ES: Cierra un handle del sistema y devuelve el estado de éxito Win32.
+    CloseHandle(handle: HANDLE) int32
+
+    ; EN: Reads bytes from a handle into a caller-owned buffer.
+    ;
+    ; ES: Lee bytes desde un handle hacia un buffer propiedad del llamador.
+    ReadFile(
+        handle: HANDLE,
+        buffer *: void,
+        bytes_to_read: uint32,
+        bytes_read *: uint32,
+        overlapped *: void
+    ) int32
+
+    ; EN: Writes bytes from a caller-owned buffer to a handle.
+    ;
+    ; ES: Escribe bytes desde un buffer del llamador hacia un handle.
+    WriteFile(
+        handle: HANDLE,
+        buffer *: const void,
+        bytes_to_write: uint32,
+        bytes_written *: uint32,
+        overlapped *: void
+    ) int32
+
+    ; EN: Retrieves the size of a file represented by a handle.
+    ;
+    ; ES: Obtiene el tamaño de un archivo representado por un handle.
+    GetFileSizeEx(handle: HANDLE, file_size *: int64) int32
+
+    ; EN: Moves a file pointer and optionally returns its new position.
+    ;
+    ; ES: Mueve el puntero de un archivo y opcionalmente devuelve su posición.
+    SetFilePointerEx(
+        handle: HANDLE,
+        offset: int64,
+        new_position *: int64,
+        origin: uint32
+    ) int32
+
+    ; EN: Flushes buffered data associated with a file handle.
+    ;
+    ; ES: Vacía los datos asociados a un handle de archivo.
+    FlushFileBuffers(handle: HANDLE) int32
+
+    ; EN: Returns the native type of a handle resource.
+    ;
+    ; ES: Devuelve el tipo nativo del recurso representado por un handle.
+    GetFileType(handle: HANDLE) uint32
+
+    ; EN: Gets attributes of an ANSI path; INVALID_FILE_ATTRIBUTES signals failure.
+    ;
+    ; ES: Consulta atributos de una ruta ANSI; INVALID_FILE_ATTRIBUTES indica fallo.
+    GetFileAttributesA(file_name *: const char) uint32
+
+    ; EN: Gets attributes of a UTF-16 path; INVALID_FILE_ATTRIBUTES signals failure.
+    ;
+    ; ES: Consulta atributos de una ruta UTF-16; INVALID_FILE_ATTRIBUTES indica fallo.
+    GetFileAttributesW(file_name *: const uint16) uint32
+
+    ; EN: Deletes an ANSI path.
+    ;
+    ; ES: Elimina una ruta ANSI.
+    DeleteFileA(file_name *: const char) int32
+
+    ; EN: Deletes a UTF-16 path.
+    ;
+    ; ES: Elimina una ruta UTF-16.
+    DeleteFileW(file_name *: const uint16) int32
+
+    ; EN: Moves an ANSI path to another ANSI path.
+    ;
+    ; ES: Mueve una ruta ANSI hacia otra ruta ANSI.
+    MoveFileA(source *: const char, target *: const char) int32
+
+    ; EN: Moves a UTF-16 path to another UTF-16 path.
+    ;
+    ; ES: Mueve una ruta UTF-16 hacia otra ruta UTF-16.
+    MoveFileW(source *: const uint16, target *: const uint16) int32
+
+    ; EN: Moves an ANSI path with explicit MOVEFILE_* options.
+    ;
+    ; ES: Mueve una ruta ANSI con opciones MOVEFILE_* explícitas.
+    MoveFileExA(source *: const char, target *: const char, move_flags: uint32) int32
+
+    ; EN: Moves a UTF-16 path with explicit MOVEFILE_* options.
+    ;
+    ; ES: Mueve una ruta UTF-16 con opciones MOVEFILE_* explícitas.
+    MoveFileExW(source *: const uint16, target *: const uint16, move_flags: uint32) int32
+
+    ; EN: Creates a directory at an ANSI path.
+    ;
+    ; ES: Crea un directorio en una ruta ANSI.
+    CreateDirectoryA(path *: const char, security_attributes *: void) int32
+
+    ; EN: Creates a directory at a UTF-16 path.
+    ;
+    ; ES: Crea un directorio en una ruta UTF-16.
+    CreateDirectoryW(path *: const uint16, security_attributes *: void) int32
+
+    ; EN: Removes a directory at an ANSI path.
+    ;
+    ; ES: Elimina un directorio en una ruta ANSI.
+    RemoveDirectoryA(path *: const char) int32
+
+    ; EN: Removes a directory at a UTF-16 path.
+    ;
+    ; ES: Elimina un directorio en una ruta UTF-16.
+    RemoveDirectoryW(path *: const uint16) int32
+
+    ; EN: Retrieves a standard input, output or error handle.
+    ;
+    ; ES: Obtiene un handle estándar de entrada, salida o error.
+    GetStdHandle(kind: uint32) HANDLE
+
+    ; EN: Retrieves the last-error value for the calling thread.
+    ;
+    ; ES: Obtiene el último error de la hebra llamadora.
+    GetLastError() uint32
+
+    ; EN: Sets the last-error value for the calling thread.
+    ;
+    ; ES: Establece el último error de la hebra llamadora.
+    SetLastError(error_code: uint32) void
+
+    ; EN: Returns the identifier of the current process.
+    ;
+    ; ES: Devuelve el identificador del proceso actual.
+    GetCurrentProcessId() uint32
+
+    ; EN: Terminates the current process without returning.
+    ;
+    ; ES: Termina el proceso actual sin retornar.
+    ExitProcess(code: uint32) void
+
+    ; EN: Suspends the current thread for a number of milliseconds.
+    ;
+    ; ES: Suspende la hebra actual durante varios milisegundos.
+    Sleep(milliseconds: uint32) void
+
+    ; EN: Yields execution to another runnable thread.
+    ;
+    ; ES: Cede la ejecución a otra hebra ejecutable.
+    SwitchToThread() int32
+
+    ; EN: Writes the current UTC time as a Windows FILETIME value.
+    ;
+    ; ES: Escribe la hora UTC actual como un valor FILETIME de Windows.
+    GetSystemTimeAsFileTime(file_time *: int64) void
+
+    ; EN: Reads the high-resolution performance counter.
+    ;
+    ; ES: Lee el contador de rendimiento de alta resolución.
+    QueryPerformanceCounter(counter *: int64) int32
+
+    ; EN: Reads the frequency of the high-resolution performance counter.
+    ;
+    ; ES: Lee la frecuencia del contador de rendimiento de alta resolución.
+    QueryPerformanceFrequency(frequency *: int64) int32
+
+    ; EN: Triggers a debugger breakpoint in the current process.
+    ;
+    ; ES: Activa un breakpoint del depurador en el proceso actual.
+    DebugBreak() void
+
+    ; EN: Reserves and/or commits a region of virtual memory.
+    ;
+    ; ES: Reserva o confirma una región de memoria virtual.
+    VirtualAlloc(
+        address *: void,
+        size: uint64,
+        allocation_type: uint32,
+        protection: uint32
+    ) MEMORY_REGION
+
+    ; EN: Releases or decommits a region of virtual memory.
+    ;
+    ; ES: Libera o desconfirma una región de memoria virtual.
+    VirtualFree(
+        address: MEMORY_REGION,
+        size: uint64,
+        free_type: uint32
+    ) int32
+
+    ; EN: Changes the protection of a committed memory region.
+    ;
+    ; ES: Cambia la protección de una región de memoria confirmada.
+    VirtualProtect(
+        address: MEMORY_REGION,
+        size: uint64,
+        new_protection: uint32,
+        old_protection *: uint32
+    ) int32
+
+    ; EN: Retrieves information about a virtual-memory region.
+    ;
+    ; ES: Obtiene información sobre una región de memoria virtual.
+    VirtualQuery(
+        address: MEMORY_REGION,
+        information *: void,
+        information_size: uint64
+    ) uint64

@@ -1,0 +1,562 @@
+; File operations built on the canonical Windows and Linux Bagron libraries.
+; Operaciones de archivo construidas sobre las librerías canónicas de Windows y Linux.
+;
+; File owns one native resource. Call close() explicitly or let __deletion__()
+; release it when the value leaves its lifetime.
+; File posee un recurso nativo. Llama a close() explícitamente o deja que
+; __deletion__() lo libere al terminar su vida útil.
+
+; EN: Validates a non-empty NUL-terminated path buffer.
+; ES: Valida un buffer de ruta no vacío terminado en NUL.
+;
+@unsafe
+private func valid_file_path(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if size != 1 || length < 2:
+        return false
+
+    index: usize = 0
+    while index < length:
+        if path[index] == 0:
+            return index > 0
+        index += 1
+
+    return false
+
+#if OS, "windows"
+
+public R: const uint32 = Win.GENERIC_READ
+public W: const uint32 = Win.GENERIC_WRITE
+public RW: const uint32 = Win.GENERIC_READ_WRITE
+public ShareNone: const uint32 = Win.FILE_SHARE_NONE
+public ShareR: const uint32 = Win.FILE_SHARE_READ
+public ShareW: const uint32 = Win.FILE_SHARE_WRITE
+public ShareRW: const uint32 = Win.FILE_SHARE_READ_WRITE
+public CreateNew: const uint32 = Win.CREATE_NEW
+public CreateAlways: const uint32 = Win.CREATE_ALWAYS
+public OpenExisting: const uint32 = Win.OPEN_EXISTING
+public OpenAlways: const uint32 = Win.OPEN_ALWAYS
+public TruncateExisting: const uint32 = Win.TRUNCATE_EXISTING
+public AttrNormal: const uint32 = Win.FILE_ATTRIBUTE_NORMAL
+public AttrTemporary: const uint32 = Win.FILE_ATTRIBUTE_TEMPORARY
+public FileBegin: const uint32 = Win.FILE_BEGIN
+public FileCurrent: const uint32 = Win.FILE_CURRENT
+public FileEnd: const uint32 = Win.FILE_END
+
+private FileTypeDisk: const uint32 = Win.FILE_TYPE_DISK
+
+; EN: Accepts only valid disk handles, excluding console and invalid handles.
+; ES: Acepta solo handles de disco válidos, excluyendo consola y handles inválidos.
+;
+@unsafe
+private func valid_file_handle(handle: HANDLE) bool:
+    return Win.GetFileType(handle) == FileTypeDisk
+
+; EN: Opens an ANSI Windows path with the requested access and creation mode.
+; ES: Abre una ruta ANSI de Windows con el acceso y modo de creación pedidos.
+;
+@unsafe
+private func create_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t,
+    desired_access: uint32,
+    share_mode: uint32,
+    creation_disposition: uint32,
+    flags_and_attributes: uint32
+) HANDLE:
+    if not valid_file_path(path):
+        invalid: char[1]
+        invalid[0] = "\0"
+        return Win.CreateFileA(
+            $invalid[0],
+            desired_access,
+            share_mode,
+            Null,
+            creation_disposition,
+            flags_and_attributes,
+            Null
+        )
+
+    return Win.CreateFileA(
+        $path[0],
+        desired_access,
+        share_mode,
+        Null,
+        creation_disposition,
+        flags_and_attributes,
+        Null
+    )
+
+; EN: Removes a file and returns zero on success.
+; ES: Elimina un archivo y devuelve cero si tiene éxito.
+;
+@unsafe
+public func remove_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if Win.DeleteFileA($path[0]) != 0:
+        return 0
+    return 1
+
+; EN: Renames a file or directory and returns zero on success.
+; ES: Renombra un archivo o directorio y devuelve cero si tiene éxito.
+;
+@unsafe
+public func rename_file(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t
+) int32:
+    if not valid_file_path(source) || not valid_file_path(target):
+        return 1
+    if Win.MoveFileA($source[0], $target[0]) != 0:
+        return 0
+    return 1
+
+; EN: Creates a directory and returns zero on success.
+; ES: Crea un directorio y devuelve cero si tiene éxito.
+;
+@unsafe
+public func create_directory(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if Win.CreateDirectoryA($path[0], Null) != 0:
+        return 0
+    return 1
+
+; EN: Removes an empty directory and returns zero on success.
+; ES: Elimina un directorio vacío y devuelve cero si tiene éxito.
+;
+@unsafe
+public func remove_directory(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if Win.RemoveDirectoryA($path[0]) != 0:
+        return 0
+    return 1
+
+; EN: Owns one opened Windows file handle and exposes binary I/O methods.
+; ES: Posee un handle de archivo Windows abierto y expone I/O binaria.
+;
+public class File:
+
+    ; EN: Opens a Windows file when the File value is constructed.
+    ; ES: Abre un archivo Windows al construir el valor File.
+    ;
+    @unsafe
+    func __init__(
+        path: char[],
+        length: Len_t,
+        size: Size_t,
+        desired_access: uint32,
+        share_mode: uint32,
+        creation_disposition: uint32,
+        flags_and_attributes: uint32
+    ) void:
+        self.resource: HANDLE = create_file(
+            path,
+            desired_access,
+            share_mode,
+            creation_disposition,
+            flags_and_attributes
+        )
+        self.open_error: uint32 = Win.GetLastError()
+        self.closed: bool = false
+        self.close_error: uint32 = 0
+
+    ; EN: Reports whether the owned handle is open and refers to a disk file.
+    ; ES: Indica si el handle propio está abierto y refiere a un archivo de disco.
+    ;
+    @unsafe
+    func is_open() bool:
+        if self.closed:
+            return false
+        return valid_file_handle(self.resource)
+
+    ; EN: Returns the Windows error captured during opening, or zero if open.
+    ; ES: Devuelve el error Windows capturado al abrir, o cero si está abierto.
+    ;
+    @unsafe
+    func opening_error() uint32:
+        if self.is_open():
+            return 0
+        return self.open_error
+
+    ; EN: Returns the Windows error captured during closing.
+    ; ES: Devuelve el error Windows capturado durante el cierre.
+    ;
+    func closing_error() uint32:
+        return self.close_error
+
+    ; EN: Reads up to count bytes into a caller-owned buffer.
+    ; ES: Lee hasta count bytes en un buffer propiedad del llamador.
+    ;
+    @unsafe
+    func read_bytes(
+        data: byte[],
+        length: Len_t,
+        size: Size_t,
+        count: uint32,
+        actual *: uint32
+    ) bool:
+        (actual) = 0
+        if not self.is_open() || size != 1 || count > length:
+            return false
+        if count == 0:
+            return true
+        return Win.ReadFile(self.resource, $data[0], count, actual, Null) != 0
+
+    ; EN: Writes up to count bytes from a caller-owned buffer.
+    ; ES: Escribe hasta count bytes desde un buffer del llamador.
+    ;
+    @unsafe
+    func write_bytes(
+        data: byte[],
+        length: Len_t,
+        size: Size_t,
+        count: uint32,
+        actual *: uint32
+    ) bool:
+        (actual) = 0
+        if not self.is_open() || size != 1 || count > length:
+            return false
+        if count == 0:
+            return true
+        return Win.WriteFile(self.resource, $data[0], count, actual, Null) != 0
+
+    ; EN: Moves the file pointer and returns its new absolute position.
+    ; ES: Mueve el puntero del archivo y devuelve su posición absoluta nueva.
+    ;
+    @unsafe
+    func seek(offset: int64, origin: uint32) int64:
+        if not self.is_open():
+            return -1
+        result: int64 = 0
+        if Win.SetFilePointerEx(self.resource, offset, $result, origin) == 0:
+            return -1
+        return result
+
+    ; EN: Returns the current file size in bytes.
+    ; ES: Devuelve el tamaño actual del archivo en bytes.
+    ;
+    @unsafe
+    func size() int64:
+        if not self.is_open():
+            return -1
+        result: int64 = 0
+        if Win.GetFileSizeEx(self.resource, $result) == 0:
+            return -1
+        return result
+
+    ; EN: Flushes buffered file data to the Windows handle.
+    ; ES: Vacía los datos almacenados hacia el handle Windows.
+    ;
+    @unsafe
+    func flush() bool:
+        if not self.is_open():
+            return false
+        return Win.FlushFileBuffers(self.resource) != 0
+
+    ; EN: Closes the handle once and records a closing error if needed.
+    ; ES: Cierra el handle una vez y registra el error de cierre si ocurre.
+    ;
+    @unsafe
+    func close() void:
+        if not self.closed:
+            if self.is_open() && Win.CloseHandle(self.resource) == 0:
+                self.close_error = Win.GetLastError()
+            self.closed = true
+        return
+
+    ; EN: Releases the owned handle when the value is deleted.
+    ; ES: Libera el handle propio cuando se elimina el valor.
+    ;
+    @unsafe
+    func __deletion__() void:
+        self.close()
+        return
+
+#elif OS, "linux"
+
+public O_RDONLY: const uint32 = Gnu.O_RDONLY
+public O_WRONLY: const uint32 = Gnu.O_WRONLY
+public O_RDWR: const uint32 = Gnu.O_RDWR
+public O_CREAT: const uint32 = Gnu.O_CREAT
+public O_EXCL: const uint32 = Gnu.O_EXCL
+public O_TRUNC: const uint32 = Gnu.O_TRUNC
+public O_APPEND: const uint32 = Gnu.O_APPEND
+public MODE_USER_READ_WRITE: const uint32 = Gnu.MODE_USER_READ_WRITE
+public MODE_USER_READ_WRITE_EXEC: const uint32 = Gnu.MODE_USER_READ_WRITE_EXEC
+public SeekSet: const int32 = Gnu.SEEK_SET
+public SeekCur: const int32 = Gnu.SEEK_CUR
+public SeekEnd: const int32 = Gnu.SEEK_END
+
+private linux_last_error: int64 = 0
+
+; EN: Stores a negative Linux syscall error as a positive errno value.
+; ES: Guarda como errno positivo un error negativo de syscall Linux.
+;
+@unsafe
+private func remember_error(result: int64) int64:
+    if result < 0:
+        linux_last_error = 0 - result
+    return result
+
+; EN: Opens a Linux path relative to the current working directory.
+; ES: Abre una ruta Linux relativa al directorio de trabajo actual.
+;
+@unsafe
+private func create_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t,
+    open_flags: uint32,
+    mode: uint32
+) int64:
+    if not valid_file_path(path):
+        invalid: char[1]
+        invalid[0] = "\0"
+        return remember_error(Gnu.openat(Gnu.AT_FDCWD, $invalid[0], open_flags, mode))
+    return remember_error(Gnu.openat(Gnu.AT_FDCWD, $path[0], open_flags, mode))
+
+; EN: Removes a file and returns zero on success.
+; ES: Elimina un archivo y devuelve cero si tiene éxito.
+;
+@unsafe
+public func remove_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if remember_error(Gnu.unlinkat(Gnu.AT_FDCWD, $path[0], 0)) == 0:
+        return 0
+    return 1
+
+; EN: Renames a file or directory and returns zero on success.
+; ES: Renombra un archivo o directorio y devuelve cero si tiene éxito.
+;
+@unsafe
+public func rename_file(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t
+) int32:
+    if not valid_file_path(source) || not valid_file_path(target):
+        return 1
+    if remember_error(Gnu.renameat2(
+        Gnu.AT_FDCWD,
+        $source[0],
+        Gnu.AT_FDCWD,
+        $target[0],
+        0
+    )) == 0:
+        return 0
+    return 1
+
+; EN: Creates a directory with the standard user read/write/execute mode.
+; ES: Crea un directorio con permisos estándar de lectura/escritura/ejecución.
+;
+@unsafe
+public func create_directory(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if remember_error(Gnu.mkdirat(
+        Gnu.AT_FDCWD,
+        $path[0],
+        Gnu.MODE_USER_READ_WRITE_EXEC
+    )) == 0:
+        return 0
+    return 1
+
+; EN: Removes an empty directory and returns zero on success.
+; ES: Elimina un directorio vacío y devuelve cero si tiene éxito.
+;
+@unsafe
+public func remove_directory(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    if not valid_file_path(path):
+        return 1
+    if remember_error(Gnu.unlinkat(Gnu.AT_FDCWD, $path[0], Gnu.AT_REMOVEDIR)) == 0:
+        return 0
+    return 1
+
+; EN: Owns one opened Linux file descriptor and exposes binary I/O methods.
+; ES: Posee un descriptor de archivo Linux abierto y expone I/O binaria.
+;
+public class File:
+
+    ; EN: Opens a Linux file when the File value is constructed.
+    ; ES: Abre un archivo Linux al construir el valor File.
+    ;
+    @unsafe
+    func __init__(
+        path: char[],
+        length: Len_t,
+        size: Size_t,
+        open_flags: uint32,
+        mode: uint32
+    ) void:
+        self.resource: int64 = create_file(path, open_flags, mode)
+        self.open_error: int64 = linux_last_error
+        self.closed: bool = false
+        self.close_error: int64 = 0
+
+    ; EN: Reports whether the owned descriptor is open.
+    ; ES: Indica si el descriptor propio está abierto.
+    ;
+    func is_open() bool:
+        if self.closed:
+            return false
+        return self.resource >= 0
+
+    ; EN: Returns the raw positive errno captured during opening.
+    ; ES: Devuelve el errno positivo crudo capturado al abrir.
+    ;
+    func opening_error() int64:
+        if self.is_open():
+            return 0
+        return self.open_error
+
+    ; EN: Returns the raw positive errno captured during closing.
+    ; ES: Devuelve el errno positivo crudo capturado durante el cierre.
+    ;
+    func closing_error() int64:
+        return self.close_error
+
+    ; EN: Reads up to count bytes into a caller-owned buffer.
+    ; ES: Lee hasta count bytes en un buffer propiedad del llamador.
+    ;
+    @unsafe
+    func read_bytes(
+        data: byte[],
+        length: Len_t,
+        size: Size_t,
+        count: usize,
+        actual *: int64
+    ) bool:
+        (actual) = 0
+        if not self.is_open() || size != 1 || count > length:
+            return false
+        if count == 0:
+            return true
+        (actual) = remember_error(Gnu.read(self.resource, $data[0], count))
+        return (actual) >= 0
+
+    ; EN: Writes up to count bytes from a caller-owned buffer.
+    ; ES: Escribe hasta count bytes desde un buffer del llamador.
+    ;
+    @unsafe
+    func write_bytes(
+        data: byte[],
+        length: Len_t,
+        size: Size_t,
+        count: usize,
+        actual *: int64
+    ) bool:
+        (actual) = 0
+        if not self.is_open() || size != 1 || count > length:
+            return false
+        if count == 0:
+            return true
+        (actual) = remember_error(Gnu.write(self.resource, $data[0], count))
+        return (actual) >= 0
+
+    ; EN: Moves the file offset and returns its new absolute position.
+    ; ES: Mueve el offset del archivo y devuelve su posición absoluta nueva.
+    ;
+    @unsafe
+    func seek(offset: int64, origin: int32) int64:
+        if not self.is_open():
+            return -1
+        return remember_error(Gnu.lseek(self.resource, offset, origin))
+
+    ; EN: Returns the size in bytes while restoring the current offset.
+    ; ES: Devuelve el tamaño en bytes y restaura el offset actual.
+    ;
+    @unsafe
+    func size() int64:
+        if not self.is_open():
+            return -1
+
+        current: int64 = remember_error(Gnu.lseek(self.resource, 0, SeekCur))
+        if current < 0:
+            return -1
+        result: int64 = remember_error(Gnu.lseek(self.resource, 0, SeekEnd))
+        if result < 0:
+            return -1
+        if remember_error(Gnu.lseek(self.resource, current, SeekSet)) < 0:
+            return -1
+        return result
+
+    ; EN: Flushes file data and metadata through fsync.
+    ; ES: Sincroniza datos y metadatos mediante fsync.
+    ;
+    @unsafe
+    func flush() bool:
+        if not self.is_open():
+            return false
+        return remember_error(Gnu.fsync(self.resource)) == 0
+
+    ; EN: Closes the descriptor once and records a closing error if needed.
+    ; ES: Cierra el descriptor una vez y registra el error si ocurre.
+    ;
+    @unsafe
+    func close() void:
+        if not self.closed:
+            if self.resource >= 0 && remember_error(Gnu.close(self.resource)) != 0:
+                self.close_error = linux_last_error
+            self.closed = true
+        return
+
+    ; EN: Releases the owned descriptor when the value is deleted.
+    ; ES: Libera el descriptor propio cuando se elimina el valor.
+    ;
+    @unsafe
+    func __deletion__() void:
+        self.close()
+        return
+
+#else
+
+; EN: Provides an inert File shape for unsupported operating-system targets.
+; ES: Proporciona una forma File inerte para targets no compatibles.
+;
+public class File:
+    ; EN: Initializes the inert placeholder without opening a resource.
+    ; ES: Inicializa el marcador inerte sin abrir un recurso.
+    ;
+    func __init__() void:
+        return
+
+#end

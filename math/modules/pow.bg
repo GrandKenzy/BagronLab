@@ -1,0 +1,99 @@
+
+
+#if ARCHB, "64"
+public func powi(base: double, exponent: int32) double:
+    ; EN : Raises a double base to a signed integer exponent.
+    ; Negative exponents use the reciprocal without overflowing at INT32_MIN.
+    ;
+    ; ES : Eleva una base double a un exponente entero con signo.
+    ; Los exponentes negativos usan el reciproco sin desbordar en INT32_MIN.
+    result: double = 1.0
+    factor: double = base
+    power: int32 = exponent
+
+    if power < 0:
+        factor = 1.0 / factor
+
+    while power != 0:
+        if (power % 2) != 0:
+            result = result * factor
+
+        power = power / 2
+
+        if power != 0:
+            factor = factor * factor
+
+    return result
+
+public func powu(base: uint64, exponent: uint32) uint64:
+    ; EN : Raises an unsigned 64-bit base to an unsigned integer exponent.
+    ; Uses exponentiation by squaring; integer overflow follows uint64 rules.
+    ;
+    ; ES : Eleva una base unsigned de 64 bits a un exponente entero sin signo.
+    ; Usa exponenciacion por cuadrados; el overflow sigue las reglas de uint64.
+    result: uint64 = 1
+    factor: uint64 = base
+    power: uint32 = exponent
+
+    while power != 0:
+        if (power & 1) != 0:
+            result = result * factor
+
+        power = power >> 1
+
+        if power != 0:
+            factor = factor * factor
+
+    return result
+
+#elif ARCHB, "32"
+public func powi(base: float, exponent: int32) float:
+    ; EN : Raises a 32-bit floating-point base to a signed integer exponent.
+    ; Negative exponents use the reciprocal without overflowing at INT32_MIN.
+    ;
+    ; ES : Eleva una base flotante de 32 bits a un exponente entero con signo.
+    ; Los exponentes negativos usan el reciproco sin desbordar en INT32_MIN.
+    result: float = 1.0
+    factor: float = base
+    power: int32 = exponent
+
+    if power < 0:
+        factor = 1.0 / factor
+
+    while power != 0:
+        if (power & 1) != 0:
+            result = result * factor
+
+        power = power / 2
+
+        if power != 0:
+            factor = factor * factor
+
+    return result
+
+public func powu(base: uint32, exponent: uint32) uint32:
+    ; EN : Raises an unsigned 32-bit base to an unsigned integer exponent.
+    ; Uses exponentiation by squaring; integer overflow follows uint32 rules.
+    ;
+    ; ES : Eleva una base unsigned de 32 bits a un exponente entero sin signo.
+    ; Usa exponenciacion por cuadrados; el overflow sigue las reglas de uint32.
+    result: uint32 = 1
+    factor: uint32 = base
+    power: uint32 = exponent
+
+    while power != 0:
+        if (power & 1) != 0:
+            result = result * factor
+
+        power = power >> 1
+
+        if power != 0:
+            factor = factor * factor
+
+    return result
+
+#else
+
+
+#end
+

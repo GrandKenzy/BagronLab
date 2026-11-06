@@ -1,0 +1,386 @@
+; Path inspection and normalization without opening file descriptors.
+; Inspección y normalización de rutas sin abrir descriptores de archivo.
+
+; EN: Validates a NUL-terminated character path and its element metadata.
+; ES: Valida una ruta de caracteres terminada en NUL y sus metadatos.
+;
+@unsafe
+private func valid_path(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if size != 1 || length < 2:
+        return false
+
+    index: usize = 0
+    while index < length:
+        if path[index] == 0:
+            return index > 0
+        index += 1
+
+    return false
+
+#if OS, "windows"
+
+; EN: Reports whether a path exists without opening a descriptor.
+; ES: Indica si una ruta existe sin abrir un descriptor.
+;
+@unsafe
+public func exists(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if not valid_path(path):
+        return false
+
+    return Win.GetFileAttributesA($path[0]) != Win.INVALID_FILE_ATTRIBUTES
+
+; EN: Reports whether an existing path identifies a directory.
+; ES: Indica si una ruta existente identifica un directorio.
+;
+@unsafe
+public func is_dir(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if not valid_path(path):
+        return false
+
+    attributes: uint32 = Win.GetFileAttributesA($path[0])
+    if attributes == Win.INVALID_FILE_ATTRIBUTES:
+        return false
+
+    return (attributes & Win.FILE_ATTRIBUTE_DIRECTORY) != 0
+
+; EN: Reports whether an existing path identifies a regular file.
+; ES: Indica si una ruta existente identifica un archivo regular.
+;
+@unsafe
+public func is_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if not valid_path(path):
+        return false
+
+    attributes: uint32 = Win.GetFileAttributesA($path[0])
+    if attributes == Win.INVALID_FILE_ATTRIBUTES:
+        return false
+
+    return (attributes & Win.FILE_ATTRIBUTE_DIRECTORY) == 0
+
+; EN: Reports whether a path is a symbolic link or Windows reparse point.
+; ES: Indica si una ruta es un enlace simbólico o un reparse point de Windows.
+;
+@unsafe
+public func is_link(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if not valid_path(path):
+        return false
+
+    attributes: uint32 = Win.GetFileAttributesA($path[0])
+    if attributes == Win.INVALID_FILE_ATTRIBUTES:
+        return false
+
+    ; Windows exposes symbolic links and junctions as reparse points.
+    return (attributes & Win.FILE_ATTRIBUTE_REPARSE_POINT) != 0
+
+#elif OS, "linux"
+
+private STAT_MODE_OFFSET: const usize = 24
+private STAT_BUFFER_SIZE: const usize = 144
+private STAT_TYPE_MASK: const uint32 = 61440
+private STAT_TYPE_FILE: const uint32 = 32768
+private STAT_TYPE_DIRECTORY: const uint32 = 16384
+private STAT_TYPE_LINK: const uint32 = 40960
+
+; EN: Reads the file mode using metadata lookup without opening a descriptor.
+; ES: Lee el modo del archivo mediante metadatos sin abrir un descriptor.
+;
+@unsafe
+private func read_mode(
+    path: char[],
+    length: Len_t,
+    size: Size_t,
+    stat_flags: uint32
+) uint32:
+    if not valid_path(path):
+        return 0
+
+    stat_data: uint32[36]
+    result: int64 = Gnu.newfstatat(
+        Gnu.AT_FDCWD,
+        $path[0],
+        $stat_data[0],
+        stat_flags
+    )
+    if result != 0:
+        return 0
+
+    return stat_data[6]
+
+; EN: Reports whether a path exists without opening a descriptor.
+; ES: Indica si una ruta existe sin abrir un descriptor.
+;
+@unsafe
+public func exists(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    return read_mode(path, 0) != 0
+
+; EN: Reports whether an existing path identifies a directory.
+; ES: Indica si una ruta existente identifica un directorio.
+;
+@unsafe
+public func is_dir(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    mode: uint32 = read_mode(path, 0)
+    return (mode & STAT_TYPE_MASK) == STAT_TYPE_DIRECTORY
+
+; EN: Reports whether an existing path identifies a regular file.
+; ES: Indica si una ruta existente identifica un archivo regular.
+;
+@unsafe
+public func is_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    mode: uint32 = read_mode(path, 0)
+    return (mode & STAT_TYPE_MASK) == STAT_TYPE_FILE
+
+; EN: Reports whether a path is a symbolic link without following it.
+; ES: Indica si una ruta es un enlace simbólico sin seguirlo.
+;
+@unsafe
+public func is_link(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    mode: uint32 = read_mode(path, Gnu.AT_SYMLINK_NOFOLLOW)
+    return (mode & STAT_TYPE_MASK) == STAT_TYPE_LINK
+
+#else
+
+; EN: Reports false on targets without a supported filesystem backend.
+; ES: Devuelve false en targets sin un backend de archivos compatible.
+;
+@unsafe
+public func exists(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    return false
+
+; EN: Reports false on targets without a supported filesystem backend.
+; ES: Devuelve false en targets sin un backend de archivos compatible.
+;
+@unsafe
+public func is_dir(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    return false
+
+; EN: Reports false on targets without a supported filesystem backend.
+; ES: Devuelve false en targets sin un backend de archivos compatible.
+;
+@unsafe
+public func is_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    return false
+
+; EN: Reports false on targets without a supported filesystem backend.
+; ES: Devuelve false en targets sin un backend de archivos compatible.
+;
+@unsafe
+public func is_link(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    return false
+
+#end
+
+; EN: Returns the index of the extension dot in the final path component.
+; Returns -1 when the path has no extension.
+; ES: Devuelve el índice del punto de extensión en el componente final.
+; Devuelve -1 cuando la ruta no tiene extensión.
+;
+@unsafe
+public func suffix(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) isize:
+    if not valid_path(path):
+        return -1
+
+    slash: char = "/"
+    backslash: char = "\\"
+    dot: char = "."
+    index: usize = 0
+    component_start: usize = 0
+    result: isize = -1
+
+    while index < length && path[index] != 0:
+        if path[index] == slash || path[index] == backslash:
+            component_start = index + 1
+            result = -1
+        elif path[index] == dot && index > component_start:
+            result = index
+        index += 1
+
+    return result
+
+; EN: Reports whether a path starts from an operating-system root.
+; ES: Indica si una ruta comienza desde una raíz del sistema operativo.
+;
+@unsafe
+public func is_absolute(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) bool:
+    if not valid_path(path):
+        return false
+
+    slash: char = "/"
+    backslash: char = "\\"
+    colon: char = ":"
+
+#if OS, "windows"
+    if path[0] == slash || path[0] == backslash:
+        return true
+    if length >= 3 && path[1] == colon && (path[2] == slash || path[2] == backslash):
+        return true
+    return false
+#elif OS, "linux"
+    return path[0] == slash
+#else
+    return false
+#end
+
+; EN: Returns the index where the final path component starts.
+; ES: Devuelve el índice donde comienza el componente final de la ruta.
+;
+@unsafe
+public func basename_index(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) usize:
+    if not valid_path(path):
+        return 0
+
+    slash: char = "/"
+    backslash: char = "\\"
+    index: usize = 0
+    result: usize = 0
+    while index < length && path[index] != 0:
+        if path[index] == slash || path[index] == backslash:
+            result = index + 1
+        index += 1
+    return result
+
+; EN: Returns the length of the parent directory portion.
+; ES: Devuelve la longitud de la parte correspondiente al directorio padre.
+;
+@unsafe
+public func dirname_length(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) usize:
+    if not valid_path(path):
+        return 0
+
+    slash: char = "/"
+    backslash: char = "\\"
+    index: usize = 0
+    result: usize = 0
+    while index < length && path[index] != 0:
+        if path[index] == slash || path[index] == backslash:
+            result = index
+        index += 1
+    return result
+
+#if OS, "windows"
+
+; EN: Converts forward slashes to Windows path separators in-place.
+; ES: Convierte barras normales a separadores de Windows in-place.
+;
+@unsafe
+public func osup(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) void:
+    if size != 1:
+        return
+
+    slash: char = "/"
+    backslash: char = "\\"
+    index: usize = 0
+    while index < length && path[index] != 0:
+        if path[index] == slash:
+            path[index] = backslash
+        index += 1
+    return
+
+#elif OS, "linux"
+
+; EN: Converts backslashes to Linux path separators in-place.
+; ES: Convierte barras invertidas a separadores de Linux in-place.
+;
+@unsafe
+public func osup(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) void:
+    if size != 1:
+        return
+
+    slash: char = "/"
+    backslash: char = "\\"
+    index: usize = 0
+    while index < length && path[index] != 0:
+        if path[index] == backslash:
+            path[index] = slash
+        index += 1
+    return
+
+#else
+
+; EN: Leaves the path unchanged on unsupported targets.
+; ES: Deja la ruta sin cambios en targets no compatibles.
+;
+@unsafe
+public func osup(
+    path: char[],
+    length: Len_t,
+    size: Size_t
+) void:
+    return
+
+#end

@@ -1,0 +1,17 @@
+; Library source root for the standard operating-system API.
+
+; The OS module consumes the canonical target libraries through namespaces.
+; It does not declare kernel, libc, or syscall externs of its own.
+#if OS, "windows"
+clause System "windows"
+clause Arch "amd"
+library "windows.lib" as Win
+#elif OS, "linux"
+clause System "linux"
+clause Arch "amd"
+library "gnulibrary.lib" as Gnu
+#else
+clause System "auto"
+clause Arch "auto"
+#end
+

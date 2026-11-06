@@ -1,0 +1,8 @@
+clause Arch "amd"
+clause System "windows"
+
+
+
+func main() int32:
+
+    return 0

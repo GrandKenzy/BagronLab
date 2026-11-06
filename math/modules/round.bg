@@ -1,0 +1,143 @@
+
+#if ARCHB, "64"
+public func trunc(value: double) double:
+    ; EN : Removes the fractional part of a double value toward zero.
+    ; The implementation is native and does not require a float-to-integer cast.
+    ;
+    ; ES : Elimina la parte fraccionaria de un double hacia cero.
+    ; La implementacion es nativa y no requiere cast de flotante a entero.
+    if value != value:
+        return value
+    if value == 0.0:
+        return 0.0
+
+    negative: bool = false
+    magnitude: double = value
+    if magnitude < 0.0:
+        negative = true
+        magnitude = 0.0 - magnitude
+
+    unit: double = 1.0
+    steps: uint32 = 0
+    while unit * 2.0 <= magnitude && steps < 2048:
+        unit = unit * 2.0
+        steps = steps + 1
+
+    integer: double = 0.0
+    remaining: double = magnitude
+    while unit >= 1.0 && steps < 4096:
+        if remaining >= unit:
+            remaining = remaining - unit
+            integer = integer + unit
+        unit = unit / 2.0
+        steps = steps + 1
+
+    if negative:
+        return 0.0 - integer
+    return integer
+
+public func floor(value: double) double:
+    ; EN : Returns the greatest integer-valued double not greater than value.
+    ;
+    ; ES : Devuelve el mayor double con valor entero que no supera value.
+    integer: double = trunc(value)
+    if value < 0.0 && integer != value:
+        return integer - 1.0
+    return integer
+
+public func ceil(value: double) double:
+    ; EN : Returns the smallest integer-valued double not less than value.
+    ;
+    ; ES : Devuelve el menor double con valor entero que no es menor que value.
+    integer: double = trunc(value)
+    if value > 0.0 && integer != value:
+        return integer + 1.0
+    return integer
+
+public func round(value: double) double:
+    ; EN : Rounds a double to the nearest integer-valued double.
+    ; Halfway values are rounded away from zero.
+    ;
+    ; ES : Redondea un double al double con valor entero mas cercano.
+    ; Los valores exactamente intermedios se redondean alejandose de cero.
+    integer: double = trunc(value)
+    fraction: double = value - integer
+    if fraction >= 0.5:
+        return integer + 1.0
+    if fraction <= -0.5:
+        return integer - 1.0
+    return integer
+
+#elif ARCHB, "32"
+public func trunc(value: float) float:
+    ; EN : Removes the fractional part of a 32-bit float toward zero.
+    ; The implementation is native and does not require a float-to-integer cast.
+    ;
+    ; ES : Elimina la parte fraccionaria de un float de 32 bits hacia cero.
+    ; La implementacion es nativa y no requiere cast de flotante a entero.
+    if value != value:
+        return value
+    if value == 0.0:
+        return 0.0
+
+    negative: bool = false
+    magnitude: float = value
+    if magnitude < 0.0:
+        negative = true
+        magnitude = 0.0 - magnitude
+
+    unit: float = 1.0
+    steps: uint32 = 0
+    while unit * 2.0 <= magnitude && steps < 256:
+        unit = unit * 2.0
+        steps = steps + 1
+
+    integer: float = 0.0
+    remaining: float = magnitude
+    while unit >= 1.0 && steps < 512:
+        if remaining >= unit:
+            remaining = remaining - unit
+            integer = integer + unit
+        unit = unit / 2.0
+        steps = steps + 1
+
+    if negative:
+        return 0.0 - integer
+    return integer
+
+public func floor(value: float) float:
+    ; EN : Returns the greatest integer-valued 32-bit float not greater than value.
+    ;
+    ; ES : Devuelve el mayor float de 32 bits con valor entero que no supera value.
+    integer: float = trunc(value)
+    if value < 0.0 && integer != value:
+        return integer - 1.0
+    return integer
+
+public func ceil(value: float) float:
+    ; EN : Returns the smallest integer-valued 32-bit float not less than value.
+    ;
+    ; ES : Devuelve el menor float de 32 bits con valor entero que no es menor que value.
+    integer: float = trunc(value)
+    if value > 0.0 && integer != value:
+        return integer + 1.0
+    return integer
+
+public func round(value: float) float:
+    ; EN : Rounds a 32-bit float to the nearest integer-valued float.
+    ; Halfway values are rounded away from zero.
+    ;
+    ; ES : Redondea un float de 32 bits al valor entero mas cercano.
+    ; Los valores exactamente intermedios se redondean alejandose de cero.
+    integer: float = trunc(value)
+    fraction: float = value - integer
+    if fraction >= 0.5:
+        return integer + 1.0
+    if fraction <= -0.5:
+        return integer - 1.0
+    return integer
+
+#else
+
+
+#end

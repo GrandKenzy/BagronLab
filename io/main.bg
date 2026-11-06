@@ -1,0 +1,3 @@
+; Library source root for the standard I/O API.
+clause System "windows"
+clause Arch "amd"

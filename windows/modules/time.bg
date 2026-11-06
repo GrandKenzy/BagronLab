@@ -1,0 +1,74 @@
+; EN: Windows time helpers built on Kernel32 native clocks.
+;
+; ES: Ayudas de tiempo de Windows construidas sobre los relojes nativos de Kernel32.
+
+import {
+    GetSystemTimeAsFileTime,
+    QueryPerformanceCounter,
+    QueryPerformanceFrequency
+} from kernel32
+
+; EN: FILETIME uses 100-nanosecond intervals since 1601-01-01 UTC.
+;
+; ES: FILETIME usa intervalos de 100 nanosegundos desde 1601-01-01 UTC.
+public FILETIME_UNIX_EPOCH: const int64 = 116444736000000000
+public FILETIME_TICKS_PER_SECOND: const int64 = 10000000
+public MILLISECONDS_PER_SECOND: const int64 = 1000
+public MICROSECONDS_PER_SECOND: const int64 = 1000000
+
+; EN: Returns the current UTC time as Unix seconds.
+;
+; ES: Devuelve la hora UTC actual como segundos Unix.
+@unsafe
+public func unix_seconds() int64:
+    file_time: int64 = 0
+    GetSystemTimeAsFileTime($file_time)
+    if file_time < FILETIME_UNIX_EPOCH:
+        return 0
+    file_time -= FILETIME_UNIX_EPOCH
+    return file_time / FILETIME_TICKS_PER_SECOND
+
+; EN: Returns the current UTC time as Unix milliseconds.
+;
+; ES: Devuelve la hora UTC actual como milisegundos Unix.
+@unsafe
+public func unix_milliseconds() int64:
+    file_time: int64 = 0
+    GetSystemTimeAsFileTime($file_time)
+    if file_time < FILETIME_UNIX_EPOCH:
+        return 0
+    file_time -= FILETIME_UNIX_EPOCH
+    return file_time / 10000
+
+; EN: Reads the monotonic high-resolution performance counter.
+;
+; ES: Lee el contador monótono de rendimiento de alta resolución.
+@unsafe
+public func ticks() int64:
+    counter: int64 = 0
+    if QueryPerformanceCounter($counter) == 0:
+        return 0
+    return counter
+
+; EN: Returns the frequency of the monotonic performance counter.
+;
+; ES: Devuelve la frecuencia del contador monótono de rendimiento.
+@unsafe
+public func frequency() int64:
+    counter_frequency: int64 = 0
+    if QueryPerformanceFrequency($counter_frequency) == 0:
+        return 0
+    return counter_frequency
+
+; EN: Converts a counter interval to microseconds using its frequency.
+;
+; ES: Convierte un intervalo del contador a microsegundos usando su frecuencia.
+@unsafe
+public func microseconds(start: int64, end: int64) int64:
+    counter_frequency: int64 = frequency()
+    if end < start || counter_frequency <= 0:
+        return 0
+    elapsed: int64 = end - start
+    seconds: int64 = elapsed / counter_frequency
+    remainder: int64 = elapsed % counter_frequency
+    return seconds * MICROSECONDS_PER_SECOND + (remainder * MICROSECONDS_PER_SECOND) / counter_frequency

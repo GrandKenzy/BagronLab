@@ -1,0 +1,99 @@
+mold OctetView:
+    raw: byte
+    numeric: uint8
+
+public CRC32_INIT: const uint32 = 0xFFFFFFFF
+public CRC32_POLYNOMIAL: const uint32 = 0xEDB88320
+public CRC32_XOROUT: const uint32 = 0xFFFFFFFF
+
+public class CRC32:
+
+    func __init__() void:
+        ; EN : Initializes a CRC-32/ISO-HDLC accumulator.
+        ; The state starts with the standard reflected CRC-32 initial value.
+        ;
+        ; ES : Inicializa un acumulador CRC-32/ISO-HDLC.
+        ; El estado comienza con el valor inicial reflejado estandar de CRC-32.
+        self.state: uint32 = 0xFFFFFFFF
+
+    func reset() void:
+        ; EN : Restores the accumulator to its initial CRC-32 state.
+        ;
+        ; ES : Restaura el acumulador a su estado inicial de CRC-32.
+        self.state = 0xFFFFFFFF
+        return
+
+    func update_byte(value: byte) void:
+        ; EN : Incorporates one raw byte into the CRC-32 accumulator.
+        ; The mold converts the raw byte representation to uint8 for arithmetic.
+        ;
+        ; ES : Incorpora un byte crudo al acumulador CRC-32.
+        ; El mold convierte la representacion raw a uint8 para las operaciones.
+        view: OctetView
+        view.raw = value
+
+        polynomial: uint32 = 0xEDB88320
+        one: uint32 = 1
+        zero: uint32 = 0
+
+        crc: uint32 = self.state ^ view.numeric
+        bit: uint32 = 0
+
+        while bit < 8:
+            if (crc & one) != zero:
+                crc = (crc >> 1) ^ polynomial
+            else:
+                crc = crc >> 1
+
+            bit += 1
+
+        self.state = crc
+        return
+
+    func update(
+        data: byte[],
+        length: Len_t,
+        element_size: Size_t
+    ) void:
+        ; EN : Incorporates all bytes from a mutable byte array.
+        ; The compiler supplies length and element_size for the array argument.
+        ;
+        ; ES : Incorpora todos los bytes de un array mutable de byte.
+        ; El compilador suministra length y element_size para el argumento array.
+        i: usize = 0
+
+        while i < length:
+            self.update_byte(data[i])
+            i += 1
+
+        return
+
+    func finalize() uint32:
+        ; EN : Returns the finalized CRC-32 checksum without changing the state.
+        ; Repeated calls are safe until more data is appended or reset is called.
+        ;
+        ; ES : Devuelve el checksum CRC-32 finalizado sin cambiar el estado.
+        ; Las llamadas repetidas son seguras hasta agregar datos o llamar reset.
+        return self.state ^ 0xFFFFFFFF
+
+    func verify(expected: uint32) bool:
+        ; EN : Compares the finalized checksum with an expected CRC-32 value.
+        ;
+        ; ES : Compara el checksum finalizado con un valor CRC-32 esperado.
+        return self.finalize() == expected
+
+
+public func crc32(
+    data: byte[],
+    length: Len_t,
+    element_size: Size_t
+) uint32:
+    ; EN : Computes the CRC-32/ISO-HDLC checksum of a byte array.
+    ; The empty input produces zero, as required by the standard parameters.
+    ;
+    ; ES : Calcula el checksum CRC-32/ISO-HDLC de un array de bytes.
+    ; La entrada vacia produce cero, segun los parametros estandar.
+    checksum: CRC32 = CRC32()
+    checksum.update(data)
+
+    return checksum.finalize()

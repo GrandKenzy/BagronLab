@@ -1,0 +1,129 @@
+
+#if ARCHB, "64"
+public func cbrt(value: double) double:
+    ; EN : Returns the cube root of a double value using Newton-Raphson.
+    ; Preserves the sign and scales finite extreme values before iterating.
+    ;
+    ; ES : Devuelve la raiz cubica de un valor double mediante Newton-Raphson.
+    ; Conserva el signo y escala los valores finitos extremos antes de iterar.
+    if value == 0.0:
+        return 0.0
+
+    negative: bool = false
+    magnitude: double = value
+    if magnitude < 0.0:
+        negative = true
+        magnitude = 0.0 - magnitude
+
+    normalized: double = magnitude
+    scale: double = 1.0
+    scale_steps: uint32 = 0
+    while normalized > 8.0 && scale_steps < 512:
+        normalized = normalized / 8.0
+        scale = scale * 2.0
+        scale_steps = scale_steps + 1
+    while normalized < 1.0 && scale_steps < 512:
+        normalized = normalized * 8.0
+        scale = scale / 2.0
+        scale_steps = scale_steps + 1
+
+    guess: double = (normalized + 2.0) / 3.0
+    iteration: uint32 = 0
+    while iteration < 12:
+        guess = (2.0 * guess + normalized / (guess * guess)) / 3.0
+        iteration = iteration + 1
+
+    result: double = guess * scale
+    if negative:
+        return 0.0 - result
+    return result
+
+public func ucbrt(value: uint64) uint64:
+    ; EN : Returns the truncated integer cube root of a uint64 value.
+    ; Binary search uses division to compare cubes without multiplication overflow.
+    ;
+    ; ES : Devuelve la raiz cubica entera truncada de un valor uint64.
+    ; La busqueda binaria compara mediante divisiones sin overflow de multiplicacion.
+    if value < 2:
+        return value
+
+    low: uint64 = 1
+    high: uint64 = value / 3 + 1
+    result: uint64 = 1
+
+    while low <= high:
+        midpoint: uint64 = low + (high - low) / 2
+        if midpoint <= value / midpoint / midpoint:
+            result = midpoint
+            low = midpoint + 1
+        else:
+            high = midpoint - 1
+
+    return result
+
+#elif ARCHB, "32"
+public func cbrt(value: float) float:
+    ; EN : Returns the cube root of a 32-bit floating-point value.
+    ; Preserves the sign and scales finite extreme values before iterating.
+    ;
+    ; ES : Devuelve la raiz cubica de un valor flotante de 32 bits.
+    ; Conserva el signo y escala los valores finitos extremos antes de iterar.
+    if value == 0.0:
+        return 0.0
+
+    negative: bool = false
+    magnitude: float = value
+    if magnitude < 0.0:
+        negative = true
+        magnitude = 0.0 - magnitude
+
+    normalized: float = magnitude
+    scale: float = 1.0
+    scale_steps: uint32 = 0
+    while normalized > 8.0 && scale_steps < 128:
+        normalized = normalized / 8.0
+        scale = scale * 2.0
+        scale_steps = scale_steps + 1
+    while normalized < 1.0 && scale_steps < 128:
+        normalized = normalized * 8.0
+        scale = scale / 2.0
+        scale_steps = scale_steps + 1
+
+    guess: float = (normalized + 2.0) / 3.0
+    iteration: uint32 = 0
+    while iteration < 8:
+        guess = (2.0 * guess + normalized / (guess * guess)) / 3.0
+        iteration = iteration + 1
+
+    result: float = guess * scale
+    if negative:
+        return 0.0 - result
+    return result
+
+public func ucbrt(value: uint32) uint32:
+    ; EN : Returns the truncated integer cube root of a uint32 value.
+    ; Binary search uses division to compare cubes without multiplication overflow.
+    ;
+    ; ES : Devuelve la raiz cubica entera truncada de un valor uint32.
+    ; La busqueda binaria compara mediante divisiones sin overflow de multiplicacion.
+    if value < 2:
+        return value
+
+    low: uint32 = 1
+    high: uint32 = value / 3 + 1
+    result: uint32 = 1
+
+    while low <= high:
+        midpoint: uint32 = low + (high - low) / 2
+        if midpoint <= value / midpoint / midpoint:
+            result = midpoint
+            low = midpoint + 1
+        else:
+            high = midpoint - 1
+
+    return result
+
+#else
+
+
+#end
