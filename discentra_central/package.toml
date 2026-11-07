@@ -2,6 +2,7 @@
 name = "bagronlab"
 version = "1.1.4"
 kind = "librería"
+format = "lib1"
 description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
 license = "MIT"
 
