@@ -1,0 +1,145 @@
+; Integer arithmetic and number theory. These functions are target-independent.
+
+; EN: Euclid's greatest common divisor, gcd(0,0) = 0.
+; ES: Maximo comun divisor; gcd(0,0) = 0.
+public func gcd(a: uint64, b: uint64) uint64:
+    left: uint64 = a
+    right: uint64 = b
+    while right != 0:
+        remainder: uint64 = left % right
+        left = right
+        right = remainder
+    return left
+
+; EN: Returns false if lcm(a,b) would overflow uint64. Leaves result unchanged.
+; ES: Devuelve false si el minimo comun multiplo desborda uint64.
+@unsafe
+public func lcm_checked(a: uint64, b: uint64, result *: uint64) bool:
+    if a == 0 || b == 0:
+        (result) = 0
+        return true
+    divisor: uint64 = gcd(a, b)
+    scaled: uint64 = a / divisor
+    maximum: uint64 = 18446744073709551615
+    if scaled > maximum / b:
+        return false
+    (result) = scaled * b
+    return true
+
+; EN: 0 is not a power of two.
+; ES: Cero no es potencia de dos.
+public func is_power_of_two(value: uint64) bool:
+    return value != 0 && (value & (value - 1)) == 0
+
+; EN: Smallest power of two >= value (1 for zero); detects overflow.
+; ES: Menor potencia de dos >= value; comprueba overflow.
+@unsafe
+public func next_power_of_two_checked(value: uint64, result *: uint64) bool:
+    if value <= 1:
+        (result) = 1
+        return true
+    limit: uint64 = 1
+    limit = limit << 63
+    if value > limit:
+        return false
+    power: uint64 = 1
+    while power < value:
+        power = power << 1
+    (result) = power
+    return true
+
+; EN: Exact uint64 factorial for n <= 20; detects overflow for n > 20.
+; ES: Factorial exacto para n <= 20; detecta overflow.
+@unsafe
+public func factorial_checked(value: uint32, result *: uint64) bool:
+    if value > 20:
+        return false
+    product: uint64 = 1
+    i: uint32 = 2
+    while i <= value:
+        factor: uint64 = i
+        product = product * factor
+        i += 1
+    (result) = product
+    return true
+
+; EN: Overflow-safe modular addition; inputs must be reduced modulo modulus.
+; ES: Suma modular sin overflow, argumentos menores que modulus.
+private func add_mod_reduced(a: uint64, b: uint64, modulus: uint64) uint64:
+    if a >= modulus - b:
+        return a - (modulus - b)
+    return a + b
+
+; EN: Computes (a*b) modulo m without 64-bit multiplication overflow.
+; ES: Calcula (a*b) modulo m sin desbordar uint64.
+public func mul_mod(a: uint64, b: uint64, modulus: uint64) uint64:
+    if modulus <= 1:
+        return 0
+    left: uint64 = a % modulus
+    right: uint64 = b
+    result: uint64 = 0
+    while right != 0:
+        if (right & 1) != 0:
+            result = add_mod_reduced(result, left, modulus)
+        right = right >> 1
+        if right != 0:
+            left = add_mod_reduced(left, left, modulus)
+    return result
+
+; EN: Computes base^exponent modulo m; returns zero if m == 0.
+; ES: Potencia modular; devuelve cero con modulo cero.
+public func pow_mod(base: uint64, exponent: uint64, modulus: uint64) uint64:
+    if modulus <= 1:
+        return 0
+    result: uint64 = 1
+    factor: uint64 = base % modulus
+    power: uint64 = exponent
+    while power != 0:
+        if (power & 1) != 0:
+            result = mul_mod(result, factor, modulus)
+        power = power >> 1
+        if power != 0:
+            factor = mul_mod(factor, factor, modulus)
+    return result
+
+; EN: Deterministic Miller-Rabin primality for the entire uint64 domain.
+; Uses the proven seven bases for 64-bit integers.
+; ES: Primalidad determinista Miller-Rabin para uint64 completo.
+public func is_prime(value: uint64) bool:
+    if value < 2:
+        return false
+    if value == 2 || value == 3 || value == 5 || value == 7:
+        return true
+    if (value % 2) == 0 || (value % 3) == 0 || (value % 5) == 0 || (value % 7) == 0:
+        return false
+    d: uint64 = value - 1
+    power_of_two: uint32 = 0
+    while (d & 1) == 0:
+        d = d >> 1
+        power_of_two += 1
+    bases: uint64[7]
+    bases[0] = 2
+    bases[1] = 325
+    bases[2] = 9375
+    bases[3] = 28178
+    bases[4] = 450775
+    bases[5] = 9780504
+    bases[6] = 1795265022
+    i: usize = 0
+    while i < 7:
+        witness: uint64 = bases[i] % value
+        if witness != 0:
+            remainder: uint64 = pow_mod(witness, d, value)
+            if remainder != 1 && remainder != value - 1:
+                passed: bool = false
+                j: uint32 = 1
+                while j < power_of_two:
+                    remainder = mul_mod(remainder, remainder, value)
+                    if remainder == value - 1:
+                        passed = true
+                        break
+                    j += 1
+                if not passed:
+                    return false
+        i += 1
+    return true
