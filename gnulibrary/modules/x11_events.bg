@@ -1,0 +1,48 @@
+; Native XEvent LP64 ABI: sizeof=192, align=8.
+; Fields following common header overlay XClientMessageEvent and XButtonEvent.
+; Verified against system Xlib.h on Linux AMD64.
+clause Privacy "public"
+
+@align(8)
+private struct X11RawEvent:
+    kind: int32
+    pad0: int32
+    serial: usize
+    sent: int32
+    pad1: int32
+    display: usize
+    window: usize
+    message_type: usize
+    message_format: int32
+    pad2: int32
+    data0: usize
+    pointer_x: int32
+    pointer_y: int32
+    reserved: byte[120]
+
+extern c ":libX11.so.6":
+    XPending(display: usize) int32
+    XNextEvent(display: usize, event *: X11RawEvent) int32
+
+; EN: Polls one event without blocking: 0 means no event, -1 invalid
+; arguments, 1001 a WM_DELETE_WINDOW request, else the native X11 event type.
+; Mouse coordinates in the caller's int32[2] update on ButtonPress.
+;
+; ES: Consulta un evento sin bloqueo. 0 indica que no hay eventos,
+; -1 argumentos inválidos y 1001 solicitud de cierre de ventana.
+@unsafe
+public func X11PollEvent(display: usize, protocol_atom: usize, delete_atom: usize, mouse: int32[], mouse_length: Len_t, mouse_size: Size_t) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    if XPending(display) <= 0:
+        return 0
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    mouse[0] = 0
+    mouse[1] = 0
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind
