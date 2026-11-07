@@ -35,11 +35,14 @@ import {
     DiagnosticBuffer,
     buffer_init,
     buffer_reset,
+    buffer_set_message_arena,
+    buffer_message_arena_remaining,
     buffer_set_max_limit,
     buffer_set_overrides,
     resolve_severity,
     should_halt,
     buffer_is_halted,
     emit,
-    buffer_read
+    buffer_read,
+    buffer_message_copy
 } from core

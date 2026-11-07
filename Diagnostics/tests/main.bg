@@ -11,11 +11,14 @@ import {
     SeverityError,
     PolicyStopOnError,
     buffer_init,
+    buffer_set_message_arena,
+    buffer_message_arena_remaining,
     buffer_set_max_limit,
     buffer_set_overrides,
     emit,
     buffer_read,
-    buffer_is_halted
+    buffer_is_halted,
+    buffer_message_copy
 } from Diag
 
 @unsafe
@@ -25,29 +28,68 @@ func main() int32:
     ; ES : Verifica overrides de severidad, persistencia de arena, límites y parada.
     records: Diagnostic[4]
     overrides: SeverityOverride[1]
+    arena: char[64]
     state: DiagnosticBuffer
     overrides[0].code = 7
     overrides[0].severity = SeverityError
     buffer_init($state, $records[0], 4, PolicyStopOnError)
+    buffer_set_message_arena($state, 64)
     buffer_set_overrides($state, $overrides[0], 1)
     buffer_set_max_limit($state, 1)
 
-    if not emit($state, 7, SeverityWarning, 2, 4, 1, 2, "warning"):
+    if buffer_message_arena_remaining($state) != 64:
         return 2
-    if not buffer_is_halted($state):
+    if not emit($state, 7, SeverityWarning, 2, 4, 1, 2, "warning", arena):
         return 3
-    if emit($state, 8, SeverityWarning, 5, 6, 1, 5, "dropped"):
+    if state.message_storage_used != 8 || buffer_message_arena_remaining($state) != 56:
         return 4
-    if state.count != 1 || state.total_emitted != 2 || state.dropped_count != 1:
+    if not buffer_is_halted($state):
         return 5
+    if emit($state, 8, SeverityWarning, 5, 6, 1, 5, "dropped", arena):
+        return 6
+    if state.count != 1 || state.total_emitted != 2 || state.dropped_count != 1:
+        return 7
 
     read_back: Diagnostic
     if not buffer_read($state, 0, $read_back):
-        return 6
+        return 8
     if read_back.severity != SeverityError || read_back.message_length != 7:
-        return 7
+        return 9
+    message_copy: char[8]
+    if buffer_message_copy($state, 0, arena, message_copy) != 7:
+        return 10
     expected_w: char = "w"
     expected_g: char = "g"
-    if state.message_storage[read_back.message_offset] != expected_w || state.message_storage[read_back.message_offset + 6] != expected_g:
-        return 8
+    if message_copy[0] != expected_w || message_copy[6] != expected_g:
+        return 11
+    buffer_reset($state)
+    if state.count != 0 || state.message_storage_used != 0 || buffer_is_halted($state):
+        return 12
+
+    tiny_records: Diagnostic[1]
+    tiny_arena: char[4]
+    tiny_state: DiagnosticBuffer
+    buffer_init($tiny_state, $tiny_records[0], 1, PolicyRecover)
+    buffer_set_message_arena($tiny_state, 4)
+    if emit($tiny_state, 9, SeverityWarning, 0, 1, 1, 0, "long", tiny_arena):
+        return 13
+    if tiny_state.count != 0 || tiny_state.total_emitted != 1 || tiny_state.dropped_count != 1 || tiny_state.message_storage_used != 0:
+        return 14
+    if not emit($tiny_state, 10, SeverityWarning, 0, 0, 1, 0, "", tiny_arena):
+        return 15
+    empty_record: Diagnostic
+    if not buffer_read($tiny_state, 0, $empty_record) || empty_record.message_length != 0:
+        return 16
+
+    full_records: Diagnostic[1]
+    full_arena: char[16]
+    full_state: DiagnosticBuffer
+    buffer_init($full_state, $full_records[0], 1, PolicyRecover)
+    buffer_set_message_arena($full_state, 16)
+    if not emit($full_state, 11, SeverityWarning, 0, 1, 1, 0, "one", full_arena):
+        return 17
+    if emit($full_state, 12, SeverityWarning, 0, 1, 1, 0, "two", full_arena):
+        return 18
+    if full_state.count != 1 || full_state.total_emitted != 2 || full_state.dropped_count != 1 || full_state.message_storage_used != 4:
+        return 19
     return 0

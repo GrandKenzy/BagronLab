@@ -29,6 +29,8 @@ public CodeFileNotFound: const uint32 = 13
 public CodeInvalidUtf8: const uint32 = 14
 public CodeInvalidCommentSymbol: const uint32 = 15
 public CodeCustomBase: const uint32 = 1000
+; Recommended default size for a caller-owned message arena. The value is not a
+; hard limit; `buffer_set_message_arena` accepts any capacity.
 public MessageStorageCapacity: const usize = 4096
 
 ; EN : Describes one diagnostic and locates its message in the buffer arena.
@@ -52,11 +54,13 @@ public struct SeverityOverride:
     code: uint32
     severity: uint32
 
-; EN : Owns metadata and a fixed message arena; item and override storage stay
-; with the caller. The buffer never allocates or releases external regions.
+; EN : Owns metadata and counters for a caller-owned message arena; item,
+; override, and arena storage stay with the caller. The buffer never allocates
+; or releases external regions.
 ;
-; ES : Posee metadatos y una arena fija de mensajes; los registros y overrides
-; siguen siendo del llamador. El buffer nunca asigna ni libera regiones externas.
+; ES : Posee metadatos y contadores para un arena de mensajes del llamador; los
+; registros, overrides y arena siguen siendo del llamador. El buffer nunca
+; asigna ni libera regiones externas.
 public struct DiagnosticBuffer:
     items *: Diagnostic
     capacity: usize
@@ -70,8 +74,35 @@ public struct DiagnosticBuffer:
     fatal_count: usize
     overrides *: SeverityOverride
     override_count: usize
-    message_storage: char[4096]
+    message_storage_capacity: usize
     message_storage_used: usize
+
+@unsafe
+private func copy_chars(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    source_start: usize,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t,
+    target_start: usize,
+    count: usize
+) bool:
+    ; EN : Copies a bounded character range between caller-owned arrays.
+    ;
+    ; ES : Copia un rango acotado de caracteres entre arrays del llamador.
+    if source_size != 1 || target_size != 1:
+        return false
+    if source_start > source_length || count > source_length - source_start:
+        return false
+    if target_start > target_length || count > target_length - target_start:
+        return false
+    copy_index: usize = 0
+    while copy_index < count:
+        target[target_start + copy_index] = source[source_start + copy_index]
+        copy_index += 1
+    return true
 
 @unsafe
 public func buffer_init(
@@ -99,6 +130,7 @@ public func buffer_init(
     (buffer).fatal_count = 0
     (buffer).overrides = Null
     (buffer).override_count = 0
+    (buffer).message_storage_capacity = 0
     (buffer).message_storage_used = 0
     return
 
@@ -115,6 +147,31 @@ public func buffer_reset(buffer *: DiagnosticBuffer) void:
     (buffer).fatal_count = 0
     (buffer).message_storage_used = 0
     return
+
+@unsafe
+public func buffer_set_message_arena(
+    buffer *: DiagnosticBuffer,
+    capacity: usize
+) void:
+    ; EN : Configures the capacity of caller-owned message storage.
+    ; The same `char[]` arena must be passed to each emit and copy operation.
+    ; Changing the configured capacity also resets its used byte count.
+    ;
+    ; ES : Configura la capacidad del almacenamiento de mensajes del llamador.
+    ; El mismo arena `char[]` debe pasarse a cada operación de emisión y copia.
+    ; Cambiar la capacidad configurada también restablece los bytes utilizados.
+    (buffer).message_storage_capacity = capacity
+    (buffer).message_storage_used = 0
+    return
+
+@unsafe
+public func buffer_message_arena_remaining(buffer *: DiagnosticBuffer) usize:
+    ; EN : Returns the number of bytes still available in the message arena.
+    ;
+    ; ES : Devuelve los bytes que quedan disponibles en el arena de mensajes.
+    if (buffer).message_storage_used >= (buffer).message_storage_capacity:
+        return 0
+    return (buffer).message_storage_capacity - (buffer).message_storage_used
 
 @unsafe
 public func buffer_set_max_limit(
@@ -187,14 +244,17 @@ public func emit(
     column: uint32,
     message: char[],
     message_length: Len_t,
-    message_size: Size_t
+    message_size: Size_t,
+    arena: char[],
+    arena_length: Len_t,
+    arena_size: Size_t
 ) bool:
     ; EN : Emits one bounded diagnostic and returns true when it is stored.
-    ; The source text is copied into the buffer's fixed message arena.
+    ; The source text is copied into the caller-owned message arena.
     ; An arena overflow is counted as a dropped emission.
     ;
     ; ES : Emite un diagnóstico acotado y devuelve true cuando queda almacenado.
-    ; El texto origen se copia a la arena fija de mensajes del buffer.
+    ; El texto origen se copia al arena de mensajes propiedad del llamador.
     ; Un desbordamiento de la arena cuenta como emisión descartada.
     if message_size != 1:
         return false
@@ -220,6 +280,10 @@ public func emit(
         return false
 
     (buffer).total_emitted += 1
+    if (buffer).capacity == 0 || (buffer).count >= (buffer).capacity:
+        (buffer).dropped_count += 1
+        return false
+
     record: Diagnostic
     record.code = code
     record.severity = effective
@@ -229,27 +293,27 @@ public func emit(
     record.column = column
     record.message_offset = 0
     record.message_length = 0
+    zero: char = "\0"
 
     copy_length: usize = message_length
     if copy_length > 0 && message[copy_length - 1] == 0:
         copy_length -= 1
-    remaining: usize = MessageStorageCapacity - (buffer).message_storage_used
-    if copy_length + 1 > remaining:
-        (buffer).dropped_count += 1
-        return false
-    arena_index: usize = (buffer).message_storage_used
-    copy_index: usize = 0
-    while copy_index < copy_length:
-        (buffer).message_storage[arena_index + copy_index] = message[copy_index]
-        copy_index += 1
-    (buffer).message_storage[arena_index + copy_length] = "\0"
-    record.message_offset = arena_index
-    record.message_length = copy_length
-    (buffer).message_storage_used += copy_length + 1
-
-    if (buffer).capacity == 0 || (buffer).count >= (buffer).capacity:
-        (buffer).dropped_count += 1
-        return false
+    if copy_length > 0:
+        if arena_size != 1 || arena_length < (buffer).message_storage_capacity:
+            (buffer).dropped_count += 1
+            return false
+        remaining: usize = buffer_message_arena_remaining(buffer)
+        if copy_length + 1 > remaining:
+            (buffer).dropped_count += 1
+            return false
+        arena_index: usize = (buffer).message_storage_used
+        if not copy_chars(message, 0, arena, arena_index, copy_length):
+            (buffer).dropped_count += 1
+            return false
+        arena[arena_index + copy_length] = zero
+        record.message_offset = arena_index
+        record.message_length = copy_length
+        (buffer).message_storage_used += copy_length + 1
     (buffer).items[(buffer).count].code = record.code
     (buffer).items[(buffer).count].severity = record.severity
     (buffer).items[(buffer).count].start = record.start
@@ -280,3 +344,48 @@ public func buffer_read(
     (destination).message_offset = (buffer).items[index].message_offset
     (destination).message_length = (buffer).items[index].message_length
     return true
+
+@unsafe
+public func buffer_message_copy(
+    buffer *: DiagnosticBuffer,
+    index: usize,
+    arena: char[],
+    arena_length: Len_t,
+    arena_size: Size_t,
+    output: char[],
+    output_length: Len_t,
+    output_size: Size_t
+) usize:
+    ; EN : Copies a stored UTF-8 message into caller-owned character storage.
+    ; The result excludes the terminating NUL and truncates to the destination.
+    ;
+    ; ES : Copia un mensaje UTF-8 almacenado a caracteres del llamador.
+    ; El resultado excluye el NUL final y se trunca según el destino.
+    zero: char = "\0"
+    if output_size != 1 || output_length == 0:
+        return 0
+    if index >= (buffer).count:
+        output[0] = zero
+        return 0
+    record_offset: usize = (buffer).items[index].message_offset
+    record_length: usize = (buffer).items[index].message_length
+    if record_offset > (buffer).message_storage_capacity:
+        output[0] = zero
+        return 0
+    if record_length > (buffer).message_storage_capacity - record_offset:
+        output[0] = zero
+        return 0
+    if record_length > 0 && (arena_size != 1 || arena_length < (buffer).message_storage_capacity):
+        output[0] = zero
+        return 0
+    copy_length: usize = record_length
+    if copy_length + 1 > output_length:
+        copy_length = output_length - 1
+    if copy_length == 0:
+        output[0] = zero
+        return 0
+    if not copy_chars(arena, record_offset, output, 0, copy_length):
+        output[0] = zero
+        return 0
+    output[copy_length] = zero
+    return copy_length
