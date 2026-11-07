@@ -46,3 +46,20 @@ public func X11PollEvent(display: usize, protocol_atom: usize, delete_atom: usiz
     if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
         return 1001
     return raw.kind
+
+; EN: Blocks until one X11 event is received. Returns -1 for invalid arguments.
+; ES: Espera sin sondear hasta que llegue un evento X11.
+@unsafe
+public func X11WaitEvent(display: usize, protocol_atom: usize, delete_atom: usize, mouse: int32[], mouse_length: Len_t, mouse_size: Size_t) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    mouse[0] = 0
+    mouse[1] = 0
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind
