@@ -1,0 +1,43 @@
+; Native X11 display, window and window-manager protocol ABI (Linux x86_64).
+; All symbols are resolved through libX11.so.6; no Xlib ABI in x11gui.
+clause Privacy "public"
+
+X11_KEY_PRESS: const int32 = 2
+X11_BUTTON_PRESS: const int32 = 4
+X11_EXPOSE: const int32 = 12
+X11_DESTROY_NOTIFY: const int32 = 17
+X11_CLIENT_MESSAGE: const int32 = 33
+X11_CLOSE_REQUEST: const int32 = 1001
+
+X11_KEY_PRESS_MASK: const usize = 1
+X11_BUTTON_PRESS_MASK: const usize = 4
+X11_EXPOSURE_MASK: const usize = 32768
+X11_STRUCTURE_NOTIFY_MASK: const usize = 131072
+
+extern c ":libX11.so.6":
+    XOpenDisplay(display_name *: const char) usize
+    XCloseDisplay(display: usize) int32
+    XDefaultScreen(display: usize) int32
+    XRootWindow(display: usize, screen: int32) usize
+    XBlackPixel(display: usize, screen: int32) usize
+    XWhitePixel(display: usize, screen: int32) usize
+    XCreateSimpleWindow(display: usize, parent: usize, x: int32, y: int32, width: uint32, height: uint32, border_width: uint32, border: usize, background: usize) usize
+    XDestroyWindow(display: usize, window: usize) int32
+    XMapWindow(display: usize, window: usize) int32
+    XUnmapWindow(display: usize, window: usize) int32
+    XStoreName(display: usize, window: usize, title *: const char) int32
+    XSelectInput(display: usize, window: usize, mask: usize) int32
+    XFlush(display: usize) int32
+    XInternAtom(display: usize, name *: const char, only_if_exists: int32) usize
+    XSetWMProtocols(display: usize, window: usize, atoms *: usize, count: int32) int32
+
+; EN: Registers WM_DELETE_WINDOW for an X11 window; 0 on failure.
+; ES: Registra el protocolo de cierre WM_DELETE_WINDOW; 0 si falla.
+@unsafe
+public func X11EnableClose(display: usize, window: usize) usize:
+    atom: usize = XInternAtom(display, "WM_DELETE_WINDOW", 0)
+    if atom == 0:
+        return 0
+    if XSetWMProtocols(display, window, $atom, 1) == 0:
+        return 0
+    return atom
