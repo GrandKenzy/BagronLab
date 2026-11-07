@@ -1,0 +1,22 @@
+; Tests WM_DELETE_WINDOW protocol handling via a synthetic XClientMessage.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { is_close_request } from Gui
+
+@unsafe
+func main() int32:
+    app: Window = Window()
+    if not app.open("Bagron close test", 240, 160):
+        return 2
+    while true:
+        event_kind: int32 = app.wait()
+        if event_kind < 0:
+            app.close()
+            return 3
+        if is_close_request(event_kind):
+            if not app.close():
+                return 4
+            return 0
+    return 5
