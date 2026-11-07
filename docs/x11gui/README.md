@@ -88,9 +88,7 @@ xvfb-run -a ./build/x11gui-smoke
 
 La versión `1.1.10` de `gnulibrary` es un ejemplo de versión de desarrollo:
 ajústala a la versión que decidas publicar. **No reemplaces una biblioteca
-instalada con un paquete incompleto**. En las pruebas del entorno se empaquetó
-únicamente el subconjunto X11 de la frontera nativa, conservando respaldo de la
-biblioteca original.
+instalada con un paquete incompleto**. En las pruebas se reconstruyó primero el subconjunto X11 y después el paquete completo a partir de los módulos existentes en el paquete local instalado más los tres módulos X11 nuevos, conservando respaldo de la biblioteca original. Esta prueba no sustituye la reconstrucción con todas las fuentes más recientes de GitHub.
 
 El enlace en Bagron 1.1.4 para ELF Linux requiere actualmente el ajuste PIC
 local conocido del backend LLVM. Este repositorio no aplica ese parche al
