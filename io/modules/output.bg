@@ -226,14 +226,35 @@ public func print_buffer(data: buffer[], length: Len_t, nl: bool) void:
     if length == 0:
         return
 
-    staging: byte[4096]
     count: usize = 0
-    while count < length && count < 4095 && data[count] != 0:
-        staging[count] = data[count]
+    while count < length && data[count] != 0:
         count += 1
+    write_buffer(data, count, nl)
+    return
 
-    _flush_stdout()
-    _write_direct($staging[0], count)
+@unsafe
+public func write_buffer(data: buffer[], length: Len_t, count: usize, nl: bool) void:
+    ; EN : Writes exactly count bytes from a dynamic buffer, including NUL bytes.
+    ; The buffer remains borrowed and count must not exceed its runtime length.
+    ;
+    ; ES : Escribe exactamente count bytes de un buffer dinámico, incluidos los
+    ; ceros. El buffer sigue prestado y count no puede superar su longitud real.
+    if count > length:
+        return
+
+    staging: byte[4096]
+    offset: usize = 0
+    while offset < count:
+        chunk: usize = count - offset
+        if chunk > 4096:
+            chunk = 4096
+        index: usize = 0
+        while index < chunk:
+            staging[index] = data[offset + index]
+            index += 1
+        _flush_stdout()
+        _write_direct($staging[0], chunk)
+        offset += chunk
     if nl:
         _append_line_break()
     return

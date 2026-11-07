@@ -27,9 +27,9 @@ signature = "sha256:661dab48bbc12551d876a65a27fe80ddfdb6b08bbd4153d79eeec96b4c7a
 name = "io"
 file = "io.lib"
 format = "lib1"
-sha256 = "40abe5a2041bbfbfae9d1ece89d29508e7075de78604616e124f856fbb85dee7"
-size_bytes = 16956
-signature = "sha256:d42246e0bae789d51224e523c1ecb737a5e96527636e9c7bc7b67b65d1a6c0f8"
+sha256 = "1090ebea5df3d8ad557483b32c5d8f0c047f3264e900949a3f37d080e562dfa5"
+size_bytes = 17806
+signature = "sha256:5c6ed15c8f133cd112ac2d46f819a8cf9c7019e1c742d07c2e2c7da1b92e1e9c"
 
 # Verificación para: math
 [[packages]]

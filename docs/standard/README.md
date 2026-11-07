@@ -54,6 +54,11 @@ de salida reciben directamente un parámetro obligatorio `nl: bool`: al pasar
 `true` agregan un salto de línea y al pasar `false` continúan en la misma línea.
 No existen funciones separadas `newline` ni `println_*`.
 
+`io.write_buffer` escribe exactamente el número de bytes indicado de un
+`buffer[]`, incluidos los ceros internos. El buffer se presta durante la
+llamada; `count` no puede superar su longitud dinámica. `print_buffer` conserva
+la semántica de texto terminado en NUL.
+
 `io/main.bg` selecciona `windows.lib` para Windows y `gnulibrary.lib` para Linux
 con `#if OS`/`#elif OS`; la API de `io` no expone diferencias entre ambos targets.
 
@@ -88,7 +93,7 @@ porque `io` depende de `string`:
 ```sh
 bagron library --v1 string -o build/string.lib --name string --version 1.1.7
 bagron install --library --v1 string --name string --version 1.1.7
-bagron library --v1 io -o build/io.lib --name io --version 1.1.7
+bagron library --v1 io -o build/io.lib --name io --version 1.1.8
 bagron verify build/string.lib
 bagron verify build/io.lib
 bagron inspect build/io.lib

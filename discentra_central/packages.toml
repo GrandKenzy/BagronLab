@@ -27,7 +27,7 @@ license = "MIT"
 # Paquete: io
 [[packages]]
 name = "io"
-version = "1.1.7"
+version = "1.1.8"
 kind = "librería"
 format = "lib1"
 file = "io.lib"
