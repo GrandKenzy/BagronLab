@@ -26,27 +26,62 @@ private func valid_file_path(
 
     return false
 
+; Portable File options. Combine one access option with creation modifiers.
+public FileRead: const uint32 = 1
+public FileWrite: const uint32 = 2
+public FileReadWrite: const uint32 = 3
+public FileCreate: const uint32 = 4
+public FileExclusive: const uint32 = 8
+public FileTruncate: const uint32 = 16
+public FileAppend: const uint32 = 32
+public FileSeekStart: const int32 = 0
+public FileSeekCurrent: const int32 = 1
+public FileSeekEnd: const int32 = 2
+
 #if OS, "windows"
 
-public R: const uint32 = Win.GENERIC_READ
-public W: const uint32 = Win.GENERIC_WRITE
-public RW: const uint32 = Win.GENERIC_READ_WRITE
-public ShareNone: const uint32 = Win.FILE_SHARE_NONE
-public ShareR: const uint32 = Win.FILE_SHARE_READ
-public ShareW: const uint32 = Win.FILE_SHARE_WRITE
-public ShareRW: const uint32 = Win.FILE_SHARE_READ_WRITE
-public CreateNew: const uint32 = Win.CREATE_NEW
-public CreateAlways: const uint32 = Win.CREATE_ALWAYS
-public OpenExisting: const uint32 = Win.OPEN_EXISTING
-public OpenAlways: const uint32 = Win.OPEN_ALWAYS
-public TruncateExisting: const uint32 = Win.TRUNCATE_EXISTING
-public AttrNormal: const uint32 = Win.FILE_ATTRIBUTE_NORMAL
-public AttrTemporary: const uint32 = Win.FILE_ATTRIBUTE_TEMPORARY
-public FileBegin: const uint32 = Win.FILE_BEGIN
-public FileCurrent: const uint32 = Win.FILE_CURRENT
-public FileEnd: const uint32 = Win.FILE_END
-
 private FileTypeDisk: const uint32 = Win.FILE_TYPE_DISK
+private DefaultShareMode: const uint32 = Win.FILE_SHARE_READ_WRITE
+private MaximumTransfer: const usize = 4294967295
+
+private mold WindowsCount:
+    native: uint32
+    portable: usize
+
+private mold WindowsError:
+    native: uint32
+    portable: int64
+
+private mold WindowsSeekOrigin:
+    native: uint32
+    portable: int32
+
+@unsafe
+private func windows_error() int64:
+    ; EN: Widens the current Win32 error code into the portable error representation.
+    ;
+    ; ES: Amplía el código de error Win32 actual a la representación de error portátil.
+    result: WindowsError
+    result.portable = 0
+    result.native = Win.GetLastError()
+    return result.portable
+
+@unsafe
+private func invalid_file_handle() HANDLE:
+    ; EN: Produces a native failed handle while preserving the opaque HANDLE representation.
+    ;
+    ; ES: Produce un handle nativo fallido y conserva la representación HANDLE opaca.
+    invalid: char[1]
+    invalid[0] = "\0"
+    return Win.CreateFileA(
+        $invalid[0],
+        Win.GENERIC_READ,
+        DefaultShareMode,
+        Null,
+        Win.OPEN_EXISTING,
+        Win.FILE_ATTRIBUTE_NORMAL,
+        Null
+    )
 
 ; EN: Accepts only valid disk handles, excluding console and invalid handles.
 ; ES: Acepta solo handles de disco válidos, excluyendo consola y handles inválidos.
@@ -55,39 +90,70 @@ private FileTypeDisk: const uint32 = Win.FILE_TYPE_DISK
 private func valid_file_handle(handle: HANDLE) bool:
     return Win.GetFileType(handle) == FileTypeDisk
 
-; EN: Opens an ANSI Windows path with the requested access and creation mode.
-; ES: Abre una ruta ANSI de Windows con el acceso y modo de creación pedidos.
+; EN: Translates portable File options to the native Windows CreateFile ABI.
+; ES: Traduce las opciones portátiles de File a la ABI nativa CreateFile de Windows.
 ;
 @unsafe
 private func create_file(
     path: char[],
     length: Len_t,
     size: Size_t,
-    desired_access: uint32,
-    share_mode: uint32,
-    creation_disposition: uint32,
-    flags_and_attributes: uint32
+    options: uint32
 ) HANDLE:
+    read_requested: bool = (options & FileRead) != 0
+    write_requested: bool = (options & FileWrite) != 0
+    create_requested: bool = (options & FileCreate) != 0
+    exclusive_requested: bool = (options & FileExclusive) != 0
+    truncate_requested: bool = (options & FileTruncate) != 0
+    append_requested: bool = (options & FileAppend) != 0
+
+    if not read_requested && not write_requested:
+        return invalid_file_handle()
+    if exclusive_requested && not create_requested:
+        return invalid_file_handle()
+    if (truncate_requested || append_requested) && not write_requested:
+        return invalid_file_handle()
+
+    desired_access: uint32 = 0
+    if read_requested:
+        desired_access = desired_access | Win.GENERIC_READ
+    if write_requested:
+        if append_requested:
+            desired_access = desired_access | Win.FILE_APPEND_DATA
+        else:
+            desired_access = desired_access | Win.GENERIC_WRITE
+
+    creation_disposition: uint32 = Win.OPEN_EXISTING
+    if create_requested:
+        if exclusive_requested:
+            creation_disposition = Win.CREATE_NEW
+        elif truncate_requested:
+            creation_disposition = Win.CREATE_ALWAYS
+        else:
+            creation_disposition = Win.OPEN_ALWAYS
+    elif truncate_requested:
+        creation_disposition = Win.TRUNCATE_EXISTING
+
     if not valid_file_path(path):
         invalid: char[1]
         invalid[0] = "\0"
         return Win.CreateFileA(
             $invalid[0],
             desired_access,
-            share_mode,
+            DefaultShareMode,
             Null,
             creation_disposition,
-            flags_and_attributes,
+            Win.FILE_ATTRIBUTE_NORMAL,
             Null
         )
 
     return Win.CreateFileA(
         $path[0],
         desired_access,
-        share_mode,
+        DefaultShareMode,
         Null,
         creation_disposition,
-        flags_and_attributes,
+        Win.FILE_ATTRIBUTE_NORMAL,
         Null
     )
 
@@ -159,29 +225,20 @@ public func remove_directory(
 ;
 public class File:
 
-    ; EN: Opens a Windows file when the File value is constructed.
-    ; ES: Abre un archivo Windows al construir el valor File.
+    ; EN: Opens a file with portable File options when the File value is constructed.
+    ; ES: Abre un archivo con opciones portátiles de File al construir el valor File.
     ;
     @unsafe
     func __init__(
         path: char[],
         length: Len_t,
         size: Size_t,
-        desired_access: uint32,
-        share_mode: uint32,
-        creation_disposition: uint32,
-        flags_and_attributes: uint32
+        options: uint32
     ) void:
-        self.resource: HANDLE = create_file(
-            path,
-            desired_access,
-            share_mode,
-            creation_disposition,
-            flags_and_attributes
-        )
-        self.open_error: uint32 = Win.last_error()
+        self.resource: HANDLE = create_file(path, options)
+        self.open_error: int64 = windows_error()
         self.closed: bool = false
-        self.close_error: uint32 = 0
+        self.close_error: int64 = 0
 
     ; EN: Reports whether the owned handle is open and refers to a disk file.
     ; ES: Indica si el handle propio está abierto y refiere a un archivo de disco.
@@ -192,19 +249,19 @@ public class File:
             return false
         return valid_file_handle(self.resource)
 
-    ; EN: Returns the Windows error captured during opening, or zero if open.
-    ; ES: Devuelve el error Windows capturado al abrir, o cero si está abierto.
+    ; EN: Returns the portable error code captured during opening, or zero if open.
+    ; ES: Devuelve el código de error portátil capturado al abrir, o cero si está abierto.
     ;
     @unsafe
-    func opening_error() uint32:
+    func opening_error() int64:
         if self.is_open():
             return 0
         return self.open_error
 
-    ; EN: Returns the Windows error captured during closing.
-    ; ES: Devuelve el error Windows capturado durante el cierre.
+    ; EN: Returns the portable error code captured during closing.
+    ; ES: Devuelve el código de error portátil capturado durante el cierre.
     ;
-    func closing_error() uint32:
+    func closing_error() int64:
         return self.close_error
 
     ; EN: Reads up to count bytes into a caller-owned buffer.
@@ -215,15 +272,22 @@ public class File:
         data: byte[],
         length: Len_t,
         size: Size_t,
-        count: uint32,
-        actual *: uint32
+        count: usize,
+        actual *: usize
     ) bool:
         (actual) = 0
-        if not self.is_open() || size != 1 || count > length:
+        if not self.is_open() || size != 1 || count > length || count > MaximumTransfer:
             return false
         if count == 0:
             return true
-        return Win.ReadFile(self.resource, $data[0], count, actual, Null) != 0
+        native_count: WindowsCount
+        native_count.portable = count
+        native_actual: WindowsCount
+        native_actual.portable = 0
+        if Win.ReadFile(self.resource, $data[0], native_count.native, $native_actual.native, Null) == 0:
+            return false
+        (actual) = native_actual.portable
+        return true
 
     ; EN: Writes up to count bytes from a caller-owned buffer.
     ; ES: Escribe hasta count bytes desde un buffer del llamador.
@@ -233,25 +297,36 @@ public class File:
         data: byte[],
         length: Len_t,
         size: Size_t,
-        count: uint32,
-        actual *: uint32
+        count: usize,
+        actual *: usize
     ) bool:
         (actual) = 0
-        if not self.is_open() || size != 1 || count > length:
+        if not self.is_open() || size != 1 || count > length || count > MaximumTransfer:
             return false
         if count == 0:
             return true
-        return Win.WriteFile(self.resource, $data[0], count, actual, Null) != 0
+        native_count: WindowsCount
+        native_count.portable = count
+        native_actual: WindowsCount
+        native_actual.portable = 0
+        if Win.WriteFile(self.resource, $data[0], native_count.native, $native_actual.native, Null) == 0:
+            return false
+        (actual) = native_actual.portable
+        return true
 
     ; EN: Moves the file pointer and returns its new absolute position.
     ; ES: Mueve el puntero del archivo y devuelve su posición absoluta nueva.
     ;
     @unsafe
-    func seek(offset: int64, origin: uint32) int64:
+    func seek(offset: int64, origin: int32) int64:
         if not self.is_open():
             return -1
+        if origin < FileSeekStart || origin > FileSeekEnd:
+            return -1
+        native_origin: WindowsSeekOrigin
+        native_origin.portable = origin
         result: int64 = 0
-        if Win.SetFilePointerEx(self.resource, offset, $result, origin) == 0:
+        if Win.SetFilePointerEx(self.resource, offset, $result, native_origin.native) == 0:
             return -1
         return result
 
@@ -283,7 +358,7 @@ public class File:
     func close() void:
         if not self.closed:
             if self.is_open() && Win.CloseHandle(self.resource) == 0:
-                self.close_error = Win.last_error()
+                self.close_error = windows_error()
             self.closed = true
         return
 
@@ -297,18 +372,11 @@ public class File:
 
 #elif OS, "linux"
 
-public O_RDONLY: const uint32 = Gnu.O_RDONLY
-public O_WRONLY: const uint32 = Gnu.O_WRONLY
-public O_RDWR: const uint32 = Gnu.O_RDWR
-public O_CREAT: const uint32 = Gnu.O_CREAT
-public O_EXCL: const uint32 = Gnu.O_EXCL
-public O_TRUNC: const uint32 = Gnu.O_TRUNC
-public O_APPEND: const uint32 = Gnu.O_APPEND
-public MODE_USER_READ_WRITE: const uint32 = Gnu.MODE_USER_READ_WRITE
-public MODE_USER_READ_WRITE_EXEC: const uint32 = Gnu.MODE_USER_READ_WRITE_EXEC
-public SeekSet: const int32 = Gnu.SEEK_SET
-public SeekCur: const int32 = Gnu.SEEK_CUR
-public SeekEnd: const int32 = Gnu.SEEK_END
+private DefaultFileMode: const uint32 = 438
+
+private mold LinuxCount:
+    raw: int64
+    portable: usize
 
 ; Linux x86_64 struct stat layout used only with the raw fstat syscall.
 @align(8)
@@ -343,22 +411,52 @@ private func remember_error(result: int64) int64:
         linux_last_error = 0 - result
     return result
 
-; EN: Opens a Linux path relative to the current working directory.
-; ES: Abre una ruta Linux relativa al directorio de trabajo actual.
+; EN: Translates portable File options to raw Linux openat flags.
+; ES: Traduce las opciones portátiles de File a flags raw de openat Linux.
 ;
 @unsafe
 private func create_file(
     path: char[],
     length: Len_t,
     size: Size_t,
-    open_flags: uint32,
-    mode: uint32
+    options: uint32
 ) int64:
+    read_requested: bool = (options & FileRead) != 0
+    write_requested: bool = (options & FileWrite) != 0
+    create_requested: bool = (options & FileCreate) != 0
+    exclusive_requested: bool = (options & FileExclusive) != 0
+    truncate_requested: bool = (options & FileTruncate) != 0
+    append_requested: bool = (options & FileAppend) != 0
+
+    if not read_requested && not write_requested:
+        linux_last_error = 22
+        return -1
+    if exclusive_requested && not create_requested:
+        linux_last_error = 22
+        return -1
+    if (truncate_requested || append_requested) && not write_requested:
+        linux_last_error = 22
+        return -1
+
+    open_flags: uint32 = Gnu.O_RDONLY
+    if read_requested && write_requested:
+        open_flags = Gnu.O_RDWR
+    elif write_requested:
+        open_flags = Gnu.O_WRONLY
+    if create_requested:
+        open_flags = open_flags | Gnu.O_CREAT
+    if exclusive_requested:
+        open_flags = open_flags | Gnu.O_EXCL
+    if truncate_requested:
+        open_flags = open_flags | Gnu.O_TRUNC
+    if append_requested:
+        open_flags = open_flags | Gnu.O_APPEND
+
     if not valid_file_path(path):
         invalid: char[1]
         invalid[0] = "\0"
-        return remember_error(Gnu.openat(Gnu.AT_FDCWD, $invalid[0], open_flags, mode))
-    return remember_error(Gnu.openat(Gnu.AT_FDCWD, $path[0], open_flags, mode))
+        return remember_error(Gnu.openat(Gnu.AT_FDCWD, $invalid[0], open_flags, DefaultFileMode))
+    return remember_error(Gnu.openat(Gnu.AT_FDCWD, $path[0], open_flags, DefaultFileMode))
 
 ; EN: Removes a file and returns zero on success.
 ; ES: Elimina un archivo y devuelve cero si tiene éxito.
@@ -438,18 +536,17 @@ public func remove_directory(
 ;
 public class File:
 
-    ; EN: Opens a Linux file when the File value is constructed.
-    ; ES: Abre un archivo Linux al construir el valor File.
+    ; EN: Opens a file with portable File options when the File value is constructed.
+    ; ES: Abre un archivo con opciones portátiles de File al construir el valor File.
     ;
     @unsafe
     func __init__(
         path: char[],
         length: Len_t,
         size: Size_t,
-        open_flags: uint32,
-        mode: uint32
+        options: uint32
     ) void:
-        self.resource: int64 = create_file(path, open_flags, mode)
+        self.resource: int64 = create_file(path, options)
         self.open_error: int64 = linux_last_error
         self.closed: bool = false
         self.close_error: int64 = 0
@@ -485,15 +582,19 @@ public class File:
         length: Len_t,
         size: Size_t,
         count: usize,
-        actual *: int64
+        actual *: usize
     ) bool:
         (actual) = 0
         if not self.is_open() || size != 1 || count > length:
             return false
         if count == 0:
             return true
-        (actual) = remember_error(Gnu.read(self.resource, $data[0], count))
-        return (actual) >= 0
+        result: LinuxCount
+        result.raw = remember_error(Gnu.read(self.resource, $data[0], count))
+        if result.raw < 0:
+            return false
+        (actual) = result.portable
+        return true
 
     ; EN: Writes up to count bytes from a caller-owned buffer.
     ; ES: Escribe hasta count bytes desde un buffer del llamador.
@@ -504,15 +605,19 @@ public class File:
         length: Len_t,
         size: Size_t,
         count: usize,
-        actual *: int64
+        actual *: usize
     ) bool:
         (actual) = 0
         if not self.is_open() || size != 1 || count > length:
             return false
         if count == 0:
             return true
-        (actual) = remember_error(Gnu.write(self.resource, $data[0], count))
-        return (actual) >= 0
+        result: LinuxCount
+        result.raw = remember_error(Gnu.write(self.resource, $data[0], count))
+        if result.raw < 0:
+            return false
+        (actual) = result.portable
+        return true
 
     ; EN: Moves the file offset and returns its new absolute position.
     ; ES: Mueve el offset del archivo y devuelve su posición absoluta nueva.
@@ -520,6 +625,8 @@ public class File:
     @unsafe
     func seek(offset: int64, origin: int32) int64:
         if not self.is_open():
+            return -1
+        if origin < FileSeekStart || origin > FileSeekEnd:
             return -1
         return remember_error(Gnu.lseek(self.resource, offset, origin))
 
@@ -569,14 +676,127 @@ public class File:
 
 #else
 
-; EN: Provides an inert File shape for unsupported operating-system targets.
-; ES: Proporciona una forma File inerte para targets no compatibles.
+; EN: Keeps the portable file API available on unsupported targets without native I/O.
+; ES: Mantiene disponible la API portátil de archivos en targets sin I/O nativo.
 ;
-public class File:
-    ; EN: Initializes the inert placeholder without opening a resource.
-    ; ES: Inicializa el marcador inerte sin abrir un recurso.
+@unsafe
+public func remove_file(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Reports failure because this target has no filesystem backend.
     ;
-    func __init__() void:
+    ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+    return 1
+
+@unsafe
+public func rename_file(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t
+) int32:
+    ; EN: Reports failure because this target has no filesystem backend.
+    ;
+    ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+    return 1
+
+@unsafe
+public func create_directory(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Reports failure because this target has no filesystem backend.
+    ;
+    ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+    return 1
+
+@unsafe
+public func remove_directory(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Reports failure because this target has no filesystem backend.
+    ;
+    ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+    return 1
+
+public class File:
+    ; EN: Keeps the portable File method set on unsupported targets.
+    ; ES: Conserva el conjunto de métodos portátil de File en targets no compatibles.
+    ;
+    @unsafe
+    func __init__(path: char[], length: Len_t, size: Size_t, options: uint32) void:
+        ; EN: Initializes a closed placeholder because native I/O is unavailable.
+        ;
+        ; ES: Inicializa un marcador cerrado porque no hay I/O nativo disponible.
+        self.open_error: int64 = 0
+        self.close_error: int64 = 0
+        self.closed: bool = true
+        return
+
+    func is_open() bool:
+        ; EN: Reports that no native resource is open.
+        ;
+        ; ES: Indica que no hay ningún recurso nativo abierto.
+        return false
+
+    func opening_error() int64:
+        ; EN: Returns zero because this placeholder does not invoke a native API.
+        ;
+        ; ES: Devuelve cero porque este marcador no invoca una API nativa.
+        return self.open_error
+
+    func closing_error() int64:
+        ; EN: Returns zero because this placeholder never owns a native resource.
+        ;
+        ; ES: Devuelve cero porque este marcador nunca posee un recurso nativo.
+        return self.close_error
+
+    @unsafe
+    func read_bytes(data: byte[], length: Len_t, size: Size_t, count: usize, actual *: usize) bool:
+        ; EN: Reports failure and writes no bytes on unsupported targets.
+        ;
+        ; ES: Reporta fallo y no escribe bytes en targets no compatibles.
+        (actual) = 0
+        return false
+
+    @unsafe
+    func write_bytes(data: byte[], length: Len_t, size: Size_t, count: usize, actual *: usize) bool:
+        ; EN: Reports failure and writes no bytes on unsupported targets.
+        ;
+        ; ES: Reporta fallo y no escribe bytes en targets no compatibles.
+        (actual) = 0
+        return false
+
+    @unsafe
+    func seek(offset: int64, origin: int32) int64:
+        ; EN: Reports failure because this target has no filesystem backend.
+        ;
+        ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+        return -1
+
+    @unsafe
+    func size() int64:
+        ; EN: Reports failure because this target has no filesystem backend.
+        ;
+        ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+        return -1
+
+    @unsafe
+    func flush() bool:
+        ; EN: Reports failure because this target has no filesystem backend.
+        ;
+        ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+        return false
+
+    @unsafe
+    func close() void:
+        ; EN: Leaves the already closed placeholder unchanged.
+        ;
+        ; ES: Deja sin cambios el marcador que ya está cerrado.
+        self.closed = true
+        return
+
+    @unsafe
+    func __deletion__() void:
+        ; EN: Releases the placeholder through the portable close path.
+        ;
+        ; ES: Libera el marcador mediante la ruta portátil de cierre.
+        self.close()
         return
 
 #end

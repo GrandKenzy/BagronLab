@@ -21,6 +21,7 @@ public opaque MEMORY_REGION: void*
 public GENERIC_READ: const uint32 = 2147483648
 public GENERIC_WRITE: const uint32 = 1073741824
 public GENERIC_READ_WRITE: const uint32 = 3221225472
+public FILE_APPEND_DATA: const uint32 = 4
 public FILE_SHARE_NONE: const uint32 = 0
 public FILE_SHARE_READ: const uint32 = 1
 public FILE_SHARE_WRITE: const uint32 = 2
