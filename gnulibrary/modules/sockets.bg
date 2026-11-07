@@ -4,72 +4,72 @@ clause Privacy "public"
 
 ; EN: General socket error indicators.
 ; ES: Indicadores generales de error de sockets.
-public SOCKET_ERROR: const int32 = -1
-public INVALID_SOCKET: const usize = 18446744073709551615
+SOCKET_ERROR: const int32 = -1
+INVALID_SOCKET: const usize = 18446744073709551615
 
 ; EN: Address families (domain).
 ; ES: Familias de direcciones (dominio).
-public AF_UNSPEC: const int32 = 0
-public AF_UNIX: const int32 = 1
-public AF_LOCAL: const int32 = 1
-public AF_INET: const int32 = 2
-public AF_INET6: const int32 = 10
+AF_UNSPEC: const int32 = 0
+AF_UNIX: const int32 = 1
+AF_LOCAL: const int32 = 1
+AF_INET: const int32 = 2
+AF_INET6: const int32 = 10
 
 ; EN: Socket communication semantics and flags.
 ; ES: Semánticas de comunicación de sockets y banderas.
-public SOCK_STREAM: const int32 = 1
-public SOCK_DGRAM: const int32 = 2
-public SOCK_RAW: const int32 = 3
-public SOCK_NONBLOCK: const int32 = 2048
-public SOCK_CLOEXEC: const int32 = 524288
+SOCK_STREAM: const int32 = 1
+SOCK_DGRAM: const int32 = 2
+SOCK_RAW: const int32 = 3
+SOCK_NONBLOCK: const int32 = 2048
+SOCK_CLOEXEC: const int32 = 524288
 
 ; EN: Standard IP protocols.
 ; ES: Protocolos IP estándar.
-public IPPROTO_IP: const int32 = 0
-public IPPROTO_ICMP: const int32 = 1
-public IPPROTO_TCP: const int32 = 6
-public IPPROTO_UDP: const int32 = 17
-public IPPROTO_IPV6: const int32 = 41
+IPPROTO_IP: const int32 = 0
+IPPROTO_ICMP: const int32 = 1
+IPPROTO_TCP: const int32 = 6
+IPPROTO_UDP: const int32 = 17
+IPPROTO_IPV6: const int32 = 41
 
 ; EN: Socket options levels and options.
 ; ES: Niveles y opciones de sockets.
-public SOL_SOCKET: const int32 = 1
-public SO_DEBUG: const int32 = 1
-public SO_REUSEADDR: const int32 = 2
-public SO_TYPE: const int32 = 3
-public SO_ERROR: const int32 = 4
-public SO_DONTROUTE: const int32 = 5
-public SO_BROADCAST: const int32 = 6
-public SO_SNDBUF: const int32 = 7
-public SO_RCVBUF: const int32 = 8
-public SO_KEEPALIVE: const int32 = 9
-public SO_OOBINLINE: const int32 = 10
-public SO_NO_CHECK: const int32 = 11
-public SO_PRIORITY: const int32 = 12
-public SO_LINGER: const int32 = 13
-public SO_BSDCOMPAT: const int32 = 14
-public SO_REUSEPORT: const int32 = 15
-public SO_RCVTIMEO: const int32 = 20
-public SO_SNDTIMEO: const int32 = 21
+SOL_SOCKET: const int32 = 1
+SO_DEBUG: const int32 = 1
+SO_REUSEADDR: const int32 = 2
+SO_TYPE: const int32 = 3
+SO_ERROR: const int32 = 4
+SO_DONTROUTE: const int32 = 5
+SO_BROADCAST: const int32 = 6
+SO_SNDBUF: const int32 = 7
+SO_RCVBUF: const int32 = 8
+SO_KEEPALIVE: const int32 = 9
+SO_OOBINLINE: const int32 = 10
+SO_NO_CHECK: const int32 = 11
+SO_PRIORITY: const int32 = 12
+SO_LINGER: const int32 = 13
+SO_BSDCOMPAT: const int32 = 14
+SO_REUSEPORT: const int32 = 15
+SO_RCVTIMEO: const int32 = 20
+SO_SNDTIMEO: const int32 = 21
 
 ; EN: Shutdown reception and transmission control.
 ; ES: Control de recepción y transmisión al apagar.
-public SHUT_RD: const int32 = 0
-public SHUT_WR: const int32 = 1
-public SHUT_RDWR: const int32 = 2
+SHUT_RD: const int32 = 0
+SHUT_WR: const int32 = 1
+SHUT_RDWR: const int32 = 2
 
 ; EN: Message transmission flags.
 ; ES: Banderas de transmisión de mensajes.
-public MSG_OOB: const int32 = 1
-public MSG_PEEK: const int32 = 2
-public MSG_DONTROUTE: const int32 = 4
-public MSG_DONTWAIT: const int32 = 64
-public MSG_WAITALL: const int32 = 256
-public MSG_NOSIGNAL: const int32 = 16384
+MSG_OOB: const int32 = 1
+MSG_PEEK: const int32 = 2
+MSG_DONTROUTE: const int32 = 4
+MSG_DONTWAIT: const int32 = 64
+MSG_WAITALL: const int32 = 256
+MSG_NOSIGNAL: const int32 = 16384
 
 
 @align(2)
-public struct SOCKADDR:
+struct SOCKADDR:
     ; EN: Generic socket address structure (16 bytes).
     ;
     ; ES: Estructura genérica de dirección de socket (16 bytes).
@@ -78,7 +78,7 @@ public struct SOCKADDR:
 
 
 @align(4)
-public struct SOCKADDR_IN:
+struct SOCKADDR_IN:
     ; EN: IPv4 socket address structure (16 bytes).
     ;
     ; ES: Estructura de dirección de socket IPv4 (16 bytes).
@@ -89,7 +89,7 @@ public struct SOCKADDR_IN:
 
 
 @align(8)
-public struct TIMEVAL:
+struct TIMEVAL:
     ; EN: Time interval structure representing seconds and microseconds.
     ;
     ; ES: Estructura de intervalo de tiempo que representa segundos y microsegundos.
@@ -98,7 +98,7 @@ public struct TIMEVAL:
 
 
 @align(8)
-public struct ADDRINFO:
+struct ADDRINFO:
     ; EN: POSIX/Linux addrinfo structure for network consumers.
     ; Linux/POSIX places ai_addr before ai_canonname in the native structure.
     ;
@@ -115,7 +115,7 @@ public struct ADDRINFO:
 
 
 @assembler
-public func socket(domain: int32, kind: int32, protocol: int32) usize:
+func socket(domain: int32, kind: int32, protocol: int32) usize:
     ; EN: Creates an endpoint for communication and returns a socket handle.
     ; Syscall 41 (sys_socket).
     ;
@@ -129,7 +129,7 @@ public func socket(domain: int32, kind: int32, protocol: int32) usize:
 
 
 @assembler
-public func connect(sock: usize, addr *: const void, addrlen: int32) int32:
+func connect(sock: usize, addr *: const void, addrlen: int32) int32:
     ; EN: Initiates a connection on a socket descriptor.
     ; Syscall 42 (sys_connect).
     ;
@@ -143,7 +143,7 @@ public func connect(sock: usize, addr *: const void, addrlen: int32) int32:
 
 
 @assembler
-public func accept(sock: usize, addr *: void, addrlen *: int32) usize:
+func accept(sock: usize, addr *: void, addrlen *: int32) usize:
     ; EN: Accepts a connection on a listening socket descriptor.
     ; Syscall 43 (sys_accept).
     ;
@@ -157,7 +157,7 @@ public func accept(sock: usize, addr *: void, addrlen *: int32) usize:
 
 
 @assembler
-public func accept4(sock: usize, addr *: void, addrlen *: int32, flags_: uint32) usize:
+func accept4(sock: usize, addr *: void, addrlen *: int32, flags_: uint32) usize:
     ; EN: Accepts a connection with explicit non-blocking or close-on-exec flags.
     ; Syscall 288 (sys_accept4). The 4th argument moves from %ecx to %r10d.
     ;
@@ -172,7 +172,7 @@ public func accept4(sock: usize, addr *: void, addrlen *: int32, flags_: uint32)
 
 
 @assembler
-public func bind(sock: usize, addr *: void, addrlen: int32) int32:
+func bind(sock: usize, addr *: void, addrlen: int32) int32:
     ; EN: Binds a unique local address to a socket descriptor.
     ; Syscall 49 (sys_bind).
     ;
@@ -186,7 +186,7 @@ public func bind(sock: usize, addr *: void, addrlen: int32) int32:
 
 
 @assembler
-public func listen(sock: usize, backlog: int32) int32:
+func listen(sock: usize, backlog: int32) int32:
     ; EN: Marks the socket descriptor as passive, ready to accept connections.
     ; Syscall 50 (sys_listen).
     ;
@@ -200,7 +200,7 @@ public func listen(sock: usize, backlog: int32) int32:
 
 
 @assembler
-public func sendto(sock: usize, buf *: const void, len: int32, flags_: int32, dest_addr *: const void, addrlen: int32) int32:
+func sendto(sock: usize, buf *: const void, len: int32, flags_: int32, dest_addr *: const void, addrlen: int32) int32:
     ; EN: Sends a message on a socket to a specific address.
     ; Syscall 44 (sys_sendto). The 4th argument moves from %ecx to %r10d.
     ;
@@ -215,7 +215,7 @@ public func sendto(sock: usize, buf *: const void, len: int32, flags_: int32, de
 
 
 @assembler
-public func recvfrom(sock: usize, buf *: void, len: int32, flags_: int32, src_addr *: void, addrlen *: int32) int32:
+func recvfrom(sock: usize, buf *: void, len: int32, flags_: int32, src_addr *: void, addrlen *: int32) int32:
     ; EN: Receives a message from a socket, optionally capturing the sender address.
     ; Syscall 45 (sys_recvfrom). The 4th argument moves from %ecx to %r10d.
     ;
@@ -230,7 +230,7 @@ public func recvfrom(sock: usize, buf *: void, len: int32, flags_: int32, src_ad
 
 
 @assembler
-public func send(sock: usize, buf *: const void, len: int32, flags_: int32) int32:
+func send(sock: usize, buf *: const void, len: int32, flags_: int32) int32:
     ; EN: Transmits a message on a connected socket descriptor.
     ; Syscall 44 (sys_sendto with null destination).
     ;
@@ -247,7 +247,7 @@ public func send(sock: usize, buf *: const void, len: int32, flags_: int32) int3
 
 
 @assembler
-public func recv(sock: usize, buf *: void, len: int32, flags_: int32) int32:
+func recv(sock: usize, buf *: void, len: int32, flags_: int32) int32:
     ; EN: Receives data from a connected socket descriptor into a buffer.
     ; Syscall 45 (sys_recvfrom with null source).
     ;
@@ -264,7 +264,7 @@ public func recv(sock: usize, buf *: void, len: int32, flags_: int32) int32:
 
 
 @assembler
-public func shutdown(sock: usize, how: int32) int32:
+func shutdown(sock: usize, how: int32) int32:
     ; EN: Shuts down part of a full-duplex connection on a socket.
     ; Syscall 48 (sys_shutdown).
     ;
@@ -278,7 +278,7 @@ public func shutdown(sock: usize, how: int32) int32:
 
 
 @assembler
-public func getsockname(sock: usize, addr *: void, addrlen *: int32) int32:
+func getsockname(sock: usize, addr *: void, addrlen *: int32) int32:
     ; EN: Retrieves the current local address associated with a socket.
     ; Syscall 51 (sys_getsockname).
     ;
@@ -292,7 +292,7 @@ public func getsockname(sock: usize, addr *: void, addrlen *: int32) int32:
 
 
 @assembler
-public func getpeername(sock: usize, addr *: void, addrlen *: int32) int32:
+func getpeername(sock: usize, addr *: void, addrlen *: int32) int32:
     ; EN: Retrieves the remote address of the peer connected to a socket.
     ; Syscall 52 (sys_getpeername).
     ;
@@ -306,7 +306,7 @@ public func getpeername(sock: usize, addr *: void, addrlen *: int32) int32:
 
 
 @assembler
-public func socketpair(domain: int32, kind: int32, protocol: int32, sv *: int32) int32:
+func socketpair(domain: int32, kind: int32, protocol: int32, sv *: int32) int32:
     ; EN: Creates an unnamed pair of connected sockets in the specified domain.
     ; Syscall 53 (sys_socketpair). The 4th argument moves from %rcx to %r10.
     ;
@@ -321,7 +321,7 @@ public func socketpair(domain: int32, kind: int32, protocol: int32, sv *: int32)
 
 
 @assembler
-public func setsockopt(sock: usize, level: int32, option: int32, value *: void, value_length: int32) int32:
+func setsockopt(sock: usize, level: int32, option: int32, value *: void, value_length: int32) int32:
     ; EN: Sets options associated with a socket descriptor.
     ; Syscall 54 (sys_setsockopt). The 4th argument moves from %rcx to %r10.
     ;
@@ -336,7 +336,7 @@ public func setsockopt(sock: usize, level: int32, option: int32, value *: void, 
 
 
 @assembler
-public func getsockopt(sock: usize, level: int32, option: int32, value *: void, value_length *: int32) int32:
+func getsockopt(sock: usize, level: int32, option: int32, value *: void, value_length *: int32) int32:
     ; EN: Retrieves options associated with a socket descriptor.
     ; Syscall 55 (sys_getsockopt). The 4th argument moves from %rcx to %r10.
     ;
@@ -351,7 +351,7 @@ public func getsockopt(sock: usize, level: int32, option: int32, value *: void, 
 
 
 @assembler
-public func close_socket(sock: usize) int32:
+func close_socket(sock: usize) int32:
     ; EN: Closes a socket file descriptor via sys_close.
     ; Syscall 3 (sys_close).
     ;
@@ -365,7 +365,7 @@ public func close_socket(sock: usize) int32:
 
 
 @assembler
-public func htons(port: int32) uint16:
+func htons(port: int32) uint16:
     ; EN: Converts a 16-bit integer from host byte order to network byte order.
     ; ES: Convierte un entero de 16 bits del orden de bytes del host al de la red.
     #assembler "att"
@@ -376,7 +376,7 @@ public func htons(port: int32) uint16:
 
 
 @assembler
-public func ntohs(port: uint16) int32:
+func ntohs(port: uint16) int32:
     ; EN: Converts a 16-bit integer from network byte order to host byte order.
     ; ES: Convierte un entero de 16 bits del orden de bytes de red al del host.
     #assembler "att"
@@ -392,7 +392,7 @@ extern c "c":
 
 
 @unsafe
-public inline func Open(family: int32, kind: int32, protocol: int32) usize:
+inline func Open(family: int32, kind: int32, protocol: int32) usize:
     ; EN : Creates a native socket descriptor using Linux kernel syscalls.
     ; Returns INVALID_SOCKET on failure.
     ;
@@ -402,7 +402,7 @@ public inline func Open(family: int32, kind: int32, protocol: int32) usize:
 
 
 @unsafe
-public inline func Connect(handle: usize, address *: const char, length: int32) int32:
+inline func Connect(handle: usize, address *: const char, length: int32) int32:
     ; EN : Establishes a connection to a specified socket address.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -412,7 +412,7 @@ public inline func Connect(handle: usize, address *: const char, length: int32) 
 
 
 @unsafe
-public inline func Bind(handle: usize, address *: void, length: int32) int32:
+inline func Bind(handle: usize, address *: void, length: int32) int32:
     ; EN : Associates a local address with a socket descriptor.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -422,7 +422,7 @@ public inline func Bind(handle: usize, address *: void, length: int32) int32:
 
 
 @unsafe
-public inline func Listen(handle: usize, backlog: int32) int32:
+inline func Listen(handle: usize, backlog: int32) int32:
     ; EN : Places a socket in a state listening for incoming connections.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -432,7 +432,7 @@ public inline func Listen(handle: usize, backlog: int32) int32:
 
 
 @unsafe
-public inline func Accept(handle: usize, address *: void, length *: int32) usize:
+inline func Accept(handle: usize, address *: void, length *: int32) usize:
     ; EN : Accepts an incoming connection request on a listening socket.
     ; Returns the new socket descriptor or INVALID_SOCKET on error.
     ;
@@ -442,7 +442,7 @@ public inline func Accept(handle: usize, address *: void, length *: int32) usize
 
 
 @unsafe
-public func set_timeout(handle: usize, timeout_ms: int32) int32:
+func set_timeout(handle: usize, timeout_ms: int32) int32:
     ; EN : Configures send and receive timeouts on a socket in milliseconds.
     ; Returns 0 on success, or -1 on invalid parameter or socket error.
     ;
@@ -465,7 +465,7 @@ public func set_timeout(handle: usize, timeout_ms: int32) int32:
 
 
 @unsafe
-public inline func Send(handle: usize, buffer *: const char, length: int32) int32:
+inline func Send(handle: usize, buffer *: const char, length: int32) int32:
     ; EN : Sends data on a connected socket descriptor with MSG_NOSIGNAL.
     ; Returns the number of bytes sent, or SOCKET_ERROR on failure.
     ;
@@ -475,7 +475,7 @@ public inline func Send(handle: usize, buffer *: const char, length: int32) int3
 
 
 @unsafe
-public inline func Recv(handle: usize, buffer *: char, length: int32) int32:
+inline func Recv(handle: usize, buffer *: char, length: int32) int32:
     ; EN : Receives data from a connected socket descriptor into a buffer.
     ; Returns the number of bytes received, 0 on disconnect, or SOCKET_ERROR.
     ;
@@ -485,7 +485,7 @@ public inline func Recv(handle: usize, buffer *: char, length: int32) int32:
 
 
 @unsafe
-public inline func Close(handle: usize) int32:
+inline func Close(handle: usize) int32:
     ; EN : Closes an open socket descriptor via sys_close.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -495,7 +495,7 @@ public inline func Close(handle: usize) int32:
 
 
 @unsafe
-public inline func GetAddrInfo(node *: const char, service *: const char, hints *: ADDRINFO, result **: ADDRINFO) int32:
+inline func GetAddrInfo(node *: const char, service *: const char, hints *: ADDRINFO, result **: ADDRINFO) int32:
     ; EN : Resolves hostnames and service port names into address structures via POSIX resolver.
     ;
     ; ES : Resuelve nombres de host y servicio a estructuras de direcciones mediante el resolver POSIX.
@@ -503,7 +503,7 @@ public inline func GetAddrInfo(node *: const char, service *: const char, hints 
 
 
 @unsafe
-public inline func ReleaseAddrInfo(result *: ADDRINFO) void:
+inline func ReleaseAddrInfo(result *: ADDRINFO) void:
     ; EN : Frees address structures allocated dynamically by GetAddrInfo.
     ;
     ; ES : Libera estructuras de direcciones asignadas dinámicamente por GetAddrInfo.
@@ -511,7 +511,7 @@ public inline func ReleaseAddrInfo(result *: ADDRINFO) void:
 
 
 @unsafe
-public inline func Startup() int32:
+inline func Startup() int32:
     ; EN : Compatibility no-op for platforms requiring network subsystem initialization.
     ; Returns 0 on Linux.
     ;
@@ -521,7 +521,7 @@ public inline func Startup() int32:
 
 
 @unsafe
-public inline func Cleanup() int32:
+inline func Cleanup() int32:
     ; EN : Compatibility no-op for network subsystem cleanup.
     ; Returns 0 on Linux.
     ;
@@ -531,7 +531,7 @@ public inline func Cleanup() int32:
 
 
 @unsafe
-public inline func NetworkPort(port: int32) uint16:
+inline func NetworkPort(port: int32) uint16:
     ; EN : Converts a 16-bit port number from host byte order to network byte order.
     ;
     ; ES : Convierte un número de puerto de 16 bits de orden de host a orden de red.
@@ -539,14 +539,14 @@ public inline func NetworkPort(port: int32) uint16:
 
 
 @unsafe
-public inline func HostPort(port: uint16) int32:
+inline func HostPort(port: uint16) int32:
     ; EN : Converts a 16-bit port number from network byte order to host byte order.
     ;
     ; ES : Convierte un número de puerto de 16 bits de orden de red a orden de host.
     return ntohs(port)
 
 
-public class Socket:
+class Socket:
     func __init__(sock: usize, addr *: const char, addrlen: int32) void:
         ; EN : Initializes a Socket wrapper around an operating-system handle.
         ;

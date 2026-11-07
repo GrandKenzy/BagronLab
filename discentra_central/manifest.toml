@@ -9,9 +9,9 @@ author = "Discentra Community"
 name = "gnulibrary"
 file = "gnulibrary.lib"
 format = "lib1"
-sha256 = "524983bcdb3dd1b8dff6c72db52817fc343fc93781c2f9f6e66a239ba43b5964"
-size_bytes = 35783
-signature = "sha256:b9c862179dd14276958591f5af8116a27a6dc5fbb937358ff864cab785ee68bb"
+sha256 = "1836a1b483c1d81d91a5f60037eaea99ce01820b3a2f7b54e23ea74b3bc27ef5"
+size_bytes = 35458
+signature = "sha256:a59ce123754747d9d803bbb10a3037e70605bb7421d7a7b9611eb66ec88d9c67"
 
 # Verificación para: hashlib
 [[packages]]
