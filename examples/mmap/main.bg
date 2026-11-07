@@ -1,0 +1,33 @@
+; Minimal anonymous virtual-memory example; exit 0 indicates success.
+clause System "auto"
+clause Arch "amd"
+library mmap as MM
+import { Mapping } from MM
+
+@unsafe
+func main() int32:
+    region: Mapping = Mapping()
+    if not region.open(8192):
+        return 1
+
+    if not region.set(0, 65):
+        region.close()
+        return 2
+    value: byte = 0
+    if not region.get(0, $value) || value != 65:
+        region.close()
+        return 3
+
+    if not region.readonly():
+        region.close()
+        return 4
+    if region.set(0, 90):
+        region.close()
+        return 5
+    if not region.readwrite():
+        region.close()
+        return 6
+
+    if not region.close():
+        return 7
+    return 0
