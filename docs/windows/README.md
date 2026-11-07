@@ -75,3 +75,14 @@ tiempo de conexión.
 La validación nativa de Windows x64 y la seguridad frente a reparse points
 intermedios en rutas HTTP siguen pendientes; los checks de fuentes ejecutados
 en Windows no equivalen a pruebas de ejecución.
+
+## Integración con mmap
+
+`windows/modules/memory.bg` expone `vm_map_rw`, `vm_unmap` y
+`vm_protect` mediante `VirtualAlloc`, `VirtualFree` y `VirtualProtect`.
+La región es privada y de lectura/escritura; se puede proteger como solo
+lectura y restaurar. El respaldo nativo es Windows x64.
+
+Estos helpers nuevos están listos en las fuentes, pero la compilación desde
+Linux **no** verifica las exportaciones Windows: regenerar `windows.lib` y
+probar las llamadas en una máquina Windows antes de declararlas compatibles.
