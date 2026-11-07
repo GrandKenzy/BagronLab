@@ -108,3 +108,22 @@ display; `x11gui` exige que `libX11.so.6` esté presente.
 Se verificó localmente el layout de `XEvent` contra las cabeceras Xlib de
 Linux x86_64. No usar ese layout para otras arquitecturas sin revalidación.
 Pruebas de Xvfb y API pública en `docs/x11gui/README.md`.
+
+### Entrada de teclado X11
+
+`x11_events.bg` incorpora `X11PollInput` (no bloqueante) y
+`X11WaitInput` (bloqueante), con `XLookupString` para traducir
+`XKeyEvent` al `KeySym` y primer byte Latin-1. Las funciones existentes
+`X11PollEvent` y `X11WaitEvent` permanecen disponibles.
+
+El layout `XEvent` de Xlib en Linux AMD64 es de 192 bytes, con
+`XKeyEvent.state` en el offset 80 y `keycode` en el offset 84.
+Las nuevas salidas de los helpers tienen la forma `mouse: int32[2]`,
+`key: usize[3]` (keycode, keysym y estado de modificadores) y
+`translated: char[1]`. La capa `x11gui` expone
+`last_keycode`, `last_keysym`, `last_modifiers` y
+`last_character: uint8`.
+
+No se implementa todavía XIM, texto Unicode/UTF-8, o tratamiento
+de composición multicaracter. Todos los accesos Xlib permanecen en
+la frontera nativa y no se añaden `extern c` a `x11gui`.
