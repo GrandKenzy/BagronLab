@@ -3,5 +3,8 @@ extern c "c":
 
 @unsafe
 inline func Write(data *: void, count: usize) int64:
+    ; EN : Writes count bytes to Android standard output.
+    ;
+    ; ES : Escribe count bytes en la salida estándar de Android.
     return write(1, data, count)
 

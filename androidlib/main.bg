@@ -9,6 +9,9 @@ import { MapReadWrite, Unmap } from memory
 
 @unsafe
 func main() int32:
+    ; EN : Smoke-tests Android output and anonymous memory mapping.
+    ;
+    ; ES : Prueba la salida Android y el mapeo de memoria anónima.
     text: char[6] = "Hola\n"
     Write($text[0], 5)
     address: usize = MapReadWrite(4096)

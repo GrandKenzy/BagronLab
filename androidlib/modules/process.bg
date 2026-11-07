@@ -5,5 +5,8 @@ extern c "c":
 
 @unsafe
 inline func Exit(status: int32) Never:
+    ; EN : Terminates the Android process with status.
+    ;
+    ; ES : Termina el proceso Android con el código indicado.
     _exit(status)
 
