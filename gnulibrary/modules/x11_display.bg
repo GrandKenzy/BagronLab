@@ -3,6 +3,7 @@
 clause Privacy "public"
 
 X11_KEY_PRESS: const int32 = 2
+X11_KEY_RELEASE: const int32 = 3
 X11_BUTTON_PRESS: const int32 = 4
 X11_EXPOSE: const int32 = 12
 X11_DESTROY_NOTIFY: const int32 = 17
@@ -10,9 +11,16 @@ X11_CLIENT_MESSAGE: const int32 = 33
 X11_CLOSE_REQUEST: const int32 = 1001
 
 X11_KEY_PRESS_MASK: const usize = 1
+X11_KEY_RELEASE_MASK: const usize = 2
 X11_BUTTON_PRESS_MASK: const usize = 4
 X11_EXPOSURE_MASK: const usize = 32768
 X11_STRUCTURE_NOTIFY_MASK: const usize = 131072
+
+; XKeyEvent state modifier masks (different from input selection masks).
+X11_SHIFT_MASK: const usize = 1
+X11_LOCK_MASK: const usize = 2
+X11_CONTROL_MASK: const usize = 4
+X11_MOD1_MASK: const usize = 8
 
 extern c ":libX11.so.6":
     XOpenDisplay(display_name *: const char) usize
