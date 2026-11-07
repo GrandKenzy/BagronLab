@@ -1,0 +1,384 @@
+clause Privacy "public"
+
+import { HexadecimalLowerString, HexadecimalUpperString } from alphabet
+
+; EN : Hexadecimal encoding, decoding, and digest utilities.
+; Zero-allocation operations converting between raw binary data and ASCII hex.
+;
+; ES : Utilidades de codificacion, decodificacion y digest hexadecimal.
+; Operaciones zero-allocation para conversion entre datos binarios crudos y hex ASCII.
+
+; ============================================================================
+; Atomic character inspection and conversions
+; ============================================================================
+
+@unsafe
+func char_to_nibble(c: char) uint8:
+    ; EN : Converts an ASCII hex character ('0'-'9', 'a'-'f', 'A'-'F') to its numeric value (0-15).
+    ; Returns 255 if the character is not a valid hexadecimal digit.
+    ;
+    ; ES : Convierte un caracter hex ASCII ('0'-'9', 'a'-'f', 'A'-'F') a su valor numerico (0-15).
+    ; Devuelve 255 si el caracter no es un digito hexadecimal valido.
+    idx: uint8 = 0
+    while idx < 16:
+        index: usize = idx
+        if HexadecimalLowerString[index] == c || HexadecimalUpperString[index] == c:
+            return idx
+        idx += 1
+
+    invalid: uint8 = 255
+    return invalid
+
+@unsafe
+func is_hex_char(c: char) bool:
+    ; EN : Checks if a character is a valid hexadecimal digit ('0'-'9', 'a'-'f', 'A'-'F').
+    ;
+    ; ES : Comprueba si un caracter es un digito hexadecimal valido ('0'-'9', 'a'-'f', 'A'-'F').
+    val: uint8 = char_to_nibble(c)
+    return val < 16
+
+@unsafe
+func nibble_to_char_lower(nibble: uint8) char:
+    ; EN : Converts a 4-bit nibble (0-15) to its lowercase hexadecimal character ('0'-'9', 'a'-'f').
+    ;
+    ; ES : Convierte un nibble de 4 bits (0-15) a su caracter hexadecimal en minuscula ('0'-'9', 'a'-'f').
+    if nibble < 16:
+        idx: usize = nibble
+        return HexadecimalLowerString[idx]
+    zero: char = "0"
+    return zero
+
+@unsafe
+func nibble_to_char_upper(nibble: uint8) char:
+    ; EN : Converts a 4-bit nibble (0-15) to its uppercase hexadecimal character ('0'-'9', 'A'-'F').
+    ;
+    ; ES : Convierte un nibble de 4 bits (0-15) a su caracter hexadecimal en mayuscula ('0'-'9', 'A'-'F').
+    if nibble < 16:
+        idx: usize = nibble
+        return HexadecimalUpperString[idx]
+    zero: char = "0"
+    return zero
+
+; ============================================================================
+; Hexdigest encoding functions
+; ============================================================================
+
+@unsafe
+func hexdigest(data: byte[], data_len: Len_t, data_sz: Size_t, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Encodes raw bytes into a lowercase hexadecimal string in dest.
+    ; Returns the number of characters written, or 0 if dest capacity is insufficient.
+    ; If dest has space beyond the hex characters, a null terminator (\0) is appended.
+    ;
+    ; ES : Codifica bytes crudos en una cadena hexadecimal en minusculas en dest.
+    ; Devuelve la cantidad de caracteres escritos, o 0 si la capacidad de dest es insuficiente.
+    ; Si dest tiene espacio tras los caracteres hex, agrega un terminador nulo (\0).
+    if data_sz != 1 || dest_sz != 1:
+        return 0
+
+    required: usize = data_len * 2
+    if dest_len < required:
+        return 0
+
+    in_idx: usize = 0
+    out_idx: usize = 0
+
+    while in_idx < data_len:
+        b: byte = data[in_idx]
+        val: uint8 = b as uint8
+        hi_u8: uint8 = (val >> 4) & 0x0F
+        lo_u8: uint8 = val & 0x0F
+
+        hi: usize = hi_u8
+        lo: usize = lo_u8
+
+        dest[out_idx] = HexadecimalLowerString[hi]
+        dest[out_idx + 1] = HexadecimalLowerString[lo]
+
+        out_idx += 2
+        in_idx += 1
+
+    if dest_len > required:
+        dest[required] = "\0"
+
+    return required
+
+@unsafe
+func hexdigest_upper(data: byte[], data_len: Len_t, data_sz: Size_t, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Encodes raw bytes into an uppercase hexadecimal string in dest.
+    ; Returns the number of characters written, or 0 if dest capacity is insufficient.
+    ; If dest has space beyond the hex characters, a null terminator (\0) is appended.
+    ;
+    ; ES : Codifica bytes crudos en una cadena hexadecimal en mayusculas en dest.
+    ; Devuelve la cantidad de caracteres escritos, o 0 si la capacidad de dest es insuficiente.
+    ; Si dest tiene espacio tras los caracteres hex, agrega un terminador nulo (\0).
+    if data_sz != 1 || dest_sz != 1:
+        return 0
+
+    required: usize = data_len * 2
+    if dest_len < required:
+        return 0
+
+    in_idx: usize = 0
+    out_idx: usize = 0
+
+    while in_idx < data_len:
+        b: byte = data[in_idx]
+        val: uint8 = b as uint8
+        hi_u8: uint8 = (val >> 4) & 0x0F
+        lo_u8: uint8 = val & 0x0F
+
+        hi: usize = hi_u8
+        lo: usize = lo_u8
+
+        dest[out_idx] = HexadecimalUpperString[hi]
+        dest[out_idx + 1] = HexadecimalUpperString[lo]
+
+        out_idx += 2
+        in_idx += 1
+
+    if dest_len > required:
+        dest[required] = "\0"
+
+    return required
+
+@unsafe
+func hexdigest_buffer(data: buffer[], data_len: Len_t, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Encodes raw byte buffer into a lowercase hexadecimal string in dest.
+    ; Returns the number of characters written, or 0 if dest capacity is insufficient.
+    ; If dest has space beyond the hex characters, a null terminator (\0) is appended.
+    ;
+    ; ES : Codifica un buffer de bytes crudos en una cadena hexadecimal en minusculas en dest.
+    ; Devuelve la cantidad de caracteres escritos, o 0 si la capacidad de dest es insuficiente.
+    ; Si dest tiene espacio tras los caracteres hex, agrega un terminador nulo (\0).
+    if dest_sz != 1:
+        return 0
+
+    required: usize = data_len * 2
+    if dest_len < required:
+        return 0
+
+    in_idx: usize = 0
+    out_idx: usize = 0
+
+    while in_idx < data_len:
+        b: byte = data[in_idx]
+        val: uint8 = b as uint8
+        hi_u8: uint8 = (val >> 4) & 0x0F
+        lo_u8: uint8 = val & 0x0F
+
+        hi: usize = hi_u8
+        lo: usize = lo_u8
+
+        dest[out_idx] = HexadecimalLowerString[hi]
+        dest[out_idx + 1] = HexadecimalLowerString[lo]
+
+        out_idx += 2
+        in_idx += 1
+
+    if dest_len > required:
+        dest[required] = "\0"
+
+    return required
+
+@unsafe
+func hexdigest_buffer_upper(data: buffer[], data_len: Len_t, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Encodes raw byte buffer into an uppercase hexadecimal string in dest.
+    ; Returns the number of characters written, or 0 if dest capacity is insufficient.
+    ; If dest has space beyond the hex characters, a null terminator (\0) is appended.
+    ;
+    ; ES : Codifica un buffer de bytes crudos en una cadena hexadecimal en mayusculas en dest.
+    ; Devuelve la cantidad de caracteres escritos, o 0 si la capacidad de dest es insuficiente.
+    ; Si dest tiene espacio tras los caracteres hex, agrega un terminador nulo (\0).
+    if dest_sz != 1:
+        return 0
+
+    required: usize = data_len * 2
+    if dest_len < required:
+        return 0
+
+    in_idx: usize = 0
+    out_idx: usize = 0
+
+    while in_idx < data_len:
+        b: byte = data[in_idx]
+        val: uint8 = b as uint8
+        hi_u8: uint8 = (val >> 4) & 0x0F
+        lo_u8: uint8 = val & 0x0F
+
+        hi: usize = hi_u8
+        lo: usize = lo_u8
+
+        dest[out_idx] = HexadecimalUpperString[hi]
+        dest[out_idx + 1] = HexadecimalUpperString[lo]
+
+        out_idx += 2
+        in_idx += 1
+
+    if dest_len > required:
+        dest[required] = "\0"
+
+    return required
+
+; ============================================================================
+; Hex decoding functions
+; ============================================================================
+
+@unsafe
+func hex_decode(hex_str: char[], hex_len: Len_t, hex_sz: Size_t, dest: byte[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Decodes an ASCII hexadecimal string into raw binary bytes in dest.
+    ; Stops at the first null byte (\0) or at hex_len characters.
+    ; Returns the number of bytes written, or 0 if dest is too small or characters are invalid.
+    ;
+    ; ES : Decodifica una cadena hexadecimal ASCII en bytes binarios crudos en dest.
+    ; Se detiene en el primer byte nulo (\0) o al alcanzar hex_len caracteres.
+    ; Devuelve la cantidad de bytes escritos, o 0 si dest es pequeno o hay caracteres invalidos.
+    if hex_sz != 1 || dest_sz != 1:
+        return 0
+
+    actual_len: usize = 0
+    while actual_len < hex_len && hex_str[actual_len] != 0:
+        actual_len += 1
+
+    if (actual_len & 1) != 0:
+        return 0
+
+    required_bytes: usize = actual_len / 2
+    if dest_len < required_bytes:
+        return 0
+
+    in_idx: usize = 0
+    out_idx: usize = 0
+
+    while in_idx < actual_len:
+        c_hi: char = hex_str[in_idx]
+        c_lo: char = hex_str[in_idx + 1]
+
+        hi: uint8 = char_to_nibble(c_hi)
+        lo: uint8 = char_to_nibble(c_lo)
+
+        if hi > 15 || lo > 15:
+            return 0
+
+        byte_val: uint8 = (hi << 4) | lo
+        dest[out_idx] = byte_val as byte
+
+        out_idx += 1
+        in_idx += 2
+
+    return out_idx
+
+; ============================================================================
+; Scalar word formatting (big-endian)
+; ============================================================================
+
+@unsafe
+func word32_to_hex(value: uint32, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Formats a 32-bit unsigned integer into 8 lowercase hexadecimal characters (big-endian).
+    ; Returns 8 on success, or 0 if dest capacity is less than 8.
+    ;
+    ; ES : Formatea un entero sin signo de 32 bits en 8 caracteres hexadecimales en minusculas (big-endian).
+    ; Devuelve 8 en exito, o 0 si la capacidad de dest es menor a 8.
+    if dest_sz != 1 || dest_len < 8:
+        return 0
+
+    shift: uint32 = 28
+    idx: usize = 0
+
+    while idx < 8:
+        nibble: uint32 = (value >> shift) & 0x0F
+        n_idx: usize = nibble
+        dest[idx] = HexadecimalLowerString[n_idx]
+        if shift >= 4:
+            shift -= 4
+        idx += 1
+
+    if dest_len > 8:
+        dest[8] = "\0"
+
+    return 8
+
+@unsafe
+func word32_to_hex_upper(value: uint32, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Formats a 32-bit unsigned integer into 8 uppercase hexadecimal characters (big-endian).
+    ; Returns 8 on success, or 0 if dest capacity is less than 8.
+    ;
+    ; ES : Formatea un entero sin signo de 32 bits en 8 caracteres hexadecimales en mayusculas (big-endian).
+    ; Devuelve 8 en exito, o 0 si la capacidad de dest es menor a 8.
+    if dest_sz != 1 || dest_len < 8:
+        return 0
+
+    shift: uint32 = 28
+    idx: usize = 0
+
+    while idx < 8:
+        nibble: uint32 = (value >> shift) & 0x0F
+        n_idx: usize = nibble
+        dest[idx] = HexadecimalUpperString[n_idx]
+        if shift >= 4:
+            shift -= 4
+        idx += 1
+
+    if dest_len > 8:
+        dest[8] = "\0"
+
+    return 8
+
+@unsafe
+func word64_to_hex(value: uint64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Formats a 64-bit unsigned integer into 16 lowercase hexadecimal characters (big-endian).
+    ; Returns 16 on success, or 0 if dest capacity is less than 16.
+    ;
+    ; ES : Formatea un entero sin signo de 64 bits en 16 caracteres hexadecimales en minusculas (big-endian).
+    ; Devuelve 16 en exito, o 0 si la capacidad de dest es menor a 16.
+    if dest_sz != 1 || dest_len < 16:
+        return 0
+
+    shift: uint64 = 60
+    idx: usize = 0
+
+    while idx < 16:
+        nibble: uint64 = (value >> shift) & 0x0F
+        n_idx: usize = 0
+        n_c: uint64 = 0
+        while n_c < nibble:
+            n_idx += 1
+            n_c += 1
+        dest[idx] = HexadecimalLowerString[n_idx]
+        if shift >= 4:
+            shift -= 4
+        idx += 1
+
+    if dest_len > 16:
+        dest[16] = "\0"
+
+    return 16
+
+@unsafe
+func word64_to_hex_upper(value: uint64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    ; EN : Formats a 64-bit unsigned integer into 16 uppercase hexadecimal characters (big-endian).
+    ; Returns 16 on success, or 0 if dest capacity is less than 16.
+    ;
+    ; ES : Formatea un entero sin signo de 64 bits en 16 caracteres hexadecimales en mayusculas (big-endian).
+    ; Devuelve 16 en exito, o 0 si la capacidad de dest es menor a 16.
+    if dest_sz != 1 || dest_len < 16:
+        return 0
+
+    shift: uint64 = 60
+    idx: usize = 0
+
+    while idx < 16:
+        nibble: uint64 = (value >> shift) & 0x0F
+        n_idx: usize = 0
+        n_c: uint64 = 0
+        while n_c < nibble:
+            n_idx += 1
+            n_c += 1
+        dest[idx] = HexadecimalUpperString[n_idx]
+        if shift >= 4:
+            shift -= 4
+        idx += 1
+
+    if dest_len > 16:
+        dest[16] = "\0"
+
+    return 16

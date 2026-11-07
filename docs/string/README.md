@@ -12,6 +12,8 @@ La librería contiene dos módulos:
 - `string`: inspección, comparación, búsqueda, copia, concatenación,
   clasificación ASCII, transformaciones, trim, inversión y parseo decimal.
 - `alphabet`: alfabetos constantes para validación, escaneo y serialización.
+- `hex`: codificación, decodificación y formato hexadecimal que reutiliza los
+  alfabetos hexadecimales de `alphabet`.
 
 Los módulos se consumen por separado:
 
