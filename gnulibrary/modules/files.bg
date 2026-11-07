@@ -221,3 +221,35 @@ public func open_cstr(dirfd: int32, path *: const char, open_flags: uint32, mode
         syscall
     #end
     return asm
+
+; Linux openat2(2) resolves a requested path beneath an already opened root.
+; Reject symlinks, magic links, and paths escaping the allowed directory.
+@align(8)
+private struct NetOpenHow:
+    open_flags: uint64
+    mode: uint64
+    resolve: uint64
+
+@assembler
+private func openat2_beneath(dirfd: int64, path *: const char, how *: NetOpenHow, how_size: usize) int64:
+    #assembler "att"
+        movq %rcx, %r10
+        movq $437, %rax
+        syscall
+    #end
+    return asm
+
+@unsafe
+public func open_read_beneath(root *: const char, relative *: const char) int64:
+    ; Linux x86_64: O_PATH | O_DIRECTORY | O_CLOEXEC.
+    root_fd: int64 = open_cstr(-100, root, 2686976, 0)
+    if root_fd < 0:
+        return root_fd
+    how: NetOpenHow
+    ; O_RDONLY | O_CLOEXEC; RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS.
+    how.open_flags = 524288
+    how.mode = 0
+    how.resolve = 12
+    result: int64 = openat2_beneath(root_fd, relative, $how, 24)
+    close(root_fd)
+    return result
