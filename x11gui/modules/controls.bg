@@ -1,3 +1,5 @@
+import { fill_rectangle, rectangle, text } from drawing
+
 ; Xlib has no built-in pushbutton widgets; use rectangles and pointer hit-tests.
 ; EN: Tests whether a pointer is inside a positive-sized control rectangle.
 ; ES: Comprueba si un punto cae dentro del rectángulo de un control.
@@ -11,3 +13,15 @@ public func hit_test(x: int32, y: int32, left: int32, top: int32, width: int32, 
     w: int64 = width
     h: int64 = height
     return dx - lx < w && dy - ty < h
+
+; EN: Draws an X11 button with background, border and single-byte text.
+; ES: Dibuja un botón con fondo, borde y texto de un byte.
+@unsafe
+public func draw_button(display: usize, window: usize, gc: usize, left: int32, top: int32, width: uint32, height: uint32, label: chain, label_length: Len_t, foreground: usize, background: usize) bool:
+    if width < 20 || height < 24:
+        return false
+    if not fill_rectangle(display, window, gc, left, top, width, height, background):
+        return false
+    if not rectangle(display, window, gc, left, top, width, height, foreground):
+        return false
+    return text(display, window, gc, left + 8, top + 20, label, foreground)
