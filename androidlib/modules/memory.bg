@@ -1,0 +1,50 @@
+; Android virtual-memory primitives backed by Bionic.
+; Keep pointer-width conversion local to this target library.
+
+private mold PointerBits:
+    word: usize
+    signed: int64
+    pointer *: void
+
+private PROT_READ: const int32 = 1
+private PROT_WRITE: const int32 = 2
+private MAP_PRIVATE: const int32 = 2
+private MAP_ANONYMOUS: const int32 = 32
+
+extern c "c":
+    mmap(address *: void, length: usize, prot: int32, map_flags: int32, fd: int32, offset: int64) int64
+    munmap(address *: void, length: usize) int32
+
+@unsafe
+public func MapReadWrite(length: usize) usize:
+    ; EN : Maps anonymous read/write pages and returns their address, or zero.
+    ; The caller owns the mapping and must release it with Unmap.
+    ;
+    ; ES : Mapea paginas anonimas de lectura/escritura y retorna su direccion,
+    ; o cero. El llamador es propietario y debe liberarla con Unmap.
+    if length == 0:
+        return 0
+    result: int64 = mmap(
+        Null,
+        length,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+    )
+    if result < 0:
+        return 0
+    bits: PointerBits
+    bits.signed = result
+    return bits.word
+
+@unsafe
+public func Unmap(address: usize, length: usize) bool:
+    ; EN : Releases an anonymous mapping previously returned by MapReadWrite.
+    ;
+    ; ES : Libera un mapeo anonimo retornado previamente por MapReadWrite.
+    if address == 0 || length == 0:
+        return false
+    bits: PointerBits
+    bits.word = address
+    return munmap(bits.pointer, length) == 0

@@ -14,6 +14,10 @@ byte output, process termination, and any target-specific handle or error
 operations required by that contract. Keep the implementation target-native;
 do not make `gnulibrary`'s x86_64 Linux syscall numbers the Android default.
 
+The current bootstrap also exposes anonymous read/write mapping and unmapping
+through Bionic. The ARM64/API 35 source is the first validated baseline; the
+x86-64 triple must be compiled and checked before publishing a second package.
+
 Android libraries currently require an explicit full LLVM triple, including
 the API level. Do not add a portable `Arch "auto"` declaration here until the
 compiler has a package-level policy for selecting an Android ABI and API.

@@ -1,0 +1,9 @@
+
+extern c "c":
+    _exit(status: int32) void
+
+
+@unsafe
+inline func Exit(status: int32) Never:
+    _exit(status)
+

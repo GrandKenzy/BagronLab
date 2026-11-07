@@ -1,0 +1,19 @@
+clause System "android"
+clause Arch "aarch64-linux-android35"
+clause Privacy "public"
+
+
+import { Write } from file
+import { Exit } from process
+import { MapReadWrite, Unmap } from memory
+
+@unsafe
+func main() int32:
+    text: char[6] = "Hola\n"
+    Write($text[0], 5)
+    address: usize = MapReadWrite(4096)
+    if address == 0:
+        return 2
+    if not Unmap(address, 4096):
+        return 3
+    return 0
