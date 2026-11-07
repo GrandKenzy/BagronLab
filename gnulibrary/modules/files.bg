@@ -1,7 +1,7 @@
 clause Privacy "public"
 
 @assembler
-func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
+public func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
     ; EN: Opens or creates a path relative to a directory file descriptor.
     ; The fourth System V argument arrives in %ecx and must move to %r10d for Linux.
     ;
@@ -15,7 +15,7 @@ func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
     return asm
 
 @assembler
-func lseek(fd: int64, offset: int64, whence: int32) int64:
+public func lseek(fd: int64, offset: int64, whence: int32) int64:
     ; EN: Changes the file offset and returns the raw resulting position.
     ; ES: Cambia la posición del archivo y retorna la posición resultante cruda.
     #assembler "att"
@@ -211,3 +211,13 @@ func getdents64(fd: int64, buffer *: void, size: uint64) int64:
     #end
     return asm
 
+
+; Typed C-string entry point for Linux openat, for Bagron network clients.
+@assembler
+public func open_cstr(dirfd: int32, path *: const char, open_flags: uint32, mode: uint32) int64:
+    #assembler "att"
+        movl %ecx, %r10d
+        movq $257, %rax
+        syscall
+    #end
+    return asm
