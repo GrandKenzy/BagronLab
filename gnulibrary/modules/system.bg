@@ -249,3 +249,61 @@ public func write_chars(fd: int64, buf *: const char, size: usize) int64:
         syscall
     #end
     return asm
+
+; Linux x86_64 virtual-memory helpers for the mmap library.
+; Keep kernel syscalls and pointer reinterpretation in gnulibrary.
+private mold VirtualMemoryBits:
+    word: usize
+    wide: uint64
+    signed: int64
+    pointer *: void
+
+@assembler
+func mprotect(addr *: void, length: uint64, prot: uint32) int64:
+    #assembler "att"
+        movq $10, %rax
+        syscall
+    #end
+    return asm
+
+; EN: Allocates anonymous private read/write pages, returning 0 on failure.
+; ES: Reserva paginas anonimas privadas de lectura/escritura; 0 si falla.
+@unsafe
+public func vm_map_rw(size: usize) usize:
+    if size == 0:
+        return 0
+    count: VirtualMemoryBits
+    count.word = size
+    result: int64 = mmap(Null, count.wide, 3, 34, -1, 0)
+    if result < 0 && result >= -4095:
+        return 0
+    bits: VirtualMemoryBits
+    bits.signed = result
+    return bits.word
+
+; EN: Releases an entire region with its original size.
+; ES: Libera una region completa usando el tamano original.
+@unsafe
+public func vm_unmap(address: usize, size: usize) bool:
+    if address == 0 || size == 0:
+        return false
+    addr: VirtualMemoryBits
+    count: VirtualMemoryBits
+    addr.word = address
+    count.word = size
+    return munmap(addr.pointer, count.wide) == 0
+
+; EN: Restricts pages to read-only, or restores read/write.
+; ES: Restringe paginas a solo lectura o restaura lectura/escritura.
+@unsafe
+public func vm_protect(address: usize, size: usize, readonly: bool) bool:
+    if address == 0 || size == 0:
+        return false
+    addr: VirtualMemoryBits
+    count: VirtualMemoryBits
+    addr.word = address
+    count.word = size
+    prot: uint32 = 3
+    if readonly:
+        prot = 1
+    return mprotect(addr.pointer, count.wide, prot) == 0
