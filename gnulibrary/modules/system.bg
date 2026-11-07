@@ -67,7 +67,7 @@ func kill(pid: uint32, signal: uint32) int64:
     return asm
 
 @assembler
-func read(fd: int64, buf *: void, size: usize) int64:
+public func read(fd: int64, buf *: void, size: usize) int64:
     ; EN: Reads up to size bytes from fd into buf.
     ; ES: Lee los bytes de un archivo y los mete en un buffer.
     #assembler "att"
@@ -77,7 +77,7 @@ func read(fd: int64, buf *: void, size: usize) int64:
     return asm
 
 @assembler
-func write(fd: int64, buf *: void, size: usize) int64:
+public func write(fd: int64, buf *: void, size: usize) int64:
     ; EN: Writes up to size bytes from buf to fd.
     ; ES: Escribe bytes desde un buffer a un archivo.
     #assembler "att"
@@ -87,7 +87,7 @@ func write(fd: int64, buf *: void, size: usize) int64:
     return asm
 
 @assembler
-func close(fd: int64) int64:
+public func close(fd: int64) int64:
     ; EN: Closes a file descriptor.
     ; ES: Cierra el descriptor de un archivo.
     #assembler "att"
@@ -230,5 +230,22 @@ func nanosleep_ms(milliseconds: uint32) int64:
         movq $35, %rax
         syscall
         addq $24, %rsp
+    #end
+    return asm
+
+; Typed char-buffer syscalls; no libc dependency.
+@assembler
+public func read_chars(fd: int64, buf *: char, size: usize) int64:
+    #assembler "att"
+        movq $0, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+public func write_chars(fd: int64, buf *: const char, size: usize) int64:
+    #assembler "att"
+        movq $1, %rax
+        syscall
     #end
     return asm
