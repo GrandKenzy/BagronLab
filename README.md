@@ -207,3 +207,17 @@ Native Wayland support is **not** implemented yet. The new source packages
 are not yet published as refreshed `build/gnulibrary.lib` or
 `build/x11gui.lib`, and Central manifests must not reference an unpublished
 binary.
+
+## x11gui keyboard support (source update)
+
+`x11gui` now handles X11 KeyPress/KeyRelease through
+`Window.wait()` and `Window.poll()`, exposing keycode, KeySym,
+modifier masks and the first Latin-1 byte of `XLookupString`. The
+`keyboard.bg` module defines special keys and Shift/Ctrl/Mod1 helpers.
+The existing window, pointer and drawing interfaces are preserved.
+
+See `docs/x11gui/README.md` and `tests/x11gui/README.md`. Tested
+with Bagron 1.1.4 on Linux AMD64 under Xvfb (two keyboard integration
+tests plus previous graphical regressions); native Wayland and Unicode
+text input remain future work. Source changes do not publish an updated
+`gnulibrary.lib` or `x11gui.lib` binary on GitHub.
