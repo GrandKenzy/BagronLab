@@ -1,0 +1,131 @@
+; Exponential and logarithmic extensions for the selected float type.
+import { LN2 } from consts
+import { ln, exp } from logs
+
+#if ARCHB, "64"
+; EN: Base-two logarithm for positive x; legacy ln domain for x<=0.
+; ES: Logaritmo en base dos para x positivo.
+public func log2(value: double) double:
+    return ln(value) / LN2
+
+; EN: Base-b logarithm with explicit domain check.
+; ES: Logaritmo con base b; rechaza entradas fuera de dominio.
+@unsafe
+public func log_base_checked(value: double, base: double, result *: double) bool:
+    if value != value || base != base || value <= 0.0 || base <= 0.0 || base == 1.0:
+        return false
+    (result) = ln(value) / ln(base)
+    return true
+
+; EN: 2^value, built on the existing exp implementation.
+; ES: Potencia de dos en punto flotante.
+public func exp2(value: double) double:
+    return exp(value * LN2)
+
+; EN: Numerically stable exp(x)-1 near zero, without libc.
+; ES: Calcula exp(x)-1 con mejor precision cerca de cero.
+public func expm1(value: double) double:
+    if value < -0.25 || value > 0.25:
+        return exp(value) - 1.0
+    term: double = value
+    result: double = value
+    denominator: double = 1.0
+    i: uint32 = 1
+    while i < 36:
+        denominator += 1.0
+        term = term * value / denominator
+        result += term
+        i += 1
+    return result
+
+; EN: Stable log(1+x) near zero, rejecting x<=-1.
+; ES: Logaritmo de uno mas x, con dominio comprobado.
+@unsafe
+public func log1p_checked(value: double, result *: double) bool:
+    if value != value || value <= -1.0:
+        return false
+    if value < -0.2 || value > 0.2:
+        (result) = ln(1.0 + value)
+        return true
+    term: double = value
+    sum: double = value
+    index: uint32 = 2
+    while index < 36:
+        term = term * value
+        count: double = 0.0
+        j: uint32 = 0
+        while j < index:
+            count += 1.0
+            j += 1
+        if (index & 1) == 0:
+            sum -= term / count
+        else:
+            sum += term / count
+        index += 1
+    (result) = sum
+    return true
+
+#elif ARCHB, "32"
+; EN: Base-two logarithm for positive x; legacy ln domain for x<=0.
+; ES: Logaritmo en base dos para x positivo.
+public func log2(value: float) float:
+    return ln(value) / LN2
+
+; EN: Base-b logarithm with explicit domain check.
+; ES: Logaritmo con base b; rechaza entradas fuera de dominio.
+@unsafe
+public func log_base_checked(value: float, base: float, result *: float) bool:
+    if value != value || base != base || value <= 0.0 || base <= 0.0 || base == 1.0:
+        return false
+    (result) = ln(value) / ln(base)
+    return true
+
+; EN: 2^value, built on the existing exp implementation.
+; ES: Potencia de dos en punto flotante.
+public func exp2(value: float) float:
+    return exp(value * LN2)
+
+; EN: Numerically stable exp(x)-1 near zero, without libc.
+; ES: Calcula exp(x)-1 con mejor precision cerca de cero.
+public func expm1(value: float) float:
+    if value < -0.25 || value > 0.25:
+        return exp(value) - 1.0
+    term: float = value
+    result: float = value
+    denominator: float = 1.0
+    i: uint32 = 1
+    while i < 18:
+        denominator += 1.0
+        term = term * value / denominator
+        result += term
+        i += 1
+    return result
+
+; EN: Stable log(1+x) near zero, rejecting x<=-1.
+; ES: Logaritmo de uno mas x, con dominio comprobado.
+@unsafe
+public func log1p_checked(value: float, result *: float) bool:
+    if value != value || value <= -1.0:
+        return false
+    if value < -0.2 || value > 0.2:
+        (result) = ln(1.0 + value)
+        return true
+    term: float = value
+    sum: float = value
+    index: uint32 = 2
+    while index < 18:
+        term = term * value
+        count: float = 0.0
+        j: uint32 = 0
+        while j < index:
+            count += 1.0
+            j += 1
+        if (index & 1) == 0:
+            sum -= term / count
+        else:
+            sum += term / count
+        index += 1
+    (result) = sum
+    return true
+
+#end
