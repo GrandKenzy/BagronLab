@@ -67,17 +67,21 @@ def find_window(display, title):
             display, root, C.byref(parent_root), C.byref(parent),
             C.byref(children), C.byref(count)
         ):
+            matched_window = 0
             for window in children[:count.value]:
                 name = C.c_char_p()
                 matches = x.XFetchName(display, window, C.byref(name))
                 try:
                     if matches and name.value == title:
-                        return root, window
+                        matched_window = window
+                        break
                 finally:
                     if name:
                         x.XFree(C.cast(name, P))
             if children:
                 x.XFree(C.cast(children, P))
+            if matched_window:
+                return root, matched_window
         time.sleep(0.01)
     raise RuntimeError("Test window not found: " + title.decode())
 
