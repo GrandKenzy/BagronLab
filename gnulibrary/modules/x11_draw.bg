@@ -1,0 +1,11 @@
+; Native Xlib drawing primitives. All handles remain owned by the caller.
+clause Privacy "public"
+
+extern c ":libX11.so.6":
+    XCreateGC(display: usize, drawable: usize, mask: usize, values *: void) usize
+    XFreeGC(display: usize, gc: usize) int32
+    XSetForeground(display: usize, gc: usize, pixel: usize) int32
+    XDrawLine(display: usize, drawable: usize, gc: usize, x1: int32, y1: int32, x2: int32, y2: int32) int32
+    XDrawRectangle(display: usize, drawable: usize, gc: usize, x: int32, y: int32, width: uint32, height: uint32) int32
+    XFillRectangle(display: usize, drawable: usize, gc: usize, x: int32, y: int32, width: uint32, height: uint32) int32
+    XDrawString(display: usize, drawable: usize, gc: usize, x: int32, y: int32, value *: const char, count: int32) int32
