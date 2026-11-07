@@ -1,0 +1,88 @@
+; Regression tests for mem 0.1.0 (run with the installed mem.lib).
+; The test uses a single return to release every owned buffer.
+clause System "auto"
+clause Arch "auto"
+library mem as Mem
+import {
+    fill, zero, copy, move_within, equal, index_of, count_value, reverse,
+    fill_bytes, zero_bytes, copy_bytes, move_bytes, equal_bytes,
+    compare_bytes, index_of_bytes, reverse_bytes, into_buffer, from_buffer
+} from Mem
+
+@unsafe
+func main() int32:
+    result: int32 = 0
+    raw: buffer[12] = 0
+    other: buffer[12] = 0
+    bytes: byte[12]
+    bytes_other: byte[12]
+
+    if not fill(raw, 0, 12, 65):
+        result = 1
+    if raw[0] != 65 || raw[11] != 65:
+        result = 2
+    if fill(raw, 12, 1, 65):
+        result = 3
+    if fill(raw, 13, 0, 65):
+        result = 4
+    if not copy(other, raw, 0, 0, 12):
+        result = 5
+    if not equal(other, raw, 0, 0, 12):
+        result = 6
+    if not move_within(other, 3, 0, 7):
+        result = 7
+    other[2] = 66
+    if not move_within(other, 0, 2, 7):
+        result = 8
+    if other[0] != 66:
+        result = 9
+    if not reverse(other, 0, 12):
+        result = 10
+    if index_of(other, 0, 66) != 11:
+        result = 11
+    if count_value(raw, 0, 12, 65) != 12:
+        result = 12
+    if not zero(raw, 0, 12):
+        result = 13
+    if raw[9] != 0:
+        result = 14
+
+    if not fill_bytes(bytes, 0, 12, 17):
+        result = 15
+    if not copy_bytes(bytes_other, bytes, 0, 0, 12):
+        result = 16
+    if not equal_bytes(bytes, bytes_other, 0, 0, 12):
+        result = 17
+    bytes_other[3] = 255
+    if compare_bytes(bytes, bytes_other, 0, 0, 12) != -1:
+        result = 18
+    if compare_bytes(bytes, bytes_other, 0, 11, 2) != -2:
+        result = 19
+    if index_of_bytes(bytes_other, 0, 255) != 3:
+        result = 20
+    if not move_bytes(bytes_other, 4, 3, 5):
+        result = 21
+    if bytes_other[4] != 255:
+        result = 22
+    if not reverse_bytes(bytes_other, 0, 12):
+        result = 23
+    if bytes_other[7] != 255:
+        result = 24
+    if not zero_bytes(bytes_other, 0, 12):
+        result = 25
+    if bytes_other[7] != 0:
+        result = 26
+    if not into_buffer(other, bytes, 0, 0, 12):
+        result = 27
+    if not from_buffer(bytes_other, other, 0, 0, 12):
+        result = 28
+    if bytes_other[0] != 17 || bytes_other[11] != 17:
+        result = 29
+    if into_buffer(other, bytes, 8, 0, 5):
+        result = 30
+    if not zero(other, 12, 0):
+        result = 31
+
+    Del raw
+    Del other
+    return result
