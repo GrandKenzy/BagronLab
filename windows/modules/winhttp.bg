@@ -1,0 +1,62 @@
+clause Privacy "public"
+
+; WinHTTP native ABI for HTTPS consumers; UTF conversion remains in kernel32.
+extern windows "winhttp":
+    ; HINTERNET es un handle opaco. Se representa como usize para poder
+    ; comprobar el valor nulo sin desreferenciarlo desde Bagron.
+    WinHttpOpen(
+        user_agent *: uint16,
+        access_type: uint32,
+        proxy_name *: uint16,
+        proxy_bypass *: uint16,
+        flags_: uint32
+    ) usize
+    WinHttpSetTimeouts(
+        session: usize,
+        resolve_timeout: int32,
+        connect_timeout: int32,
+        send_timeout: int32,
+        receive_timeout: int32
+    ) int32
+    WinHttpConnect(
+        session: usize,
+        server_name *: uint16,
+        server_port: usize,
+        reserved: uint32
+    ) usize
+    WinHttpOpenRequest(
+        connection: usize,
+        verb *: uint16,
+        object_name *: uint16,
+        version *: uint16,
+        referrer *: uint16,
+        accept_types **: uint16,
+        flags_: uint32
+    ) usize
+    WinHttpSendRequest(
+        request: usize,
+        headers *: uint16,
+        headers_length: int32,
+        optional_data *: void,
+        optional_length: int32,
+        total_length: int32,
+        context: usize
+    ) int32
+    WinHttpReceiveResponse(request: usize, reserved *: void) int32
+    WinHttpQueryHeaders(
+        request: usize,
+        info_level: uint32,
+        name *: uint16,
+        buffer *: void,
+        buffer_length *: int32,
+        index *: uint32
+    ) int32
+    WinHttpQueryDataAvailable(request: usize, size *: int32) int32
+    WinHttpReadData(
+        request: usize,
+        buffer *: char,
+        bytes_to_read: int32,
+        bytes_read *: int32
+    ) int32
+    WinHttpCloseHandle(handle: usize) int32
+
