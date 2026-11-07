@@ -1,0 +1,61 @@
+; Checked floating-point domain wrappers. Preserve existing legacy functions.
+import { sqrt } from sqrt
+import { ln, log10 } from logs
+
+#if ARCHB, "64"
+; EN: Computes sqrt for non-negative inputs; reports domain errors.
+; ES: Raiz cuadrada con dominio comprobado.
+@unsafe
+public func sqrt_checked(value: double, result *: double) bool:
+    if value != value || value < 0.0:
+        return false
+    (result) = sqrt(value)
+    return true
+
+; EN: Computes ln(x) only when x > 0.
+; ES: Logaritmo natural solo para x positivo.
+@unsafe
+public func ln_checked(value: double, result *: double) bool:
+    if value != value || value <= 0.0:
+        return false
+    (result) = ln(value)
+    return true
+
+; EN: Computes log10(x) only when x > 0.
+; ES: Logaritmo decimal con dominio comprobado.
+@unsafe
+public func log10_checked(value: double, result *: double) bool:
+    if value != value || value <= 0.0:
+        return false
+    (result) = log10(value)
+    return true
+
+#elif ARCHB, "32"
+; EN: Computes sqrt for non-negative inputs; reports domain errors.
+; ES: Raiz cuadrada con dominio comprobado.
+@unsafe
+public func sqrt_checked(value: float, result *: float) bool:
+    if value != value || value < 0.0:
+        return false
+    (result) = sqrt(value)
+    return true
+
+; EN: Computes ln(x) only when x > 0.
+; ES: Logaritmo natural solo para x positivo.
+@unsafe
+public func ln_checked(value: float, result *: float) bool:
+    if value != value || value <= 0.0:
+        return false
+    (result) = ln(value)
+    return true
+
+; EN: Computes log10(x) only when x > 0.
+; ES: Logaritmo decimal con dominio comprobado.
+@unsafe
+public func log10_checked(value: float, result *: float) bool:
+    if value != value || value <= 0.0:
+        return false
+    (result) = log10(value)
+    return true
+
+#end
