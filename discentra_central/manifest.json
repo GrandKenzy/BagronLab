@@ -34,6 +34,16 @@
       "description": "String manipulation utilities",
       "license": "MIT",
       "kind": "librería"
+    },
+    "os": {
+      "description": "Portable operating system file, filesystem, and process APIs",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "time": {
+      "description": "Portable monotonic clocks, durations, UTC date-time, and formatting",
+      "license": "MIT",
+      "kind": "librería"
     }
   }
 }

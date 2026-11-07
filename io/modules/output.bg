@@ -3,12 +3,11 @@
 private stdout_initialized: bool = false
 private stdout_buffer: char[4096]
 private stdout_position: usize = 0
+private NumericDigits: chain = String.NumericString
 
 #if OS, "windows"
 private stdout_handle: HANDLE
 #end
-
-import { NumericString } from alphabet
 
 @assembler
 private func _output_count(value: usize) uint32:
@@ -266,12 +265,12 @@ private func _print_int64(value: int64) void:
     buffer[position] = "\0"
     if value == 0:
         position -= 1
-        buffer[position] = NumericString[0]
+        buffer[position] = NumericDigits[0]
     elif negative:
         while cursor < 0:
             digit = 0 - (cursor % 10)
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
         position -= 1
         buffer[position] = "-"
@@ -279,7 +278,7 @@ private func _print_int64(value: int64) void:
         while cursor > 0:
             digit = cursor % 10
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
 
     written = 31 - position
@@ -300,12 +299,12 @@ private func _print_uint64(value: uint64) void:
     buffer[position] = "\0"
     if value == 0:
         position -= 1
-        buffer[position] = NumericString[0]
+        buffer[position] = NumericDigits[0]
     else:
         while cursor > 0:
             digit = cursor % 10
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
 
     written = 31 - position
@@ -326,12 +325,12 @@ private func _print_usize(value: usize) void:
     buffer[position] = "\0"
     if value == 0:
         position -= 1
-        buffer[position] = NumericString[0]
+        buffer[position] = NumericDigits[0]
     else:
         while cursor > 0:
             digit = cursor % 10
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
 
     written = 31 - position
@@ -353,12 +352,12 @@ private func _print_isize(value: isize) void:
     buffer[position] = "\0"
     if value == 0:
         position -= 1
-        buffer[position] = NumericString[0]
+        buffer[position] = NumericDigits[0]
     elif negative:
         while cursor < 0:
             digit = 0 - (cursor % 10)
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
         position -= 1
         buffer[position] = "-"
@@ -366,7 +365,7 @@ private func _print_isize(value: isize) void:
         while cursor > 0:
             digit = cursor % 10
             position -= 1
-            buffer[position] = NumericString[digit]
+            buffer[position] = NumericDigits[digit]
             cursor /= 10
 
     written = 31 - position

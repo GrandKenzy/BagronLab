@@ -43,6 +43,8 @@ el proceso completo. Las nuevas operaciones de archivos `fstat`, `pread64`,
 `pwrite64`, `fsync`, `fdatasync` y `ftruncate` conservan los resultados raw
 del kernel.
 Con `O_APPEND`, Linux puede hacer que `pwrite64` escriba al final del archivo.
+`system.trap` eleva `SIGABRT` mediante los syscalls raw de proceso y usa
+`exit_group` como respaldo, por lo que no depende de libc.
 
 La documentación específica de `gnulibrary` pertenece a esta carpeta. La
 documentación del lenguaje y del compilador debe permanecer en el repositorio

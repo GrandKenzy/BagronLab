@@ -5,9 +5,7 @@ experiments, and integration examples. The Bagron compiler repository remains
 the source of truth for the language, compiler, frontend, backend, and general
 language documentation.
 
-This repository intentionally excludes the experimental `net/` and `Brixel/`
-projects from this cleanup. The `string/` and `alphabet` sources are also
-left untouched. The root `build/` directory is the single clean location for
+This repository intentionally excludes the experimental `net/` and `Brixel/`projects from this cleanup. The `string/` library now keeps its complete text,alphabet, and hexadecimal API in `string/main.bg`. The root `build/` directoryis the single clean location for
 all precompiled `lib1` packages; source modules and library documentation
 remain outside it.
 
@@ -96,12 +94,11 @@ The validated packages currently exposed by this lab are:
 - `build/gnulibrary.lib` and `build/windows.lib` — canonical native targets.
 - `build/io.lib` — cross-platform system I/O helpers.
 - `build/hashlib.lib` and `build/math.lib` — portable Bagron libraries.
-- `build/string.lib` — retained precompiled string package.
+- `build/string.lib` — precompiled string package whose API is exported from  `source/main.bg`.
 
 `mmap`, `time`, `mem`, `types`, and the historical `standard` tree are not
 published until their completeness and targets are confirmed. `net/` and `Brixel/`
-remain explicitly omitted from this cleanup; the `string/` and `alphabet`
-sources were not modified.
+remain explicitly omitted from this cleanup; `string/` is now maintained as asingle entry module while `gnulibrary/` and `windows/` own native operations.
 
 ## API documentation and VSIX support
 
@@ -140,7 +137,7 @@ belong in each library's `main.bg`; modules inherit the selected target.
 
 - `docs/gnulibrary/` documents Linux compatibility APIs.
 - `docs/windows/` documents the Windows native API.
-- `docs/string/` documents string operations and the `alphabet` constants.
+- `docs/string/` documents the consolidated string API and alphabet constants.
 - `docs/standard/` documents the standard-library laboratory layout.
 
 When adding a library, create its documentation directory under `docs/` and

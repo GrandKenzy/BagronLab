@@ -1,5 +1,4 @@
-import io
-import { HexadecimalUpperString } from alphabet
+private HexDigits: chain = String.HexadecimalUpperString
 
 @unsafe
 func print_hexu64(value: uint64) void:
@@ -8,7 +7,7 @@ func print_hexu64(value: uint64) void:
 
     while true:
         digit = (value >> shift) & 15
-        io.print_char(HexadecimalUpperString[digit], false)
+        IO.print_char(HexDigits[digit], false)
 
         if shift == 0:
             break
@@ -24,7 +23,7 @@ func print_hex64(value: int64) void:
 
     while true:
         digit = (value >> shift) & 15
-        io.print_char(HexadecimalUpperString[digit], false)
+        IO.print_char(HexDigits[digit], false)
 
         if shift == 0:
             break
@@ -43,8 +42,8 @@ class uint128:
     func print() void:
         print_hexu64(self.high)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return
 
 
@@ -67,8 +66,8 @@ class uint256:
         print_hexu64(self.high2)
         print_hexu64(self.high1)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return
 
 
@@ -103,8 +102,8 @@ class uint512:
         print_hexu64(self.high2)
         print_hexu64(self.high1)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return
 
 @packed
@@ -117,8 +116,8 @@ class int128:
     func print() void:
         print_hex64(self.high)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return
 
 
@@ -141,8 +140,8 @@ class int256:
         print_hexu64(self.high2)
         print_hexu64(self.high1)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return
 
 
@@ -177,6 +176,6 @@ class int512:
         print_hexu64(self.high2)
         print_hexu64(self.high1)
         print_hexu64(self.low)
-        io.println('')
-        io.flush()
+        IO.println('')
+        IO.flush()
         return

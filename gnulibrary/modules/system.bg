@@ -1,5 +1,19 @@
 clause Privacy "public"
 
+import { SIGABRT } from linuxc
+
+; EN: Terminates the current process through the native Linux signal path.
+; The raw kill syscall is kept in gnulibrary; callers do not depend on libc.
+;
+; ES: Termina el proceso actual mediante la ruta nativa de señales de Linux.
+; El syscall kill crudo permanece en gnulibrary; los consumidores no dependen de libc.
+@unsafe
+public func trap() void:
+    ; EN: Raises SIGABRT and falls back to exit_group if signal delivery returns.
+    ; ES: Eleva SIGABRT y usa exit_group como respaldo si la entrega retorna.
+    kill(getpid32(), SIGABRT)
+    exit_group(134)
+
 @assembler
 func exit(code: int32) Never:
     ; EN: Terminates the calling thread; use exit_group to end the entire process.

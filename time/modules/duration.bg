@@ -1,0 +1,167 @@
+; EN: Time spans and a monotonic stopwatch.
+; Duration stores a signed span in nanoseconds; Stopwatch measures elapsed
+; time on the monotonic high-resolution counter and never goes backwards.
+;
+; ES: Intervalos de tiempo y un cronometro monotono.
+; Duration guarda un intervalo con signo en nanosegundos; Stopwatch mide el
+; tiempo transcurrido con el contador monotono de alta resolucion y nunca retrocede.
+
+; ============================================================================
+; Duration
+; ============================================================================
+
+struct Duration:
+    ; EN: Signed time span in nanoseconds.
+    ;
+    ; ES: Intervalo de tiempo con signo en nanosegundos.
+    nanos: int64
+
+; EN: Builds a Duration from nanoseconds.
+;
+; ES: Construye un Duration a partir de nanosegundos.
+func duration_from_nanos(value: int64) Duration:
+    d: Duration
+    d.nanos = value
+    return d
+
+; EN: Builds a Duration from microseconds.
+;
+; ES: Construye un Duration a partir de microsegundos.
+func duration_from_micros(value: int64) Duration:
+    d: Duration
+    d.nanos = value * 1000
+    return d
+
+; EN: Builds a Duration from milliseconds.
+;
+; ES: Construye un Duration a partir de milisegundos.
+func duration_from_millis(value: int64) Duration:
+    d: Duration
+    d.nanos = value * 1000000
+    return d
+
+; EN: Builds a Duration from seconds.
+;
+; ES: Construye un Duration a partir de segundos.
+func duration_from_seconds(value: int64) Duration:
+    d: Duration
+    d.nanos = value * 1000000000
+    return d
+
+; EN: Returns the span in nanoseconds.
+;
+; ES: Devuelve el intervalo en nanosegundos.
+func duration_as_nanos(d: Duration) int64:
+    return d.nanos
+
+; EN: Returns the span in whole microseconds (truncated toward zero).
+;
+; ES: Devuelve el intervalo en microsegundos enteros (truncado hacia cero).
+func duration_as_micros(d: Duration) int64:
+    return d.nanos / 1000
+
+; EN: Returns the span in whole milliseconds (truncated toward zero).
+;
+; ES: Devuelve el intervalo en milisegundos enteros (truncado hacia cero).
+func duration_as_millis(d: Duration) int64:
+    return d.nanos / 1000000
+
+; EN: Returns the span in whole seconds (truncated toward zero).
+;
+; ES: Devuelve el intervalo en segundos enteros (truncado hacia cero).
+func duration_as_seconds(d: Duration) int64:
+    return d.nanos / 1000000000
+
+; EN: Returns a + b.
+;
+; ES: Devuelve a + b.
+func duration_add(a: Duration, b: Duration) Duration:
+    d: Duration
+    d.nanos = a.nanos + b.nanos
+    return d
+
+; EN: Returns a - b.
+;
+; ES: Devuelve a - b.
+func duration_sub(a: Duration, b: Duration) Duration:
+    d: Duration
+    d.nanos = a.nanos - b.nanos
+    return d
+
+; EN: Compares two spans. Returns -1 if a < b, 0 if equal, 1 if a > b.
+;
+; ES: Compara dos intervalos. Devuelve -1 si a < b, 0 si son iguales, 1 si a > b.
+func duration_compare(a: Duration, b: Duration) int64:
+    if a.nanos < b.nanos:
+        return -1
+    if a.nanos > b.nanos:
+        return 1
+    return 0
+
+; EN: Returns true if the span is exactly zero.
+;
+; ES: Devuelve true si el intervalo es exactamente cero.
+func duration_is_zero(d: Duration) bool:
+    return d.nanos == 0
+
+; ============================================================================
+; Stopwatch
+; ============================================================================
+
+struct Stopwatch:
+    ; EN: Monotonic counter value captured when the stopwatch started.
+    ;
+    ; ES: Valor del contador monotono capturado al iniciar el cronometro.
+    start_ticks: int64
+
+; EN: Converts a monotonic counter interval into a Duration.
+; Splits seconds from the remainder so large intervals do not overflow.
+;
+; ES: Convierte un intervalo del contador monotono en un Duration.
+; Separa los segundos del resto para que intervalos grandes no desborden.
+@unsafe
+func ticks_to_duration(start: int64, end: int64) Duration:
+    freq: int64 = Platform.frequency()
+    d: Duration
+    d.nanos = 0
+    if freq <= 0:
+        return d
+    delta: int64 = end - start
+    secs: int64 = delta / freq
+    rest: int64 = delta % freq
+    d.nanos = (secs * 1000000000) + ((rest * 1000000000) / freq)
+    return d
+
+; EN: Starts a stopwatch at the current monotonic instant.
+; Call it again to restart: sw = stopwatch_start().
+;
+; ES: Inicia un cronometro en el instante monotono actual.
+; Llamalo otra vez para reiniciar: sw = stopwatch_start().
+@unsafe
+func stopwatch_start() Stopwatch:
+    sw: Stopwatch
+    sw.start_ticks = Platform.ticks()
+    return sw
+
+; EN: Returns the time elapsed since the stopwatch started.
+;
+; ES: Devuelve el tiempo transcurrido desde que inicio el cronometro.
+@unsafe
+func stopwatch_elapsed(sw: Stopwatch) Duration:
+    return ticks_to_duration(sw.start_ticks, Platform.ticks())
+
+; EN: Returns the elapsed time in whole milliseconds.
+;
+; ES: Devuelve el tiempo transcurrido en milisegundos enteros.
+@unsafe
+func stopwatch_elapsed_millis(sw: Stopwatch) int64:
+    el: Duration = stopwatch_elapsed(sw)
+    return el.nanos / 1000000
+
+; EN: Returns the elapsed time in whole microseconds.
+;
+; ES: Devuelve el tiempo transcurrido en microsegundos enteros.
+@unsafe
+func stopwatch_elapsed_micros(sw: Stopwatch) int64:
+    el: Duration = stopwatch_elapsed(sw)
+    return el.nanos / 1000

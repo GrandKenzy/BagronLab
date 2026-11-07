@@ -1,3 +1,5 @@
 ; Library source root for reusable integer types.
 clause Arch "amd"
 clause System "windows"
+library string as String
+library io as IO

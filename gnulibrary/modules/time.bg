@@ -1,0 +1,79 @@
+clause Privacy "public"
+
+; EN: Native Linux time helpers built on POSIX clocks and assembly syscalls.
+;
+; ES: Ayudas de tiempo nativas de Linux construidas sobre relojes POSIX y syscalls en ensamblador.
+
+import { clock_gettime, nanosleep_ms, nanosleep } from system
+import { CLOCK_REALTIME, CLOCK_MONOTONIC } from linuxc
+
+struct TIMESPEC:
+    ; EN: POSIX timespec representing seconds and nanoseconds.
+    ;
+    ; ES: timespec POSIX que representa segundos y nanosegundos.
+    tv_sec: int64
+    tv_nsec: int64
+
+; EN: Returns the current UTC time as Unix seconds.
+;
+; ES: Devuelve la hora UTC actual como segundos Unix.
+@unsafe
+func unix_seconds() int64:
+    ts: TIMESPEC
+    clock_gettime(CLOCK_REALTIME, $ts)
+    return ts.tv_sec
+
+; EN: Returns the current UTC time as Unix milliseconds.
+;
+; ES: Devuelve la hora UTC actual como milisegundos Unix.
+@unsafe
+func unix_milliseconds() int64:
+    ts: TIMESPEC
+    clock_gettime(CLOCK_REALTIME, $ts)
+    sec_ms: int64 = ts.tv_sec * 1000
+    nsec_ms: int64 = ts.tv_nsec / 1000000
+    return sec_ms + nsec_ms
+
+; EN: Reads the monotonic high-resolution clock in nanoseconds.
+;
+; ES: Lee el reloj monotono de alta resolucion en nanosegundos.
+@unsafe
+func ticks() int64:
+    ts: TIMESPEC
+    clock_gettime(CLOCK_MONOTONIC, $ts)
+    sec_ns: int64 = ts.tv_sec * 1000000000
+    return sec_ns + ts.tv_nsec
+
+; EN: Returns the frequency of the monotonic clock (ticks per second).
+;
+; ES: Devuelve la frecuencia del reloj monotono (ticks por segundo).
+@unsafe
+func frequency() int64:
+    return 1000000000
+
+; EN: Converts a tick interval to microseconds.
+;
+; ES: Convierte un intervalo de ticks a microsegundos.
+@unsafe
+func microseconds(start: int64, end: int64) int64:
+    if end < start:
+        return 0
+    elapsed: int64 = end - start
+    return elapsed / 1000
+
+; EN: Suspends the calling thread for a millisecond interval.
+;
+; ES: Suspende la hebra llamadora durante un intervalo de milisegundos.
+@unsafe
+func sleep_ms(milliseconds: uint32) void:
+    nanosleep_ms(milliseconds)
+    return
+
+; EN: Suspends the calling thread for a second interval.
+;
+; ES: Suspende la hebra llamadora durante un intervalo de segundos.
+@unsafe
+func sleep(seconds: uint32) void:
+    ms: uint32 = seconds * 1000
+    nanosleep_ms(ms)
+    return

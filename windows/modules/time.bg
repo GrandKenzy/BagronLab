@@ -5,7 +5,8 @@
 import {
     GetSystemTimeAsFileTime,
     QueryPerformanceCounter,
-    QueryPerformanceFrequency
+    QueryPerformanceFrequency,
+    Sleep
 } from kernel32
 
 ; EN: FILETIME uses 100-nanosecond intervals since 1601-01-01 UTC.
@@ -72,3 +73,20 @@ public func microseconds(start: int64, end: int64) int64:
     seconds: int64 = elapsed / counter_frequency
     remainder: int64 = elapsed % counter_frequency
     return seconds * MICROSECONDS_PER_SECOND + (remainder * MICROSECONDS_PER_SECOND) / counter_frequency
+
+; EN: Suspends the calling thread for a millisecond interval.
+;
+; ES: Suspende la hebra llamadora durante un intervalo de milisegundos.
+@unsafe
+public func sleep_ms(milliseconds: uint32) void:
+    Sleep(milliseconds)
+    return
+
+; EN: Suspends the calling thread for a second interval.
+;
+; ES: Suspende la hebra llamadora durante un intervalo de segundos.
+@unsafe
+public func sleep(seconds: uint32) void:
+    ms: uint32 = seconds * 1000
+    Sleep(ms)
+    return
