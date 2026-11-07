@@ -58,3 +58,49 @@ public func query(
     if information_size == 0:
         return 0
     return VirtualQuery(address, information, information_size)
+
+; Windows x64 anonymous virtual-memory boundary for mmap.
+; The OS allocation handle is reinterpreted as pointer-width integer bits.
+private mold VirtualAddressBits:
+    address: usize
+    region: MEMORY_REGION
+    wide: uint64
+
+; EN: Reserves and commits read/write pages, returning 0 on failure.
+; ES: Reserva y confirma paginas de lectura/escritura; 0 si falla.
+@unsafe
+public func vm_map_rw(size: usize) usize:
+    if size == 0:
+        return 0
+    bits: VirtualAddressBits
+    bits.address = size
+    region: MEMORY_REGION = VirtualAlloc(Null, bits.wide, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
+    result: VirtualAddressBits
+    result.region = region
+    return result.address
+
+; EN: Releases the complete VirtualAlloc region.
+; ES: Libera toda la region reservada mediante VirtualAlloc.
+@unsafe
+public func vm_unmap(address: usize, size: usize) bool:
+    if address == 0 || size == 0:
+        return false
+    bits: VirtualAddressBits
+    bits.address = address
+    return VirtualFree(bits.region, 0, MEM_RELEASE) != 0
+
+; EN: Sets a region read-only or read/write through VirtualProtect.
+; ES: Cambia proteccion entre solo lectura y lectura/escritura.
+@unsafe
+public func vm_protect(address: usize, size: usize, readonly: bool) bool:
+    if address == 0 || size == 0:
+        return false
+    addr: VirtualAddressBits
+    length: VirtualAddressBits
+    addr.address = address
+    length.address = size
+    protection: uint32 = PAGE_READWRITE
+    if readonly:
+        protection = PAGE_READONLY
+    old_protection: uint32 = 0
+    return VirtualProtect(addr.region, length.wide, protection, $old_protection) != 0
