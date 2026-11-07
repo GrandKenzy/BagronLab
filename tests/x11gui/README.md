@@ -30,7 +30,9 @@ Todas las pruebas deben terminar con código **0**. La primera prueba de
 dibujo usa un plazo de sondeo acotado. Las otras envían un evento desde un
 segundo proceso para comprobar las interfaces reales de Xlib.
 
-Se han ejecutado con Bagron 1.1.4 en Linux x86_64 y con una biblioteca
-`gnulibrary` de prueba compuesta por los tres módulos X11. La generación de
-un paquete con todos los módulos de BagronLab se debe verificar antes de su
-publicación como release. El compilador necesitó el arreglo PIC local conocido.
+Se han ejecutado con Bagron 1.1.4 en Linux x86_64. También se probó
+`gnulibrary` reconstruida a partir de todos los módulos del paquete local
+previamente instalado, más los tres módulos X11 nuevos; todas las pruebas
+continuaron pasando. Queda pendiente reconstruir desde las fuentes completas
+más recientes de GitHub antes de publicar una release oficial.
+El compilador necesitó el ajuste PIC local conocido.
