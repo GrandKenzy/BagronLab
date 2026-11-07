@@ -1,0 +1,50 @@
+; Built-in User32 child controls. Title is a NUL-terminated UTF-16 pointer.
+; The caller owns each returned HWND through its parent-window lifetime.
+
+; EN: Creates a native push button. Returns 0 on failure.
+; ES: Crea un botón nativo. Devuelve 0 si falla.
+@unsafe
+public func button(parent: usize, title *: const uint16, control_id: usize, x: int32, y: int32, width: int32, height: int32) usize:
+    class_name: uint16[7]
+    class_name[0] = 66
+    class_name[1] = 85
+    class_name[2] = 84
+    class_name[3] = 84
+    class_name[4] = 79
+    class_name[5] = 78
+    class_name[6] = 0
+    return Win.CreateWindowExW(0, $class_name[0], title,
+        Win.WS_CHILD | Win.WS_VISIBLE | Win.WS_TABSTOP,
+        x, y, width, height, parent, control_id,
+        Win.GetModuleHandleW(Null), Null)
+
+; EN: Creates a read-only static text label.
+; ES: Crea una etiqueta de texto estático.
+@unsafe
+public func label(parent: usize, text *: const uint16, x: int32, y: int32, width: int32, height: int32) usize:
+    class_name: uint16[7]
+    class_name[0] = 83
+    class_name[1] = 84
+    class_name[2] = 65
+    class_name[3] = 84
+    class_name[4] = 73
+    class_name[5] = 67
+    class_name[6] = 0
+    return Win.CreateWindowExW(0, $class_name[0], text,
+        Win.WS_CHILD | Win.WS_VISIBLE, x, y, width, height,
+        parent, 0, Win.GetModuleHandleW(Null), Null)
+
+; EN: Creates a single-line edit control.
+; ES: Crea un campo de texto de una línea.
+@unsafe
+public func text_entry(parent: usize, title *: const uint16, control_id: usize, x: int32, y: int32, width: int32, height: int32) usize:
+    class_name: uint16[5]
+    class_name[0] = 69
+    class_name[1] = 68
+    class_name[2] = 73
+    class_name[3] = 84
+    class_name[4] = 0
+    return Win.CreateWindowExW(0, $class_name[0], title,
+        Win.WS_CHILD | Win.WS_VISIBLE | Win.WS_BORDER | Win.ES_AUTOHSCROLL,
+        x, y, width, height, parent, control_id,
+        Win.GetModuleHandleW(Null), Null)

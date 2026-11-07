@@ -1,0 +1,27 @@
+; First Win32 GUI smoke test (requires native Windows x64).
+clause System "windows"
+clause Arch "amd"
+library win32gui as GUI
+import { message_box } from GUI
+
+@unsafe
+func main() int32:
+    title: uint16[7]
+    title[0] = 66
+    title[1] = 97
+    title[2] = 103
+    title[3] = 114
+    title[4] = 111
+    title[5] = 110
+    title[6] = 0
+
+    message: uint16[5]
+    message[0] = 72
+    message[1] = 111
+    message[2] = 108
+    message[3] = 97
+    message[4] = 0
+
+    if message_box(0, $title[0], $message[0]) == 0:
+        return 1
+    return 0

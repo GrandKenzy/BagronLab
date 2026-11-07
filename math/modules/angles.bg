@@ -1,0 +1,63 @@
+; Angular conversions and periodic normalization.
+import { PI, TAU, DEG_TO_RAD, RAD_TO_DEG } from consts
+import { trunc } from round
+
+#if ARCHB, "64"
+; EN: Degrees to radians.
+; ES: Grados a radianes.
+public func radians(degrees: double) double:
+    return degrees * DEG_TO_RAD
+
+; EN: Radians to degrees.
+; ES: Radianes a grados.
+public func degrees(angle: double) double:
+    return angle * RAD_TO_DEG
+
+; EN: Normalizes a finite angle to [-pi,pi]; accuracy decreases at huge values.
+; ES: Normaliza el angulo al rango [-pi,pi].
+public func normalize_angle(angle: double) double:
+    if angle != angle:
+        return angle
+    turns: double = trunc(angle / TAU)
+    result: double = angle - turns * TAU
+    if result > PI:
+        result -= TAU
+    if result < 0.0 - PI:
+        result += TAU
+    return result
+
+; EN: Signed smallest rotation from angle_a to angle_b.
+; ES: Rotacion minima con signo entre dos angulos.
+public func angle_delta(angle_a: double, angle_b: double) double:
+    return normalize_angle(angle_b - angle_a)
+
+#elif ARCHB, "32"
+; EN: Degrees to radians.
+; ES: Grados a radianes.
+public func radians(degrees: float) float:
+    return degrees * DEG_TO_RAD
+
+; EN: Radians to degrees.
+; ES: Radianes a grados.
+public func degrees(angle: float) float:
+    return angle * RAD_TO_DEG
+
+; EN: Normalizes a finite angle to [-pi,pi]; accuracy decreases at huge values.
+; ES: Normaliza el angulo al rango [-pi,pi].
+public func normalize_angle(angle: float) float:
+    if angle != angle:
+        return angle
+    turns: float = trunc(angle / TAU)
+    result: float = angle - turns * TAU
+    if result > PI:
+        result -= TAU
+    if result < 0.0 - PI:
+        result += TAU
+    return result
+
+; EN: Signed smallest rotation from angle_a to angle_b.
+; ES: Rotacion minima con signo entre dos angulos.
+public func angle_delta(angle_a: float, angle_b: float) float:
+    return normalize_angle(angle_b - angle_a)
+
+#end

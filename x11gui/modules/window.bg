@@ -1,0 +1,152 @@
+; XLookupString returns a raw Latin-1 byte; expose unsigned numeric value.
+private mold KeyboardByteView:
+    character: char
+    numeric: uint8
+
+; Native X11 display/window/GC ownership. Do not copy an open Window.
+public class Window:
+    func __init__() void:
+        self.display_id: usize = 0
+        self.window_id: usize = 0
+        self.gc_id: usize = 0
+        self.close_atom: usize = 0
+        self.protocol_atom: usize = 0
+        self.opened: bool = false
+        self.pointer_x: int32 = 0
+        self.pointer_y: int32 = 0
+        ; Last keyboard event, updated only on KeyPress/KeyRelease.
+        self.last_keycode: usize = 0
+        self.last_keysym: usize = 0
+        self.last_modifiers: usize = 0
+        self.last_character: uint8 = 0
+        self.black_pixel: usize = 0
+        self.white_pixel: usize = 0
+
+    ; EN: Opens the default X display and a top-level window; false on failure.
+    ; ES: Abre un display X11 y crea una ventana principal.
+    @unsafe
+    func open(title: chain, title_length: Len_t, width: uint32, height: uint32) bool:
+        if self.opened || width == 0 || height == 0 || title_length == 0:
+            return false
+        display: usize = XNative.XOpenDisplay(Null)
+        if display == 0:
+            return false
+        screen: int32 = XNative.XDefaultScreen(display)
+        root: usize = XNative.XRootWindow(display, screen)
+        black: usize = XNative.XBlackPixel(display, screen)
+        white: usize = XNative.XWhitePixel(display, screen)
+        window: usize = XNative.XCreateSimpleWindow(display, root, 0, 0, width, height, 1, black, white)
+        if window == 0:
+            XNative.XCloseDisplay(display)
+            return false
+        gc: usize = XNative.XCreateGC(display, window, 0, Null)
+        if gc == 0:
+            XNative.XDestroyWindow(display, window)
+            XNative.XCloseDisplay(display)
+            return false
+        atom: usize = XNative.X11EnableClose(display, window)
+        if atom == 0:
+            XNative.XFreeGC(display, gc)
+            XNative.XDestroyWindow(display, window)
+            XNative.XCloseDisplay(display)
+            return false
+        protocol: usize = XNative.XInternAtom(display, "WM_PROTOCOLS", 0)
+        if protocol == 0:
+            XNative.XFreeGC(display, gc)
+            XNative.XDestroyWindow(display, window)
+            XNative.XCloseDisplay(display)
+            return false
+        mask: usize = XNative.X11_KEY_PRESS_MASK | XNative.X11_KEY_RELEASE_MASK | XNative.X11_BUTTON_PRESS_MASK | XNative.X11_EXPOSURE_MASK | XNative.X11_STRUCTURE_NOTIFY_MASK
+        XNative.XSelectInput(display, window, mask)
+        XNative.XStoreName(display, window, $title[0])
+        XNative.XMapWindow(display, window)
+        XNative.XFlush(display)
+        self.display_id = display
+        self.window_id = window
+        self.gc_id = gc
+        self.close_atom = atom
+        self.protocol_atom = protocol
+        self.black_pixel = black
+        self.white_pixel = white
+        self.opened = true
+        self.pointer_x = 0
+        self.pointer_y = 0
+        self.last_keycode = 0
+        self.last_keysym = 0
+        self.last_modifiers = 0
+        self.last_character = 0
+        return true
+
+    ; EN: Polls one event: 0 for none, 1001 for WM_DELETE_WINDOW.
+    ; Mouse coordinates are refreshed after ButtonPress.
+    ; ES: Consulta eventos; 0 sin eventos, 1001 para solicitud de cierre.
+    @unsafe
+    func poll() int32:
+        if not self.opened:
+            return -1
+        coords: int32[2]
+        keys: usize[3]
+        chars: char[1]
+        event_kind: int32 = XNative.X11PollInput(self.display_id, self.protocol_atom, self.close_atom, coords, keys, chars)
+        if event_kind == XNative.X11_BUTTON_PRESS:
+            self.pointer_x = coords[0]
+            self.pointer_y = coords[1]
+        if event_kind == XNative.X11_KEY_PRESS || event_kind == XNative.X11_KEY_RELEASE:
+            self.last_keycode = keys[0]
+            self.last_keysym = keys[1]
+            self.last_modifiers = keys[2]
+            character_view: KeyboardByteView
+            character_view.character = chars[0]
+            self.last_character = character_view.numeric
+        return event_kind
+
+
+    ; EN: Blocks until an X11 event arrives; use for efficient UI event loops.
+    ; ES: Espera el siguiente evento sin sondeo activo de CPU.
+    @unsafe
+    func wait() int32:
+        if not self.opened:
+            return -1
+        coords: int32[2]
+        keys: usize[3]
+        chars: char[1]
+        event_kind: int32 = XNative.X11WaitInput(self.display_id, self.protocol_atom, self.close_atom, coords, keys, chars)
+        if event_kind == XNative.X11_BUTTON_PRESS:
+            self.pointer_x = coords[0]
+            self.pointer_y = coords[1]
+        if event_kind == XNative.X11_KEY_PRESS || event_kind == XNative.X11_KEY_RELEASE:
+            self.last_keycode = keys[0]
+            self.last_keysym = keys[1]
+            self.last_modifiers = keys[2]
+            character_view: KeyboardByteView
+            character_view.character = chars[0]
+            self.last_character = character_view.numeric
+        return event_kind
+
+    ; EN: Releases graphics context, window and display. Idempotent if closed.
+    ; ES: Libera contexto de dibujo, ventana y conexión X11.
+    @unsafe
+    func close() bool:
+        if not self.opened:
+            return true
+        XNative.XFreeGC(self.display_id, self.gc_id)
+        XNative.XDestroyWindow(self.display_id, self.window_id)
+        XNative.XCloseDisplay(self.display_id)
+        self.display_id = 0
+        self.window_id = 0
+        self.gc_id = 0
+        self.close_atom = 0
+        self.protocol_atom = 0
+        self.black_pixel = 0
+        self.white_pixel = 0
+        self.opened = false
+        self.last_keycode = 0
+        self.last_keysym = 0
+        self.last_modifiers = 0
+        self.last_character = 0
+        return true
+
+    @unsafe
+    func __deletion__() void:
+        self.close()
+        return

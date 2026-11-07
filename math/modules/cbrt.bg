@@ -14,6 +14,8 @@ public func cbrt(value: double) double:
     if magnitude < 0.0:
         negative = true
         magnitude = 0.0 - magnitude
+    if magnitude == magnitude * 2.0:
+        return value
 
     normalized: double = magnitude
     scale: double = 1.0
@@ -76,6 +78,8 @@ public func cbrt(value: float) float:
     if magnitude < 0.0:
         negative = true
         magnitude = 0.0 - magnitude
+    if magnitude == magnitude * 2.0:
+        return value
 
     normalized: float = magnitude
     scale: float = 1.0

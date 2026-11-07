@@ -1,0 +1,40 @@
+clause Privacy "public"
+
+; Windows Common Controls (Comctl32) ABI.
+; Initializes the common-controls classes used by GUI applications.
+ICC_LISTVIEW_CLASSES: const uint32 = 1
+ICC_TREEVIEW_CLASSES: const uint32 = 2
+ICC_BAR_CLASSES: const uint32 = 4
+ICC_TAB_CLASSES: const uint32 = 8
+ICC_UPDOWN_CLASS: const uint32 = 16
+ICC_PROGRESS_CLASS: const uint32 = 32
+ICC_HOTKEY_CLASS: const uint32 = 64
+ICC_ANIMATE_CLASS: const uint32 = 128
+ICC_WIN95_CLASSES: const uint32 = 255
+ICC_DATE_CLASSES: const uint32 = 256
+ICC_USEREX_CLASSES: const uint32 = 512
+ICC_COOL_CLASSES: const uint32 = 1024
+ICC_INTERNET_CLASSES: const uint32 = 2048
+ICC_PAGESCROLLER_CLASS: const uint32 = 4096
+ICC_NATIVEFNTCTL_CLASS: const uint32 = 8192
+ICC_STANDARD_CLASSES: const uint32 = 16384
+ICC_LINK_CLASS: const uint32 = 32768
+
+@align(4)
+struct INITCOMMONCONTROLSEX:
+    size: uint32
+    classes: uint32
+
+extern windows "comctl32":
+    InitCommonControlsEx(options *: INITCOMMONCONTROLSEX) int32
+    ImageList_Create(width: int32, height: int32, flags_: uint32, initial: int32, growth: int32) usize
+    ImageList_Destroy(image_list: usize) int32
+
+; EN: Registers the common controls selected by flags_.
+; ES: Registra los controles comunes indicados por flags_.
+@unsafe
+public func InitializeCommonControls(flags_: uint32) bool:
+    options: INITCOMMONCONTROLSEX
+    options.size = 8
+    options.classes = flags_
+    return InitCommonControlsEx($options) != 0

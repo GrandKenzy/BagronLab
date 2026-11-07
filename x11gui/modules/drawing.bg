@@ -1,0 +1,53 @@
+; Immediate X11 drawing wrappers on borrowed display/window/GC handles.
+; Draw again on X11_EXPOSE; drawing is not retained by the server.
+; EN: Draws a line using a borrowed graphics context.
+; ES: Dibuja una línea con un contexto prestado.
+@unsafe
+public func line(display: usize, window: usize, gc: usize, x1: int32, y1: int32, x2: int32, y2: int32, color: usize) bool:
+    if display == 0 || window == 0 || gc == 0:
+        return false
+    XNative.XSetForeground(display, gc, color)
+    XNative.XDrawLine(display, window, gc, x1, y1, x2, y2)
+    XNative.XFlush(display)
+    return true
+
+; EN: Draws a rectangle outline with positive dimensions.
+; ES: Dibuja el contorno de un rectángulo.
+@unsafe
+public func rectangle(display: usize, window: usize, gc: usize, x: int32, y: int32, width: uint32, height: uint32, color: usize) bool:
+    if display == 0 || window == 0 || gc == 0 || width == 0 || height == 0:
+        return false
+    XNative.XSetForeground(display, gc, color)
+    XNative.XDrawRectangle(display, window, gc, x, y, width, height)
+    XNative.XFlush(display)
+    return true
+
+; EN: Draws a filled rectangle.
+; ES: Dibuja un rectángulo relleno.
+@unsafe
+public func fill_rectangle(display: usize, window: usize, gc: usize, x: int32, y: int32, width: uint32, height: uint32, color: usize) bool:
+    if display == 0 || window == 0 || gc == 0 || width == 0 || height == 0:
+        return false
+    XNative.XSetForeground(display, gc, color)
+    XNative.XFillRectangle(display, window, gc, x, y, width, height)
+    XNative.XFlush(display)
+    return true
+
+; EN: Draws single-byte Xlib text (ASCII/Latin-1), not full Unicode shaping.
+; ES: Dibuja texto de un byte, aún sin soporte Unicode completo.
+@unsafe
+public func text(display: usize, window: usize, gc: usize, x: int32, y: int32, content: chain, content_length: Len_t, color: usize) bool:
+    if display == 0 || window == 0 || gc == 0 || content_length < 1:
+        return false
+    count: usize = content_length - 1
+    if count > 2147483647:
+        return false
+    converted: int32 = 0
+    i: usize = 0
+    while i < count:
+        converted += 1
+        i += 1
+    XNative.XSetForeground(display, gc, color)
+    XNative.XDrawString(display, window, gc, x, y, $content[0], converted)
+    XNative.XFlush(display)
+    return true

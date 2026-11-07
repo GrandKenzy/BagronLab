@@ -1,0 +1,53 @@
+; Keyboard integration: a, release a, Shift+A, Escape.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { is_key_press, is_key_release, is_close_request } from Gui
+import { has_shift, KEY_ESCAPE } from Gui
+
+@unsafe
+func main() int32:
+    window: Window = Window()
+    if not window.open("Bagron keyboard test", 340, 180):
+        return 2
+    stage: int32 = 0
+    error: int32 = 0
+    previous_code: usize = 0
+    while stage < 4:
+        kind: int32 = window.wait()
+        if kind < 0 || is_close_request(kind):
+            error = 3
+            break
+        if is_key_press(kind):
+            if stage == 0:
+                if window.last_keysym != 97 || window.last_character != 97 || window.last_keycode == 0 || window.last_modifiers != 0:
+                    error = 4
+                    break
+                previous_code = window.last_keycode
+                stage = 1
+            elif stage == 2:
+                if window.last_keysym != 65 || window.last_character != 65 || not has_shift(window.last_modifiers):
+                    error = 6
+                    break
+                stage = 3
+            elif stage == 3:
+                if window.last_keysym != KEY_ESCAPE || window.last_keycode == 0:
+                    error = 7
+                    break
+                stage = 4
+            else:
+                error = 8
+                break
+        elif is_key_release(kind):
+            if stage == 1:
+                if window.last_keycode != previous_code || window.last_keysym != 97:
+                    error = 5
+                    break
+                stage = 2
+            else:
+                error = 9
+                break
+    if not window.close():
+        return 10
+    return error

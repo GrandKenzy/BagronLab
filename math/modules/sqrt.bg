@@ -8,6 +8,8 @@ public func sqrt(value: double) double:
     ; Las entradas cero y negativas devuelven cero; los extremos finitos se escalan.
     if value <= 0.0:
         return 0.0
+    if value == value * 2.0:
+        return value
 
     normalized: double = value
     scale: double = 1.0
@@ -40,7 +42,10 @@ public func usqrt(value: uint64) uint64:
         return value
 
     low: uint64 = 1
-    high: uint64 = value
+    ; sqrt(uint64_max) <= 4294967295. This bound also avoids overflow.
+    high: uint64 = 4294967295
+    if value < high:
+        high = value
     result: uint64 = 1
 
     while low <= high:
@@ -62,6 +67,8 @@ public func sqrt(value: float) float:
     ; Las entradas cero y negativas devuelven cero; los extremos finitos se escalan.
     if value <= 0.0:
         return 0.0
+    if value == value * 2.0:
+        return value
 
     normalized: float = value
     scale: float = 1.0
@@ -93,7 +100,10 @@ public func usqrt(value: uint32) uint32:
         return value
 
     low: uint32 = 1
-    high: uint32 = value
+    ; sqrt(uint32_max) <= 65535.
+    high: uint32 = 65535
+    if value < high:
+        high = value
     result: uint32 = 1
 
     while low <= high:

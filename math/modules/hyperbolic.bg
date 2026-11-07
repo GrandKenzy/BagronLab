@@ -1,0 +1,58 @@
+; Hyperbolic functions, using the numeric exponential backend.
+import { exp } from logs
+
+#if ARCHB, "64"
+; EN: Hyperbolic sine, may overflow for large magnitudes.
+; ES: Seno hiperbolico.
+public func sinh(value: double) double:
+    return 0.5 * (exp(value) - exp(0.0 - value))
+
+; EN: Hyperbolic cosine, may overflow for large magnitudes.
+; ES: Coseno hiperbolico.
+public func cosh(value: double) double:
+    return 0.5 * (exp(value) + exp(0.0 - value))
+
+; EN: Stable hyperbolic tangent, saturates at high magnitude.
+; ES: Tangente hiperbolica numericamente estable.
+public func tanh(value: double) double:
+    if value > 20.0:
+        return 1.0
+    if value < -20.0:
+        return -1.0
+    magnitude: double = value
+    if magnitude < 0.0:
+        magnitude = 0.0 - magnitude
+    exponential: double = exp(0.0 - 2.0 * magnitude)
+    result: double = (1.0 - exponential) / (1.0 + exponential)
+    if value < 0.0:
+        return 0.0 - result
+    return result
+
+#elif ARCHB, "32"
+; EN: Hyperbolic sine, may overflow for large magnitudes.
+; ES: Seno hiperbolico.
+public func sinh(value: float) float:
+    return 0.5 * (exp(value) - exp(0.0 - value))
+
+; EN: Hyperbolic cosine, may overflow for large magnitudes.
+; ES: Coseno hiperbolico.
+public func cosh(value: float) float:
+    return 0.5 * (exp(value) + exp(0.0 - value))
+
+; EN: Stable hyperbolic tangent, saturates at high magnitude.
+; ES: Tangente hiperbolica numericamente estable.
+public func tanh(value: float) float:
+    if value > 20.0:
+        return 1.0
+    if value < -20.0:
+        return -1.0
+    magnitude: float = value
+    if magnitude < 0.0:
+        magnitude = 0.0 - magnitude
+    exponential: float = exp(0.0 - 2.0 * magnitude)
+    result: float = (1.0 - exponential) / (1.0 + exponential)
+    if value < 0.0:
+        return 0.0 - result
+    return result
+
+#end

@@ -1,0 +1,5 @@
+; Native Linux X11 GUI backend for Bagron. Separate from cross-platform guilib.
+clause System "linux"
+clause Arch "amd"
+clause Privacy "public"
+library gnulibrary as XNative

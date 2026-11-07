@@ -1,0 +1,55 @@
+; Window creation and lifetime wrappers. The class must be registered first.
+; Window procedure callbacks need a valid Win64 WNDPROC pointer.
+
+; EN: Registers a UTF-16 window class for a native window-procedure callback.
+; ES: Registra una clase Win32 con un callback WNDPROC válido.
+@unsafe
+public func register_class(class_name *: const uint16, callback *: void) bool:
+    instance: usize = Win.GetModuleHandleW(Null)
+    return Win.RegisterWindowClass(class_name, callback, instance)
+
+; EN: Creates an overlapped top-level window; returns 0 on failure.
+; ES: Crea una ventana Win32 principal; 0 si falla.
+@unsafe
+public func create_window(class_name *: const uint16, title *: const uint16, width: int32, height: int32) usize:
+    if width <= 0 || height <= 0:
+        return 0
+    instance: usize = Win.GetModuleHandleW(Null)
+    return Win.CreateWindowExW(
+        0, class_name, title, Win.WS_OVERLAPPEDWINDOW,
+        Win.CW_USEDEFAULT, Win.CW_USEDEFAULT, width, height,
+        0, 0, instance, Null
+    )
+
+; EN: Shows a registered window and requests its initial repaint.
+; ES: Muestra una ventana y solicita repintado inicial.
+@unsafe
+public func show_window(hwnd: usize) bool:
+    if hwnd == 0:
+        return false
+    Win.ShowWindow(hwnd, Win.SW_SHOW)
+    return Win.UpdateWindow(hwnd) != 0
+
+; EN: Requests native destruction of a window; does not free other handles.
+; ES: Destruye la ventana; no libera otros recursos del llamador.
+@unsafe
+public func destroy_window(hwnd: usize) bool:
+    if hwnd == 0:
+        return false
+    return Win.DestroyWindow(hwnd) != 0
+
+; EN: Sets a UTF-16 window title.
+; ES: Establece el título UTF-16 de una ventana.
+@unsafe
+public func set_title(hwnd: usize, title *: const uint16) bool:
+    if hwnd == 0:
+        return false
+    return Win.SetWindowTextW(hwnd, title) != 0
+
+; EN: Asks the OS to schedule a repaint.
+; ES: Solicita un repintado de la ventana.
+@unsafe
+public func invalidate(hwnd: usize) bool:
+    if hwnd == 0:
+        return false
+    return Win.InvalidateRect(hwnd, Null, 1) != 0

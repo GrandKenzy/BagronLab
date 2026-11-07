@@ -1,0 +1,29 @@
+; Nonblocking keyboard test through Window.poll().
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { is_key_press } from Gui
+
+@unsafe
+func main() int32:
+    window: Window = Window()
+    if not window.open("Bagron keyboard poll", 240, 160):
+        return 2
+    attempts: int32 = 0
+    code: int32 = 3
+    while attempts < 30000000:
+        kind: int32 = window.poll()
+        if is_key_press(kind):
+            if window.last_keysym == 98 && window.last_character == 98:
+                code = 0
+            else:
+                code = 4
+            break
+        if kind < 0:
+            code = 5
+            break
+        attempts += 1
+    if not window.close():
+        return 6
+    return code

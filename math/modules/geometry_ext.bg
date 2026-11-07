@@ -1,0 +1,99 @@
+; Extended geometry with range-scaled 3D length and distance.
+import { hypot } from geo
+import { sqrt } from sqrt
+
+#if ARCHB, "64"
+; EN: 3D length. Scales inputs to reduce overflow and underflow.
+; ES: Magnitud de tres componentes con normalizacion numerica.
+public func hypot3(x: double, y: double, z: double) double:
+    ax: double = x
+    ay: double = y
+    az: double = z
+    if ax < 0.0:
+        ax = 0.0 - ax
+    if ay < 0.0:
+        ay = 0.0 - ay
+    if az < 0.0:
+        az = 0.0 - az
+    larger: double = ax
+    if ay > larger:
+        larger = ay
+    if az > larger:
+        larger = az
+    if larger == 0.0:
+        return 0.0
+    if larger == larger * 2.0:
+        return larger
+    nx: double = ax / larger
+    ny: double = ay / larger
+    nz: double = az / larger
+    return larger * sqrt(nx * nx + ny * ny + nz * nz)
+
+; EN: Distance between 2D points.
+; ES: Distancia entre dos puntos 2D.
+public func distance2(x1: double, y1: double, x2: double, y2: double) double:
+    return hypot(x2 - x1, y2 - y1)
+
+; EN: Distance between 3D points.
+; ES: Distancia entre dos puntos 3D.
+public func distance3(x1: double, y1: double, z1: double, x2: double, y2: double, z2: double) double:
+    return hypot3(x2 - x1, y2 - y1, z2 - z1)
+
+; EN: Scalar dot product of two 2D vectors.
+; ES: Producto punto de dos vectores 2D.
+public func dot2(ax: double, ay: double, bx: double, by: double) double:
+    return ax * bx + ay * by
+
+; EN: Signed 2D cross product (determinant).
+; ES: Producto cruz 2D con signo.
+public func cross2(ax: double, ay: double, bx: double, by: double) double:
+    return ax * by - ay * bx
+
+#elif ARCHB, "32"
+; EN: 3D length. Scales inputs to reduce overflow and underflow.
+; ES: Magnitud de tres componentes con normalizacion numerica.
+public func hypot3(x: float, y: float, z: float) float:
+    ax: float = x
+    ay: float = y
+    az: float = z
+    if ax < 0.0:
+        ax = 0.0 - ax
+    if ay < 0.0:
+        ay = 0.0 - ay
+    if az < 0.0:
+        az = 0.0 - az
+    larger: float = ax
+    if ay > larger:
+        larger = ay
+    if az > larger:
+        larger = az
+    if larger == 0.0:
+        return 0.0
+    if larger == larger * 2.0:
+        return larger
+    nx: float = ax / larger
+    ny: float = ay / larger
+    nz: float = az / larger
+    return larger * sqrt(nx * nx + ny * ny + nz * nz)
+
+; EN: Distance between 2D points.
+; ES: Distancia entre dos puntos 2D.
+public func distance2(x1: float, y1: float, x2: float, y2: float) float:
+    return hypot(x2 - x1, y2 - y1)
+
+; EN: Distance between 3D points.
+; ES: Distancia entre dos puntos 3D.
+public func distance3(x1: float, y1: float, z1: float, x2: float, y2: float, z2: float) float:
+    return hypot3(x2 - x1, y2 - y1, z2 - z1)
+
+; EN: Scalar dot product of two 2D vectors.
+; ES: Producto punto de dos vectores 2D.
+public func dot2(ax: float, ay: float, bx: float, by: float) float:
+    return ax * bx + ay * by
+
+; EN: Signed 2D cross product (determinant).
+; ES: Producto cruz 2D con signo.
+public func cross2(ax: float, ay: float, bx: float, by: float) float:
+    return ax * by - ay * bx
+
+#end

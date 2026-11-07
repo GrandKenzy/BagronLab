@@ -24,15 +24,17 @@ remain outside it.
 | Directory | Responsibility |
 | --- | --- |
 | `gnulibrary/` | Linux x86_64 raw syscalls and shared Linux constants. It is not libc and does not expose C wrappers. |
-| `windows/` | Native Microsoft x64 declarations, currently centered on `kernel32.dll`. || `androidlib/` | Native Android ABI layer reserved for Android-specific runtime operations. |
+| `windows/` | Native Microsoft x64 ABI modules: `kernel32`, `user32`, `gdi32`, `comctl32`, sockets, and more. || `androidlib/` | Native Android ABI layer reserved for Android-specific runtime operations. |
 | `os/` | Cross-platform file and path operations built on `gnulibrary` and `windows`. |
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
-| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `x11gui/` | Linux AMD64 X11 graphical backend (Xlib): windows, events, drawing and button hit-testing. |
+| `win32gui/` | Windows-only GUI backend with separate modules for windows, events, controls, drawing and dialogs. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
-| `math/` | Mathematical algorithms and constants. |
+| `math/` | Numerical algorithms: roots, trig, statistics, number theory, interpolation and geometry (1.2.0 source). |
 | `types/` | Reusable type experiments and integer helpers. |
 | `standard/` | Historical compatibility project and dependency artifacts. |
 | `build/` | Precompiled, validated `lib1` packages ready for consumers. |
@@ -173,3 +175,62 @@ Run `python3 scripts/build_mmap.py` to generate and verify the local
 the repository, so do not add a Central distribution manifest entry until
 the actual package and its integrity digest are uploaded.
 See `docs/mmap/README.md` and `tests/mmap/README.md`.
+
+## win32gui source prototype
+
+`win32gui/` is a **Windows x64-only** graphical backend. It keeps the high-level
+window, event-loop, controls, drawing, dialog and text modules separate. Native
+DLL declarations belong only in `windows/modules/user32.bg`,
+`windows/modules/gdi32.bg`, `windows/modules/comctl32.bg` and
+`windows/modules/kernel32.bg`.
+
+The name `guilib` is reserved for the future cross-platform façade, not the
+Windows backend. See `docs/win32gui/README.md`. A native Windows smoke test
+exists at `examples/win32gui/message_box.bg`. Build on Windows with
+`python scripts/build_win32gui.py`. **This is not a validated Windows
+release yet**; the WNDPROC callback ABI needs a native test.
+
+## x11gui backend prototype
+
+`x11gui/` implements an Xlib-based GUI backend on Linux AMD64 and
+corresponds to the existing `win32gui/` backend on Windows x64. It uses
+`gnulibrary/modules/x11_{display,events,draw}.bg` for native ABI declarations;
+`x11gui` itself declares no external functions.
+
+The prototype opens X11 windows, renders basic shapes/text, handles mouse
+clicks and WM_DELETE_WINDOW, and provides blocking or non-blocking event loops.
+It was compiled and tested under Xvfb with Bagron 1.1.4 and a local PIC
+workaround. See `docs/x11gui/README.md` and `tests/x11gui/`.
+
+`guilib` remains reserved for the future platform-neutral facade.
+Native Wayland support is **not** implemented yet. The new source packages
+are not yet published as refreshed `build/gnulibrary.lib` or
+`build/x11gui.lib`, and Central manifests must not reference an unpublished
+binary.
+
+## x11gui keyboard support (source update)
+
+`x11gui` now handles X11 KeyPress/KeyRelease through
+`Window.wait()` and `Window.poll()`, exposing keycode, KeySym,
+modifier masks and the first Latin-1 byte of `XLookupString`. The
+`keyboard.bg` module defines special keys and Shift/Ctrl/Mod1 helpers.
+The existing window, pointer and drawing interfaces are preserved.
+
+See `docs/x11gui/README.md` and `tests/x11gui/README.md`. Tested
+with Bagron 1.1.4 on Linux AMD64 under Xvfb (two keyboard integration
+tests plus previous graphical regressions); native Wayland and Unicode
+text input remain future work. Source changes do not publish an updated
+`gnulibrary.lib` or `x11gui.lib` binary on GitHub.
+
+## math 1.2.0 source expansion
+
+The existing `math` library now includes checked integer arithmetic,
+deterministic uint64 primality, modular arithmetic, statistics, inverse
+trigonometry, geometry, hyperbolic functions, IEEE-754 classification and
+domain-checked wrappers for legacy functions. The existing API was
+preserved; `usqrt` now handles the maximum uint64 boundary safely.
+
+Build with `python3 scripts/build_math.py`, and run the Bagron tests in
+`tests/math/`. See `docs/math/README.md` for API details, limitations and
+compatibility. The sources are updated but the published `build/math.lib`
+binary and Central integrity manifests have **not** been replaced.

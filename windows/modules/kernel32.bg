@@ -113,6 +113,10 @@ public PAGE_NOCACHE: const uint32 = 512
 public PAGE_WRITECOMBINE: const uint32 = 1024
 
 extern windows "kernel32":
+    ; EN: Returns the module handle for a loaded module, or the current executable for Null.
+    ; ES: Devuelve el handle de modulo; Null identifica el ejecutable actual.
+    GetModuleHandleW(module_name *: const uint16) usize
+
     ; Convert UTF-8 text to UTF-16 for native Windows consumers.
     MultiByteToWideChar(
         code_page: uint32,

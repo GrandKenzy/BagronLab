@@ -1,0 +1,28 @@
+; X11 button hit-test: a sent ButtonPress at (60,30) must be accepted.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { is_click, is_close_request } from Gui
+import { hit_test } from Gui
+
+@unsafe
+func main() int32:
+    app: Window = Window()
+    if not app.open("Bagron click test", 320, 200):
+        return 2
+    attempts: int32 = 0
+    while attempts < 30000000:
+        event_kind: int32 = app.poll()
+        if is_click(event_kind):
+            if hit_test(app.pointer_x, app.pointer_y, 40, 10, 100, 50):
+                app.close()
+                return 0
+            app.close()
+            return 4
+        if is_close_request(event_kind):
+            app.close()
+            return 3
+        attempts += 1
+    app.close()
+    return 5

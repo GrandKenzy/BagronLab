@@ -1,0 +1,151 @@
+; Native XEvent LP64 ABI: sizeof=192, align=8.
+; Fields following common header overlay XClientMessageEvent and XButtonEvent.
+; Verified against system Xlib.h on Linux AMD64.
+clause Privacy "public"
+
+@align(8)
+private struct X11RawEvent:
+    kind: int32
+    pad0: int32
+    serial: usize
+    sent: int32
+    pad1: int32
+    display: usize
+    window: usize
+    message_type: usize
+    message_format: int32
+    pad2: int32
+    data0: usize
+    pointer_x: int32
+    pointer_y: int32
+    key_x_root: int32
+    key_y_root: int32
+    key_state: uint32
+    key_code: uint32
+    key_same_screen: int32
+    reserved: byte[100]
+
+extern c ":libX11.so.6":
+    XPending(display: usize) int32
+    XNextEvent(display: usize, event *: X11RawEvent) int32
+    ; KeySym is unsigned long and KeyCode/Modifier state are 32-bit on X11 LP64.
+    XLookupString(event *: X11RawEvent, buffer *: char, size: int32, keysym *: usize, compose *: void) int32
+
+; EN: Polls one event without blocking: 0 means no event, -1 invalid
+; arguments, 1001 a WM_DELETE_WINDOW request, else the native X11 event type.
+; Mouse coordinates in the caller's int32[2] update on ButtonPress.
+;
+; ES: Consulta un evento sin bloqueo. 0 indica que no hay eventos,
+; -1 argumentos inválidos y 1001 solicitud de cierre de ventana.
+@unsafe
+public func X11PollEvent(display: usize, protocol_atom: usize, delete_atom: usize, mouse: int32[], mouse_length: Len_t, mouse_size: Size_t) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    if XPending(display) <= 0:
+        return 0
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    mouse[0] = 0
+    mouse[1] = 0
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind
+
+; EN: Blocks until one X11 event is received. Returns -1 for invalid arguments.
+; ES: Espera sin sondear hasta que llegue un evento X11.
+@unsafe
+public func X11WaitEvent(display: usize, protocol_atom: usize, delete_atom: usize, mouse: int32[], mouse_length: Len_t, mouse_size: Size_t) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    mouse[0] = 0
+    mouse[1] = 0
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind
+
+; EN: Polls a keyboard-aware event. key[0]=keycode, key[1]=keysym,
+; key[2]=state (Shift/Ctrl/Alt flags). translated[0] is the first Latin-1
+; byte from XLookupString, or NUL when the event has no one-byte text.
+; All output arrays belong to the caller; zero outputs for non-key events.
+; ES: Consulta un evento, incluyendo código, keysym y modificadores.
+@unsafe
+public func X11PollInput(
+    display: usize, protocol_atom: usize, delete_atom: usize,
+    mouse: int32[], mouse_length: Len_t, mouse_size: Size_t,
+    key: usize[], key_length: Len_t, key_size: Size_t,
+    translated: char[], translated_length: Len_t, translated_size: Size_t
+) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    if key_size != 8 || key_length < 3 || translated_size != 1 || translated_length < 1:
+        return -1
+    mouse[0] = 0
+    mouse[1] = 0
+    key[0] = 0
+    key[1] = 0
+    key[2] = 0
+    translated[0] = "\0"
+    if XPending(display) <= 0:
+        return 0
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 2 || raw.kind == 3:
+        key[0] = raw.key_code
+        key[2] = raw.key_state
+        value: char[16]
+        symbol: usize = 0
+        count: int32 = XLookupString($raw, $value[0], 16, $symbol, Null)
+        key[1] = symbol
+        if count > 0:
+            translated[0] = value[0]
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind
+
+; EN: Blocking XNextEvent counterpart of X11PollInput. Does not spin.
+; ES: Espera un evento con teclado sin sondeo activo.
+@unsafe
+public func X11WaitInput(
+    display: usize, protocol_atom: usize, delete_atom: usize,
+    mouse: int32[], mouse_length: Len_t, mouse_size: Size_t,
+    key: usize[], key_length: Len_t, key_size: Size_t,
+    translated: char[], translated_length: Len_t, translated_size: Size_t
+) int32:
+    if display == 0 || mouse_size != 4 || mouse_length < 2:
+        return -1
+    if key_size != 8 || key_length < 3 || translated_size != 1 || translated_length < 1:
+        return -1
+    mouse[0] = 0
+    mouse[1] = 0
+    key[0] = 0
+    key[1] = 0
+    key[2] = 0
+    translated[0] = "\0"
+    raw: X11RawEvent
+    XNextEvent(display, $raw)
+    if raw.kind == 4:
+        mouse[0] = raw.pointer_x
+        mouse[1] = raw.pointer_y
+    if raw.kind == 2 || raw.kind == 3:
+        key[0] = raw.key_code
+        key[2] = raw.key_state
+        value: char[16]
+        symbol: usize = 0
+        count: int32 = XLookupString($raw, $value[0], 16, $symbol, Null)
+        key[1] = symbol
+        if count > 0:
+            translated[0] = value[0]
+    if raw.kind == 33 && protocol_atom != 0 && raw.message_type == protocol_atom && raw.message_format == 32 && delete_atom != 0 && raw.data0 == delete_atom:
+        return 1001
+    return raw.kind

@@ -1,0 +1,42 @@
+; Checked positive-base real power, built on existing exp/ln.
+import { exp, ln } from logs
+
+#if ARCHB, "64"
+; EN: Returns base^exponent for non-negative bases. For 0^0 -> 1.
+; Rejects a negative base and 0 raised to negative exponents.
+; ES: Potencia real para bases no negativas; valida el dominio.
+@unsafe
+public func pow_real_checked(base: double, exponent: double, result *: double) bool:
+    if base != base || exponent != exponent || base < 0.0:
+        return false
+    if base == 0.0:
+        if exponent < 0.0:
+            return false
+        if exponent == 0.0:
+            (result) = 1.0
+        else:
+            (result) = 0.0
+        return true
+    (result) = exp(exponent * ln(base))
+    return true
+
+#elif ARCHB, "32"
+; EN: Returns base^exponent for non-negative bases. For 0^0 -> 1.
+; Rejects a negative base and 0 raised to negative exponents.
+; ES: Potencia real para bases no negativas; valida el dominio.
+@unsafe
+public func pow_real_checked(base: float, exponent: float, result *: float) bool:
+    if base != base || exponent != exponent || base < 0.0:
+        return false
+    if base == 0.0:
+        if exponent < 0.0:
+            return false
+        if exponent == 0.0:
+            (result) = 1.0
+        else:
+            (result) = 0.0
+        return true
+    (result) = exp(exponent * ln(base))
+    return true
+
+#end

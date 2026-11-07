@@ -1,0 +1,28 @@
+; X11 GUI demo: clicking the drawn "Salir" button exits.
+; Requires Linux AMD64, libX11.so.6 and an X11/XWayland display.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { should_repaint, is_close_request, is_click } from Gui
+import { draw_button, hit_test } from Gui
+
+@unsafe
+func main() int32:
+    app: Window = Window()
+    if not app.open("Bagron X11", 340, 180):
+        return 2
+    while true:
+        kind: int32 = app.wait()
+        if is_close_request(kind):
+            break
+        if should_repaint(kind):
+            if not draw_button(app.display_id, app.window_id, app.gc_id, 40, 10, 100, 50, "Salir", app.black_pixel, app.white_pixel):
+                app.close()
+                return 3
+        if is_click(kind):
+            if hit_test(app.pointer_x, app.pointer_y, 40, 10, 100, 50):
+                break
+    if not app.close():
+        return 4
+    return 0

@@ -1,0 +1,141 @@
+clause Privacy "public"
+
+; Win32 User32 native ABI (Microsoft x64).
+; These declarations do not implement a GUI toolkit.
+WS_OVERLAPPEDWINDOW: const uint32 = 13565952
+WS_VISIBLE: const uint32 = 268435456
+WS_CHILD: const uint32 = 1073741824
+WS_TABSTOP: const uint32 = 65536
+BS_PUSHBUTTON: const uint32 = 0
+WS_BORDER: const uint32 = 8388608
+ES_AUTOHSCROLL: const uint32 = 128
+SW_HIDE: const int32 = 0
+SW_SHOW: const int32 = 5
+CW_USEDEFAULT: const int32 = -2147483648
+WM_CREATE: const uint32 = 1
+WM_DESTROY: const uint32 = 2
+WM_PAINT: const uint32 = 15
+WM_CLOSE: const uint32 = 16
+WM_COMMAND: const uint32 = 273
+WM_SIZE: const uint32 = 5
+WM_QUIT: const uint32 = 18
+MB_OK: const uint32 = 0
+MB_ICONINFORMATION: const uint32 = 64
+
+@align(4)
+struct WIN32_POINT:
+    x: int32
+    y: int32
+
+@align(4)
+struct WIN32_RECT:
+    left: int32
+    top: int32
+    right: int32
+    bottom: int32
+
+@align(8)
+struct WIN32_MSG:
+    hwnd: usize
+    message: uint32
+    wparam: usize
+    lparam: isize
+    time: uint32
+    point: WIN32_POINT
+    lprivate: uint32
+
+@align(8)
+struct WIN32_WNDCLASSEXW:
+    size: uint32
+    style: uint32
+    window_proc *: void
+    class_extra: int32
+    window_extra: int32
+    instance: usize
+    icon: usize
+    cursor: usize
+    background: usize
+    menu_name *: const uint16
+    class_name *: const uint16
+    small_icon: usize
+
+@align(8)
+struct WIN32_PAINTSTRUCT:
+    dc: usize
+    erase: int32
+    paint: WIN32_RECT
+    restore: int32
+    update: int32
+    reserved: byte[32]
+
+extern windows "user32":
+    RegisterClassExW(details *: WIN32_WNDCLASSEXW) uint16
+    UnregisterClassW(class_name *: const uint16, instance: usize) int32
+    CreateWindowExW(
+        extended_style: uint32,
+        class_name *: const uint16,
+        title *: const uint16,
+        style: uint32,
+        x: int32,
+        y: int32,
+        width: int32,
+        height: int32,
+        parent: usize,
+        menu: usize,
+        instance: usize,
+        parameter *: void
+    ) usize
+    DestroyWindow(hwnd: usize) int32
+    DefWindowProcW(hwnd: usize, message: uint32, wparam: usize, lparam: isize) isize
+    ShowWindow(hwnd: usize, command: int32) int32
+    UpdateWindow(hwnd: usize) int32
+    GetMessageW(message *: WIN32_MSG, hwnd: usize, first: uint32, last: uint32) int32
+    TranslateMessage(message *: WIN32_MSG) int32
+    DispatchMessageW(message *: WIN32_MSG) isize
+    PostQuitMessage(exit_code: int32) void
+    MessageBoxW(hwnd: usize, text *: const uint16, caption *: const uint16, style: uint32) int32
+    SetWindowTextW(hwnd: usize, text *: const uint16) int32
+    EnableWindow(hwnd: usize, enabled: int32) int32
+    MoveWindow(hwnd: usize, x: int32, y: int32, width: int32, height: int32, repaint: int32) int32
+    InvalidateRect(hwnd: usize, rect *: WIN32_RECT, erase: int32) int32
+    GetClientRect(hwnd: usize, rect *: WIN32_RECT) int32
+    BeginPaint(hwnd: usize, paint *: WIN32_PAINTSTRUCT) usize
+    EndPaint(hwnd: usize, paint *: WIN32_PAINTSTRUCT) int32
+    GetDC(hwnd: usize) usize
+    ReleaseDC(hwnd: usize, dc: usize) int32
+    FillRect(dc: usize, rect *: WIN32_RECT, brush: usize) int32
+
+; EN: Registers a UTF-16 window class with a caller-provided WNDPROC.
+; ES: Registra una clase de ventana UTF-16 con callback WNDPROC del llamador.
+; IMPORTANT: callback must use the Microsoft x64 WNDPROC ABI and remain valid.
+@unsafe
+public func RegisterWindowClass(class_name *: const uint16, callback *: void, instance: usize) bool:
+    details: WIN32_WNDCLASSEXW
+    details.size = 80
+    details.style = 0
+    details.window_proc = callback
+    details.class_extra = 0
+    details.window_extra = 0
+    details.instance = instance
+    details.icon = 0
+    details.cursor = 0
+    details.background = 0
+    details.menu_name = Null
+    details.class_name = class_name
+    details.small_icon = 0
+    return RegisterClassExW($details) != 0
+
+; EN: Dispatches Win32 messages until WM_QUIT or an API error.
+; Returns 0 for WM_QUIT and -1 for a GetMessageW error.
+; ES: Despacha mensajes hasta WM_QUIT o error de Win32.
+@unsafe
+public func RunMessageLoop() int32:
+    message: WIN32_MSG
+    while true:
+        status: int32 = GetMessageW($message, 0, 0, 0)
+        if status == -1:
+            return -1
+        if status == 0:
+            return 0
+        TranslateMessage($message)
+        DispatchMessageW($message)

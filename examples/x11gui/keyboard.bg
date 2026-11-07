@@ -1,0 +1,29 @@
+; Example: press Escape to close an X11 window.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { is_key_press, is_close_request, should_repaint } from Gui
+import { KEY_ESCAPE } from Gui
+import { text } from Gui
+
+@unsafe
+func main() int32:
+    app: Window = Window()
+    if not app.open("Bagron keyboard", 400, 140):
+        return 1
+    while true:
+        kind: int32 = app.wait()
+        if kind < 0:
+            app.close()
+            return 2
+        if is_close_request(kind):
+            break
+        if should_repaint(kind):
+            text(app.display_id, app.window_id, app.gc_id, 25, 60, "Presiona Escape para salir", app.black_pixel)
+        if is_key_press(kind):
+            if app.last_keysym == KEY_ESCAPE:
+                break
+    if not app.close():
+        return 3
+    return 0

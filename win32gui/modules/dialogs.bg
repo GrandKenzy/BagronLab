@@ -1,0 +1,7 @@
+; Win32 modal dialogs.
+
+; EN: Shows a UTF-16 informational message box; returns the native result.
+; ES: Muestra un diálogo informativo en UTF-16; devuelve resultado nativo.
+@unsafe
+public func message_box(owner: usize, title *: const uint16, message *: const uint16) int32:
+    return Win.MessageBoxW(owner, message, title, Win.MB_OK | Win.MB_ICONINFORMATION)
