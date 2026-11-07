@@ -1,2 +1,216 @@
-; Memoria mapeada del sistema operativo.
+; Anonymous virtual-memory region. The Mapping object owns its pages.
+; Caller must not copy an open Mapping; Bagron does not enforce linear ownership.
+private mold MemoryAddressView:
+    value: usize
+    bytes *: byte
 
+public class Mapping:
+    func __init__() void:
+        self.length: usize = 0
+        self.address: usize = 0
+        self.active: bool = false
+        self.writable: bool = false
+
+    ; EN: Maps byte_count anonymous bytes as readable and writable.
+    ; ES: Reserva byte_count bytes anonimos de lectura/escritura.
+    @unsafe
+    func open(byte_count: usize) bool:
+        if self.active || byte_count == 0:
+            return false
+        addr: usize = Platform.vm_map_rw(byte_count)
+        if addr == 0:
+            return false
+        self.length = byte_count
+        self.address = addr
+        self.active = true
+        self.writable = true
+        return true
+
+    @unsafe
+    func is_open() bool:
+        return self.active
+
+    @unsafe
+    func size() usize:
+        return self.length
+
+    ; EN: Reads a byte if index is in bounds; leaves result unchanged on failure.
+    ; ES: Lee un byte dentro del rango; no altera result si falla.
+    @unsafe
+    func get(index: usize, result *: byte) bool:
+        if not self.active || index >= self.length:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        (result) = view.bytes[index]
+        return true
+
+    ; EN: Writes one byte only while the mapping is writable.
+    ; ES: Escribe un byte solo cuando el mapeo permite escritura.
+    @unsafe
+    func set(index: usize, value: byte) bool:
+        if not self.active || not self.writable || index >= self.length:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        view.bytes[index] = value
+        return true
+
+    ; EN: Reads a bounded span into a caller-owned byte array.
+    ; ES: Lee un segmento acotado hacia un arreglo byte[] del llamador.
+    @unsafe
+    func read(target: byte[], target_length: Len_t, target_size: Size_t, source_start: usize, count: usize) bool:
+        if not self.active || target_size != 1 || count > target_length:
+            return false
+        if source_start > self.length || count > self.length - source_start:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        while i < count:
+            target[i] = view.bytes[source_start + i]
+            i += 1
+        return true
+
+    ; EN: Writes a bounded caller-owned byte array into mapped memory.
+    ; ES: Escribe un arreglo byte[] dentro de memoria mapeada.
+    @unsafe
+    func write(source: byte[], source_length: Len_t, source_size: Size_t, dest_start: usize, count: usize) bool:
+        if not self.active || not self.writable || source_size != 1 || count > source_length:
+            return false
+        if dest_start > self.length || count > self.length - dest_start:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        while i < count:
+            view.bytes[dest_start + i] = source[i]
+            i += 1
+        return true
+
+    ; EN: Fills a bounded mapped span with one byte.
+    ; ES: Rellena un tramo de memoria mapeada con un byte.
+    @unsafe
+    func fill(start: usize, count: usize, value: byte) bool:
+        if not self.active || not self.writable || start > self.length || count > self.length - start:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        while i < count:
+            view.bytes[start + i] = value
+            i += 1
+        return true
+
+    ; EN: Zeroes a bounded mapped span; not guaranteed to erase secrets.
+    ; ES: Limpia a cero un tramo; no garantiza borrar secretos.
+    @unsafe
+    func zero(start: usize, count: usize) bool:
+        return self.fill(start, count, 0)
+
+    ; EN: Overlap-safe move inside the same mapping.
+    ; ES: Movimiento seguro ante solapamiento dentro del mismo mapeo.
+    @unsafe
+    func move_within(destination_start: usize, source_start: usize, count: usize) bool:
+        if not self.active || not self.writable:
+            return false
+        if destination_start > self.length || count > self.length - destination_start:
+            return false
+        if source_start > self.length || count > self.length - source_start:
+            return false
+        if count == 0 || destination_start == source_start:
+            return true
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        if destination_start > source_start:
+            i = count
+            while i > 0:
+                i -= 1
+                view.bytes[destination_start + i] = view.bytes[source_start + i]
+        else:
+            while i < count:
+                view.bytes[destination_start + i] = view.bytes[source_start + i]
+                i += 1
+        return true
+
+    ; EN: Copies a mapped span to a caller-owned buffer[].
+    ; ES: Copia un segmento mapeado hacia buffer[] del llamador.
+    @unsafe
+    func read_buffer(target: buffer[], target_length: Len_t, source_start: usize, count: usize) bool:
+        if not self.active || count > target_length:
+            return false
+        if source_start > self.length || count > self.length - source_start:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        while i < count:
+            target[i] = view.bytes[source_start + i]
+            i += 1
+        return true
+
+    ; EN: Copies a caller-owned buffer[] into the mapped region.
+    ; ES: Copia buffer[] del llamador hacia la region mapeada.
+    @unsafe
+    func write_buffer(source: buffer[], source_length: Len_t, destination_start: usize, count: usize) bool:
+        if not self.active || not self.writable || count > source_length:
+            return false
+        if destination_start > self.length || count > self.length - destination_start:
+            return false
+        view: MemoryAddressView
+        view.value = self.address
+        i: usize = 0
+        while i < count:
+            view.bytes[destination_start + i] = source[i]
+            i += 1
+        return true
+
+    ; EN: Borrows the raw pointer address; never access after close().
+    ; ES: Obtiene la direccion prestada; nunca usar despues de close().
+    @unsafe
+    func raw_address() usize:
+        if not self.active:
+            return 0
+        return self.address
+
+    ; EN: Switches entire region to read-only protection.
+    ; ES: Cambia la region completa a proteccion de solo lectura.
+    @unsafe
+    func readonly() bool:
+        if not self.active:
+            return false
+        if not Platform.vm_protect(self.address, self.length, true):
+            return false
+        self.writable = false
+        return true
+
+    ; EN: Restores read/write protection for the entire region.
+    ; ES: Restaura proteccion de lectura/escritura de toda la region.
+    @unsafe
+    func readwrite() bool:
+        if not self.active:
+            return false
+        if not Platform.vm_protect(self.address, self.length, false):
+            return false
+        self.writable = true
+        return true
+
+    ; EN: Releases pages; remains open if the OS reports failure.
+    ; ES: Libera las paginas; si el SO falla, conserva el estado.
+    @unsafe
+    func close() bool:
+        if not self.active:
+            return true
+        if not Platform.vm_unmap(self.address, self.length):
+            return false
+        self.active = false
+        self.writable = false
+        self.length = 0
+        self.address = 0
+        return true
+
+    @unsafe
+    func __deletion__() void:
+        self.close()
+        return
