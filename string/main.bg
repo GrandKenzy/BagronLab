@@ -4,28 +4,14 @@
 
 clause Privacy "public"
 
+; Preserve target selection in portable lib1 source packages.
+clause System "auto"
+clause Arch "auto"
+
 #if OS, "windows"
-clause System "windows"
 library windows as Platform
 #elif OS, "linux"
-clause System "linux"
 library gnulibrary as Platform
-#else
-clause System "auto"
-#end
-
-#if ARCH, "amd"
-clause Arch "amd"
-#elif ARCH, "x86"
-clause Arch "x86"
-#elif ARCH, "arm"
-clause Arch "arm"
-#elif ARCH, "riscv32"
-clause Arch "riscv32"
-#elif ARCH, "riscv64"
-clause Arch "riscv64"
-#else
-clause Arch "auto"
 #end
 
 ; ============================================================================
