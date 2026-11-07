@@ -8,6 +8,7 @@ import {
     MEM_RESERVE,
     MEMORY_REGION,
     PAGE_READWRITE,
+    PAGE_READONLY,
     VirtualAlloc,
     VirtualFree,
     VirtualProtect,
