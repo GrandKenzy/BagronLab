@@ -100,6 +100,35 @@ struct TIMEVAL:
     tv_usec: int64
 
 
+@align(8)
+struct ADDRINFO:
+    ; EN: Linux resolver address record used by portable network consumers.
+    ;
+    ; ES: Registro de dirección del resolver Linux usado por consumidores de red portables.
+    ai_flags: int32
+    ai_family: int32
+    ai_socktype: int32
+    ai_protocol: int32
+    ai_addrlen: int32
+    ai_addr *: const char
+    ai_canonname *: const char
+    ai_next *: ADDRINFO
+
+
+; CUIDADO: Linux has no getaddrinfo syscall. The resolver is a libc boundary,
+; kept here so net does not redeclare native APIs and socket ownership stays
+; inside the canonical platform library.
+extern c "c":
+    getaddrinfo(
+        node *: const char,
+        service *: const char,
+        hints *: ADDRINFO,
+        result **: ADDRINFO
+    ) int32
+
+    freeaddrinfo(result *: ADDRINFO) void
+
+
 @assembler
 func socket(domain: int32, kind: int32, protocol: int32) int64:
     ; EN: Creates an endpoint for communication and returns the raw kernel result.
@@ -525,6 +554,28 @@ inline func NetworkPort(port: int32) uint16:
     ;
     ; ES : Convierte un número de puerto de 16 bits de orden de host a orden de red.
     return htons(port)
+
+
+@unsafe
+inline func GetAddrInfo(
+    node *: const char,
+    service *: const char,
+    hints *: ADDRINFO,
+    result **: ADDRINFO
+) int32:
+    ; EN: Resolves a host and service through the Linux native resolver boundary.
+    ;
+    ; ES: Resuelve un host y servicio mediante la frontera del resolver nativo de Linux.
+    return getaddrinfo(node, service, hints, result)
+
+
+@unsafe
+inline func ReleaseAddrInfo(result *: ADDRINFO) void:
+    ; EN: Releases address records returned by GetAddrInfo.
+    ;
+    ; ES: Libera los registros de dirección devueltos por GetAddrInfo.
+    freeaddrinfo(result)
+    return
 
 
 @unsafe

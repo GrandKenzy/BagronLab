@@ -48,6 +48,10 @@ private mold WindowsCount:
     native: uint32
     portable: usize
 
+private mold WindowsResult:
+    native: uint32
+    portable: int64
+
 private mold WindowsError:
     native: uint32
     portable: int64
@@ -370,6 +374,89 @@ public class File:
         self.close()
         return
 
+@unsafe
+public func open_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t,
+    options: uint32
+) HANDLE:
+    ; EN: Opens a file through the Windows native implementation.
+    ;
+    ; ES: Abre un archivo mediante la implementación nativa de Windows.
+    return create_file(path, options)
+
+@unsafe
+public func open_file_pointer(path *: const char, length: usize, options: uint32) HANDLE:
+    ; EN: Opens a bounded path buffer through the Windows native file backend.
+    ;
+    ; ES: Abre un buffer de ruta acotado mediante el backend nativo de archivos de Windows.
+    open_path: char[4096]
+    path_index: usize = 0
+    while path_index < 4095 && path_index < length:
+        open_path[path_index] = path[path_index]
+        path_index += 1
+    open_path[path_index] = "\0"
+    return create_file(open_path, options)
+
+@unsafe
+public func file_is_open(handle: HANDLE) bool:
+    ; EN: Reports whether a Windows file handle refers to a disk file.
+    ;
+    ; ES: Indica si un handle Windows refiere a un archivo de disco.
+    return valid_file_handle(handle)
+
+@unsafe
+public func file_size(handle: HANDLE) int64:
+    ; EN: Returns the size of an opened Windows file, or -1 on failure.
+    ;
+    ; ES: Devuelve el tamaño de un archivo Windows abierto o -1 si falla.
+    if not valid_file_handle(handle):
+        return -1
+    result: int64 = 0
+    if Win.GetFileSizeEx(handle, $result) == 0:
+        return -1
+    return result
+
+@unsafe
+public func read_file(handle: HANDLE, data *: void, count: usize) int64:
+    ; EN: Reads bytes from a Windows file handle and returns the count, or -1.
+    ;
+    ; ES: Lee bytes desde un handle Windows y devuelve la cantidad o -1.
+    if not valid_file_handle(handle) || count > MaximumTransfer:
+        return -1
+    native_count: WindowsCount
+    native_count.portable = count
+    native_actual: WindowsResult
+    native_actual.portable = 0
+    if Win.ReadFile(handle, data, native_count.native, $native_actual.native, Null) == 0:
+        return -1
+    return native_actual.portable
+
+@unsafe
+public func write_file(handle: HANDLE, data *: const void, count: usize) int64:
+    ; EN: Writes bytes to a Windows file handle and returns the count, or -1.
+    ;
+    ; ES: Escribe bytes en un handle Windows y devuelve la cantidad o -1.
+    if not valid_file_handle(handle) || count > MaximumTransfer:
+        return -1
+    native_count: WindowsCount
+    native_count.portable = count
+    native_actual: WindowsResult
+    native_actual.portable = 0
+    if Win.WriteFile(handle, data, native_count.native, $native_actual.native, Null) == 0:
+        return -1
+    return native_actual.portable
+
+@unsafe
+public func close_file(handle: HANDLE) void:
+    ; EN: Closes a Windows file handle.
+    ;
+    ; ES: Cierra un handle de archivo Windows.
+    if valid_file_handle(handle):
+        Win.CloseHandle(handle)
+    return
+
 #elif OS, "linux"
 
 private DefaultFileMode: const uint32 = 438
@@ -673,6 +760,77 @@ public class File:
     func __deletion__() void:
         self.close()
         return
+
+@unsafe
+public func open_file(
+    path: char[],
+    length: Len_t,
+    size: Size_t,
+    options: uint32
+) int64:
+    ; EN: Opens a file through the Linux native implementation.
+    ;
+    ; ES: Abre un archivo mediante la implementación nativa de Linux.
+    return create_file(path, options)
+
+@unsafe
+public func open_file_pointer(path *: const char, length: usize, options: uint32) int64:
+    ; EN: Opens a bounded path buffer through the Linux native file backend.
+    ;
+    ; ES: Abre un buffer de ruta acotado mediante el backend nativo de archivos de Linux.
+    open_path: char[4096]
+    path_index: usize = 0
+    while path_index < 4095 && path_index < length:
+        open_path[path_index] = path[path_index]
+        path_index += 1
+    open_path[path_index] = "\0"
+    return create_file(open_path, options)
+
+@unsafe
+public func file_is_open(handle: int64) bool:
+    ; EN: Reports whether a Linux file descriptor is valid.
+    ;
+    ; ES: Indica si un descriptor de archivo Linux es válido.
+    return handle >= 0
+
+@unsafe
+public func file_size(handle: int64) int64:
+    ; EN: Returns the size of an opened Linux file, or -1 on failure.
+    ;
+    ; ES: Devuelve el tamaño de un archivo Linux abierto o -1 si falla.
+    if not file_is_open(handle):
+        return -1
+    metadata: LinuxStat
+    if remember_error(Gnu.fstat(handle, $metadata)) != 0:
+        return -1
+    return metadata.byte_size
+
+@unsafe
+public func read_file(handle: int64, data *: void, count: usize) int64:
+    ; EN: Reads bytes from a Linux file descriptor and returns the count, or -1.
+    ;
+    ; ES: Lee bytes desde un descriptor Linux y devuelve la cantidad o -1.
+    if not file_is_open(handle):
+        return -1
+    return remember_error(Gnu.read(handle, data, count))
+
+@unsafe
+public func write_file(handle: int64, data *: const void, count: usize) int64:
+    ; EN: Writes bytes to a Linux file descriptor and returns the count, or -1.
+    ;
+    ; ES: Escribe bytes en un descriptor Linux y devuelve la cantidad o -1.
+    if not file_is_open(handle):
+        return -1
+    return remember_error(Gnu.write(handle, data, count))
+
+@unsafe
+public func close_file(handle: int64) void:
+    ; EN: Closes a Linux file descriptor.
+    ;
+    ; ES: Cierra un descriptor de archivo Linux.
+    if file_is_open(handle):
+        Gnu.close(handle)
+    return
 
 #else
 

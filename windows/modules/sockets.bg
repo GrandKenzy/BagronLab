@@ -151,6 +151,15 @@ inline func Listen(handle: usize, backlog: int32) int32:
     return listen(handle, backlog)
 
 @unsafe
+inline func Accept(handle: usize, address *: void, length *: int32) usize:
+    ; EN : Accepts an incoming connection request on a listening socket.
+    ; Returns the new socket descriptor or INVALID_SOCKET on error.
+    ;
+    ; ES : Acepta una solicitud de conexión entrante en un socket en escucha.
+    ; Devuelve el descriptor nuevo o INVALID_SOCKET en caso de error.
+    return accept(handle, address, length)
+
+@unsafe
 func set_timeout(handle: usize, timeout_ms: int32) int32:
     ; EN : Configures send and receive timeouts on a socket in milliseconds.
     ; Returns 0 on success, or -1 on invalid parameter or socket error.
