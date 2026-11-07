@@ -1,0 +1,104 @@
+; Interpolation, range conversion, and angle-independent utility functions.
+
+
+#if ARCHB, "64"
+; EN: Linear interpolation, including extrapolation for t outside [0,1].
+; ES: Interpolacion lineal, admite extrapolacion.
+public func lerp(a: double, b: double, t: double) double:
+    return a + (b - a) * t
+
+; EN: Returns relative position of value between a and b; false if a == b.
+; ES: Posicion relativa de value entre a y b; false si son iguales.
+@unsafe
+public func inverse_lerp(a: double, b: double, value: double, result *: double) bool:
+    if a == b:
+        return false
+    (result) = (value - a) / (b - a)
+    return true
+
+; EN: Clamps a value to [0,1]. NaN propagates unchanged.
+; ES: Limita value a [0,1].
+public func saturate(value: double) double:
+    if value < 0.0:
+        return 0.0
+    if value > 1.0:
+        return 1.0
+    return value
+
+; EN: Hermite interpolation on [edge0,edge1], clamped outside.
+; ES: Interpolacion Hermite entre dos limites.
+public func smoothstep(edge0: double, edge1: double, value: double) double:
+    if edge0 >= edge1:
+        return 0.0
+    t: double = saturate((value - edge0) / (edge1 - edge0))
+    return t * t * (3.0 - 2.0 * t)
+
+; EN: Quintic smoother interpolation with zero first/second derivatives at ends.
+; ES: Interpolacion quintica suave en ambos extremos.
+public func smootherstep(edge0: double, edge1: double, value: double) double:
+    if edge0 >= edge1:
+        return 0.0
+    t: double = saturate((value - edge0) / (edge1 - edge0))
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+
+; EN: Remaps a value between two numeric intervals, including extrapolation.
+; ES: Convierte un valor entre dos intervalos. False si origen degenera.
+@unsafe
+public func remap(value: double, in_min: double, in_max: double, out_min: double, out_max: double, result *: double) bool:
+    if in_min == in_max:
+        return false
+    t: double = (value - in_min) / (in_max - in_min)
+    (result) = lerp(out_min, out_max, t)
+    return true
+
+#elif ARCHB, "32"
+; EN: Linear interpolation, including extrapolation for t outside [0,1].
+; ES: Interpolacion lineal, admite extrapolacion.
+public func lerp(a: float, b: float, t: float) float:
+    return a + (b - a) * t
+
+; EN: Returns relative position of value between a and b; false if a == b.
+; ES: Posicion relativa de value entre a y b; false si son iguales.
+@unsafe
+public func inverse_lerp(a: float, b: float, value: float, result *: float) bool:
+    if a == b:
+        return false
+    (result) = (value - a) / (b - a)
+    return true
+
+; EN: Clamps a value to [0,1]. NaN propagates unchanged.
+; ES: Limita value a [0,1].
+public func saturate(value: float) float:
+    if value < 0.0:
+        return 0.0
+    if value > 1.0:
+        return 1.0
+    return value
+
+; EN: Hermite interpolation on [edge0,edge1], clamped outside.
+; ES: Interpolacion Hermite entre dos limites.
+public func smoothstep(edge0: float, edge1: float, value: float) float:
+    if edge0 >= edge1:
+        return 0.0
+    t: float = saturate((value - edge0) / (edge1 - edge0))
+    return t * t * (3.0 - 2.0 * t)
+
+; EN: Quintic smoother interpolation with zero first/second derivatives at ends.
+; ES: Interpolacion quintica suave en ambos extremos.
+public func smootherstep(edge0: float, edge1: float, value: float) float:
+    if edge0 >= edge1:
+        return 0.0
+    t: float = saturate((value - edge0) / (edge1 - edge0))
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+
+; EN: Remaps a value between two numeric intervals, including extrapolation.
+; ES: Convierte un valor entre dos intervalos. False si origen degenera.
+@unsafe
+public func remap(value: float, in_min: float, in_max: float, out_min: float, out_max: float, result *: float) bool:
+    if in_min == in_max:
+        return false
+    t: float = (value - in_min) / (in_max - in_min)
+    (result) = lerp(out_min, out_max, t)
+    return true
+
+#end
