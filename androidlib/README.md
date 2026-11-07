@@ -18,6 +18,10 @@ The current bootstrap also exposes anonymous read/write mapping and unmapping
 through Bionic. The ARM64/API 35 source is the first validated baseline; the
 x86-64 triple must be compiled and checked before publishing a second package.
 
+The process module exports `Exit(status)` and `trap()`: the former uses the
+caller-provided status, while the latter terminates with status `134` for an
+unrecoverable contract violation.
+
 Android libraries currently require an explicit full LLVM triple, including
 the API level. Do not add a portable `Arch "auto"` declaration here until the
 compiler has a package-level policy for selecting an Android ABI and API.

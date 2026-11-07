@@ -4,9 +4,16 @@ extern c "c":
 
 
 @unsafe
-inline func Exit(status: int32) Never:
+public inline func Exit(status: int32) Never:
     ; EN : Terminates the Android process with status.
     ;
     ; ES : Termina el proceso Android con el código indicado.
     _exit(status)
+
+@unsafe
+public inline func trap() Never:
+    ; EN : Terminates the Android process for an unrecoverable contract violation.
+    ;
+    ; ES : Termina el proceso Android ante una violación irrecuperable del contrato.
+    _exit(134)
 

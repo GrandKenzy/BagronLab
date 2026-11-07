@@ -1,0 +1,20 @@
+; Android ARM64 smoke test for androidlib 0.1.0.
+clause System "android"
+clause Arch "aarch64-linux-android35"
+library androidlib as Android
+import { Read, Write } from Android
+import { MapReadWrite, Unmap } from Android
+
+@unsafe
+func main() int32:
+    ; EN : Smoke-tests Android output and anonymous memory mapping.
+    ;
+    ; ES : Prueba la salida Android y el mapeo de memoria anónima.
+    text: char[6] = "Hola\n"
+    Write($text[0], 5)
+    address: usize = MapReadWrite(4096)
+    if address == 0:
+        return 2
+    if not Unmap(address, 4096):
+        return 3
+    return 0

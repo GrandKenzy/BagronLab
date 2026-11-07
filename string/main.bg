@@ -1,6 +1,6 @@
 ; Library source root and public API for Bagron string operations.
 ; All string, alphabet, and hexadecimal symbols live in this entry module.
-; Target-specific process termination is delegated to gnulibrary or windows.
+; Target-specific process termination is delegated to the native target library.
 ; Text operations treat char[] and chain values as NUL-terminated UTF-8 byte sequences.
 
 clause Privacy "public"
@@ -13,6 +13,8 @@ clause Arch "auto"
 library windows as Platform
 #elif OS, "linux"
 library gnulibrary as Platform
+#elif OS, "android"
+library androidlib as Platform
 #end
 
 ; ============================================================================

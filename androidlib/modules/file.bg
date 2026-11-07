@@ -1,8 +1,16 @@
 extern c "c":
+    read(fd: int32, data *: void, count: usize) int64
     write(fd: int32, data *: void, count: usize) int64
 
 @unsafe
-inline func Write(data *: void, count: usize) int64:
+public inline func Read(data *: void, count: usize) int64:
+    ; EN : Reads up to count bytes from Android standard input.
+    ;
+    ; ES : Lee hasta count bytes de la entrada estándar de Android.
+    return read(0, data, count)
+
+@unsafe
+public inline func Write(data *: void, count: usize) int64:
     ; EN : Writes count bytes to Android standard output.
     ;
     ; ES : Escribe count bytes en la salida estándar de Android.

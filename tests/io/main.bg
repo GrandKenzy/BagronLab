@@ -1,0 +1,30 @@
+; Android ARM64 smoke test for io's androidlib backend.
+clause System "android"
+clause Arch "aarch64-linux-android35"
+library io as IO
+import { flush, input, write_buffer } from IO
+
+@unsafe
+func main() int32:
+    ; EN : Writes a dynamic buffer through the portable I/O API.
+    ;
+    ; ES : Escribe un buffer dinámico mediante la API portable de I/O.
+    data: buffer[6] = 0
+    data[0] = 72
+    data[1] = 111
+    data[2] = 108
+    data[3] = 97
+    data[4] = 10
+    write_buffer(data, 5, false)
+
+    received: buffer[32] = 0
+    received_count: uint32 = input(received)
+    if received_count != 4:
+        Del received
+        Del data
+        return 2
+    write_buffer(received, received_count, true)
+    flush()
+    Del received
+    Del data
+    return 0

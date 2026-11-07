@@ -1,4 +1,4 @@
-; Standard output, buffering, and formatting for Windows.
+; Standard output, buffering, and formatting for the selected target.
 ; Text chains and char arrays are emitted as UTF-8 bytes; all counts are byte counts.
 
 private stdout_initialized: bool = false
@@ -7,18 +7,12 @@ private stdout_position: usize = 0
 private NumericDigits: chain = String.NumericString
 
 #if OS, "windows"
+private mold OutputWin32Count:
+    native: uint32
+    portable: usize
+
 private stdout_handle: HANDLE
 #end
-
-@assembler
-private func _output_count(value: usize) uint32:
-    ; EN : Narrows a native buffer length to the Win32 byte-count ABI.
-    ;
-    ; ES : Reduce la longitud de un buffer al ABI de conteo de bytes de Win32.
-    #assembler "intel"
-        mov eax, ecx
-    #end
-    return asm
 
 @unsafe
 private func _write_direct(data *: void, count: usize) void:
@@ -29,15 +23,19 @@ private func _write_direct(data *: void, count: usize) void:
     if not stdout_initialized:
         stdout_handle = Win.GetStdHandle(Win.STD_OUTPUT_HANDLE)
         stdout_initialized = true
+    native_count: OutputWin32Count
+    native_count.portable = count
     Win.WriteFile(
         stdout_handle,
         data,
-        _output_count(count),
+        native_count.native,
         Null,
         Null
     )
 #elif OS, "linux"
     Gnu.write(Gnu.STDOUT, data, count)
+#elif OS, "android"
+    Android.Write(data, count)
 #end
     return
 

@@ -59,8 +59,9 @@ No existen funciones separadas `newline` ni `println_*`.
 llamada; `count` no puede superar su longitud dinámica. `print_buffer` conserva
 la semántica de texto terminado en NUL.
 
-`io/main.bg` selecciona `windows.lib` para Windows y `gnulibrary.lib` para Linux
-con `#if OS`/`#elif OS`; la API de `io` no expone diferencias entre ambos targets.
+`io/main.bg` selecciona `windows.lib` para Windows, `gnulibrary.lib` para Linux
+y `androidlib.lib` para Android con `#if OS`/`#elif OS`; la API de `io` no
+expone diferencias entre esos targets.
 
 ### Archivos y rutas
 
@@ -70,21 +71,22 @@ operaciones que modifican el sistema de archivos viven en
 y cierra recursos nativos; las funciones auxiliares crean, renombran y eliminan
 archivos o directorios.
 
-Los paquetes `windows.lib` y `gnulibrary.lib` se mantienen como dependencias
+Los paquetes `windows.lib`, `gnulibrary.lib` y `androidlib.lib` se mantienen como dependencias
 de `standard/libs/` y se regeneran desde `BagronLab/windows` y
 `BagronLab/gnulibrary` cuando cambian sus fuentes.
 
 ## Empaquetado portable de `io` y `string` (lib1)
 
-El codigo fuente de ambas bibliotecas selecciona `windows` o `gnulibrary`
+El codigo fuente de ambas bibliotecas selecciona `windows`, `gnulibrary` o `androidlib`
 en tiempo de compilacion mediante `#if OS`, pero el paquete `lib1` debe
 declarar `System "auto"` **fuera** de esos condicionales. De lo contrario,
 el generador conserva el target del sistema donde se empaqueto la biblioteca
 (por ejemplo, `windows`) y rechaza su importacion desde Linux, aun cuando
 el codigo fuente tenga un backend Linux.
 
-`io/main.bg` mantiene `Arch "amd"`, ya que sus backends nativos actuales
-cubren AMD64. `string/main.bg` mantiene `Arch "auto"`.
+`io/main.bg` mantiene `Arch "auto"`, ya que sus backends nativos seleccionan la
+ABI del consumidor. Android requiere un triple explícito, como
+`aarch64-linux-android35`, al publicar o compilar el backend nativo.
 
 Para regenerar los artefactos despues de un cambio de fuentes, empaquetar
 `string` primero y actualizar su copia instalada antes de empaquetar `io`,

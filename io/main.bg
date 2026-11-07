@@ -1,7 +1,7 @@
 ; Library source root for the standard I/O API.
 ; Keep the lib1 target portable; select native dependencies for the consumer OS.
 clause System "auto"
-clause Arch "amd"
+clause Arch "auto"
 
 #if OS, "windows"
 library windows as Win
@@ -9,4 +9,25 @@ library string as String
 #elif OS, "linux"
 library gnulibrary as Gnu
 library string as String
+#elif OS, "android"
+library androidlib as Android
+library string as String
 #end
+
+import { clear_error as IoClearError, last_error as IoLastError } from error
+import { input } from input
+import {
+    flush,
+    print,
+    print_bool,
+    print_buffer,
+    print_char,
+    print_chars,
+    print_int,
+    print_size,
+    print_uint,
+    println,
+    write_buffer,
+    write_byte,
+    write_chars
+} from output
