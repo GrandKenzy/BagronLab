@@ -55,32 +55,15 @@ published output packages in source trees or nested build caches. Libraries now 
 `library gnulibrary as Gnu`) from the compiler's canonical `libs/` directory,
 keeping library repositories clean without local nested `libs/` directories.
 
-## Metadata (`meta.toml`)
+## Central integration (`discentra_central/`)
 
-Libraries packaged or distributed externally include a `meta.toml` at their root.
-While local development can work with bare source folders, external distribution
-relies on this metadata:
+As a hosting monorepo for the standard library suite, `BagronLab` centralizes
+package declarations and cryptographic manifests under `discentra_central/`
+rather than using per-directory metadata files:
 
-```toml
-[package]
-name = "io"
-version = "1.0.0"
-min_bagron = "1.1.4"
-description = "Cross-platform input/output standard library for Bagron"
-license = "MIT"
-
-[author]
-name = "Discentra Community"
-contact = ""
-
-[target]
-os = "any"
-arch = "x86_64"
-
-[build]
-entry = "main.bg"
-format = "lib1"
-```
+- `discentra_central/packages.toml`: Declarative package metadata for all packages exposed in `build/`.
+- `discentra_central/manifest.toml`: Cryptographic integrity layer (SHA-256 hashes, artifact sizes, and author signatures).
+- `discentra_central/package.toml`: Repository descriptor for Central integration.
 
 > [!NOTE]
 > All BagronLab libraries specify `min_bagron = "1.1.4"` by default, as the
