@@ -1,0 +1,12 @@
+clause Privacy "public"
+
+; GDI32 native drawing primitives. HDC/HBRUSH are opaque pointer-sized handles.
+extern windows "gdi32":
+    CreateSolidBrush(color: uint32) usize
+    DeleteObject(object: usize) int32
+    Rectangle(dc: usize, left: int32, top: int32, right: int32, bottom: int32) int32
+    MoveToEx(dc: usize, x: int32, y: int32, previous *: void) int32
+    LineTo(dc: usize, x: int32, y: int32) int32
+    TextOutW(dc: usize, x: int32, y: int32, text *: const uint16, count: int32) int32
+    SetTextColor(dc: usize, color: uint32) uint32
+    SetBkMode(dc: usize, mode: int32) int32
