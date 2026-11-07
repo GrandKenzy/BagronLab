@@ -1,5 +1,5 @@
-; Library source root for the standard memory-buffer API.
-clause System "windows"
-clause Arch "amd"
-library io as io
-library time as time
+; Portable, allocation-free memory and buffer operations for Bagron.
+; Keep the source package target-independent.
+clause System "auto"
+clause Arch "auto"
+clause Privacy "public"
