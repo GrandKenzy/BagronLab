@@ -10,6 +10,10 @@ public func exp(value: double) double:
     ; Usa reduccion de rango por ln(2) y una serie de Taylor sobre el valor reducido.
     if value == 0.0:
         return 1.0
+    if value == value * 2.0:
+        if value < 0.0:
+            return 0.0
+        return value
 
     scale: double = 1.0
     reduced: double = value
@@ -91,6 +95,10 @@ public func exp(value: float) float:
     ; Usa reduccion de rango por ln(2) y una serie de Taylor sobre el valor reducido.
     if value == 0.0:
         return 1.0
+    if value == value * 2.0:
+        if value < 0.0:
+            return 0.0
+        return value
 
     scale: float = 1.0
     reduced: float = value
