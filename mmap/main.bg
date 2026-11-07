@@ -1,22 +1,11 @@
-; Library source root for the standard memory-mapping API.
-#if OS, "windows"
-clause System "windows"
-#elif OS, "linux"
-clause System "linux"
-#else
+; Library entry for OS-managed anonymous virtual-memory regions.
+; AMD64 currently supported via gnulibrary and Windows ABI.
 clause System "auto"
-#end
-
-#if ARCH, "amd"
 clause Arch "amd"
-#elif ARCH, "x86"
-clause Arch "x86"
-#elif ARCH, "arm"
-clause Arch "arm"
-#elif ARCH, "riscv32"
-clause Arch "riscv32"
-#elif ARCH, "riscv64"
-clause Arch "riscv64"
-#else
-clause Arch "auto"
+clause Privacy "public"
+
+#if OS, "linux"
+library gnulibrary as Platform
+#elif OS, "windows"
+library windows as Platform
 #end
