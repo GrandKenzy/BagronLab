@@ -24,7 +24,7 @@ remain outside it.
 | Directory | Responsibility |
 | --- | --- |
 | `gnulibrary/` | Linux x86_64 raw syscalls and shared Linux constants. It is not libc and does not expose C wrappers. |
-| `windows/` | Native Microsoft x64 declarations, currently centered on `kernel32.dll`. |
+| `windows/` | Native Microsoft x64 declarations, currently centered on `kernel32.dll`. || `androidlib/` | Native Android ABI layer reserved for Android-specific runtime operations. |
 | `os/` | Cross-platform file and path operations built on `gnulibrary` and `windows`. |
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
