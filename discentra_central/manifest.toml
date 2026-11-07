@@ -9,9 +9,9 @@ author = "Discentra Community"
 name = "gnulibrary"
 file = "gnulibrary.lib"
 format = "lib1"
-sha256 = "1836a1b483c1d81d91a5f60037eaea99ce01820b3a2f7b54e23ea74b3bc27ef5"
-size_bytes = 35458
-signature = "sha256:a59ce123754747d9d803bbb10a3037e70605bb7421d7a7b9611eb66ec88d9c67"
+sha256 = "168f745c198ffc1c9791c34e602cc40c50311a839789a0f578c2ca756834fd34"
+size_bytes = 35145
+signature = "sha256:860ff1a5d18c9a134904d65aec07eb032de9fb374b9ba8e958d7397f6d94be8f"
 
 # Verificación para: hashlib
 [[packages]]
@@ -54,6 +54,6 @@ signature = "sha256:a9105082f8ee03e12951d0d1006f34c3f4fe8ed072d3ce5b1043d850f4ff
 name = "windows"
 file = "windows.lib"
 format = "lib1"
-sha256 = "a590ab3329731fea7dcf68dcfda4572ee6a43ba40e4736137fbf628c2a85b317"
-size_bytes = 33500
-signature = "sha256:460979d8920b773af8a1b0387ab1b3ff7302d1aeacd342953154662257765bcc"
+sha256 = "8e85b75f411fca5941ebcfba894bc7e40f59b7ce7606c6b619ab803fc83a40ec"
+size_bytes = 33413
+signature = "sha256:7879a0e51a45b9d015e0b419127c0d59278f404f0469ecb64552edb41fb787c3"

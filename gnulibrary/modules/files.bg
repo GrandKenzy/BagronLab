@@ -1,5 +1,7 @@
+clause Privacy "public"
+
 @assembler
-public func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
+func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32) int64:
     ; EN: Opens or creates a path relative to a directory file descriptor.
     ; The fourth System V argument arrives in %ecx and must move to %r10d for Linux.
     ;
@@ -13,7 +15,7 @@ public func openat(dirfd: int32, path *: void, open_flags: uint32, mode: uint32)
     return asm
 
 @assembler
-public func lseek(fd: int64, offset: int64, whence: int32) int64:
+func lseek(fd: int64, offset: int64, whence: int32) int64:
     ; EN: Changes the file offset and returns the raw resulting position.
     ; ES: Cambia la posición del archivo y retorna la posición resultante cruda.
     #assembler "att"
@@ -23,7 +25,7 @@ public func lseek(fd: int64, offset: int64, whence: int32) int64:
     return asm
 
 @assembler
-public func dup3(oldfd: int32, newfd: int32, dup_flags: uint32) int64:
+func dup3(oldfd: int32, newfd: int32, dup_flags: uint32) int64:
     ; EN: Duplicates a file descriptor with explicit close-on-exec flags.
     ; ES: Duplica un descriptor con flags explícitos de close-on-exec.
     #assembler "att"
@@ -33,7 +35,7 @@ public func dup3(oldfd: int32, newfd: int32, dup_flags: uint32) int64:
     return asm
 
 @assembler
-public func pipe2(pipefd *: int32, pipe_flags: uint32) int64:
+func pipe2(pipefd *: int32, pipe_flags: uint32) int64:
     ; EN: Creates a pipe and writes its two descriptors to pipefd.
     ; ES: Crea un pipe y escribe sus dos descriptores en pipefd.
     #assembler "att"
@@ -43,7 +45,7 @@ public func pipe2(pipefd *: int32, pipe_flags: uint32) int64:
     return asm
 
 @assembler
-public func unlinkat(dirfd: int32, path *: void, unlink_flags: uint32) int64:
+func unlinkat(dirfd: int32, path *: void, unlink_flags: uint32) int64:
     ; EN: Removes a file or directory relative to a directory file descriptor.
     ;
     ; ES: Elimina un archivo o directorio relativo a un descriptor de directorio.
@@ -54,7 +56,7 @@ public func unlinkat(dirfd: int32, path *: void, unlink_flags: uint32) int64:
     return asm
 
 @assembler
-public func mkdirat(dirfd: int32, path *: void, mode: uint32) int64:
+func mkdirat(dirfd: int32, path *: void, mode: uint32) int64:
     ; EN: Creates a directory relative to a directory file descriptor.
     ;
     ; ES: Crea un directorio relativo a un descriptor de directorio.
@@ -65,7 +67,7 @@ public func mkdirat(dirfd: int32, path *: void, mode: uint32) int64:
     return asm
 
 @assembler
-public func renameat2(old_dirfd: int32, old_path *: void, new_dirfd: int32, new_path *: void, rename_flags: uint32) int64:
+func renameat2(old_dirfd: int32, old_path *: void, new_dirfd: int32, new_path *: void, rename_flags: uint32) int64:
     ; EN: Renames a path between directory descriptors with explicit flags.
     ;
     ; ES: Renombra una ruta entre descriptores de directorio con flags explícitos.
@@ -77,7 +79,7 @@ public func renameat2(old_dirfd: int32, old_path *: void, new_dirfd: int32, new_
     return asm
 
 @assembler
-public func readlinkat(dirfd: int32, path *: void, buffer *: void, size: uint64) int64:
+func readlinkat(dirfd: int32, path *: void, buffer *: void, size: uint64) int64:
     ; EN: Reads a symbolic link target relative to a directory descriptor.
     ;
     ; ES: Lee el destino de un enlace simbólico relativo a un descriptor de directorio.
@@ -89,7 +91,7 @@ public func readlinkat(dirfd: int32, path *: void, buffer *: void, size: uint64)
     return asm
 
 @assembler
-public func pread64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
+func pread64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
     ; EN: Reads at an absolute offset without changing the descriptor's position.
     ; A short read or a negative kernel error is returned unchanged.
     ;
@@ -103,7 +105,7 @@ public func pread64(fd: int64, buffer *: void, size: uint64, offset: int64) int6
     return asm
 
 @assembler
-public func pwrite64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
+func pwrite64(fd: int64, buffer *: void, size: uint64, offset: int64) int64:
     ; EN: Writes at an absolute offset without changing the descriptor's position.
     ; Linux may still append when the descriptor has O_APPEND.
     ;
@@ -117,7 +119,7 @@ public func pwrite64(fd: int64, buffer *: void, size: uint64, offset: int64) int
     return asm
 
 @assembler
-public func fsync(fd: int64) int64:
+func fsync(fd: int64) int64:
     ; EN: Flushes file data and metadata to the backing storage.
     ;
     ; ES: Sincroniza los datos y metadatos del archivo con el almacenamiento.
@@ -128,7 +130,7 @@ public func fsync(fd: int64) int64:
     return asm
 
 @assembler
-public func fdatasync(fd: int64) int64:
+func fdatasync(fd: int64) int64:
     ; EN: Flushes file data and metadata required to read that data later.
     ;
     ; ES: Sincroniza los datos y metadatos necesarios para leerlos después.
@@ -139,7 +141,7 @@ public func fdatasync(fd: int64) int64:
     return asm
 
 @assembler
-public func ftruncate(fd: int64, length: int64) int64:
+func ftruncate(fd: int64, length: int64) int64:
     ; EN: Resizes an open file to the requested length.
     ;
     ; ES: Cambia el tamaño de un archivo abierto a la longitud indicada.
@@ -150,7 +152,7 @@ public func ftruncate(fd: int64, length: int64) int64:
     return asm
 
 @assembler
-public func newfstatat(dirfd: int32, path *: void, stat_buffer *: void, stat_flags: uint32) int64:
+func newfstatat(dirfd: int32, path *: void, stat_buffer *: void, stat_flags: uint32) int64:
     ; EN: Reads path metadata without opening a file descriptor.
     ; The fourth System V argument arrives in %ecx and must move to %r10d.
     ;

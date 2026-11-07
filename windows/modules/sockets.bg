@@ -1,5 +1,3 @@
-clause System "windows"
-clause Arch "amd"
 clause Privacy "public"
 
 SOCKET_ERROR: const int32 = -1

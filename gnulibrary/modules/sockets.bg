@@ -1,5 +1,3 @@
-clause System "linux"
-clause Arch "auto"
 clause Privacy "public"
 
 ; EN: General socket error indicators.
