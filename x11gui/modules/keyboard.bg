@@ -1,0 +1,34 @@
+; X11 keysyms, modifier masks and convenience predicates.
+; Keyboard layout is respected by XLookupString in gnulibrary.
+public KEY_ESCAPE: const usize = 65307
+public KEY_RETURN: const usize = 65293
+public KEY_BACKSPACE: const usize = 65288
+public KEY_TAB: const usize = 65289
+public KEY_LEFT: const usize = 65361
+public KEY_UP: const usize = 65362
+public KEY_RIGHT: const usize = 65363
+public KEY_DOWN: const usize = 65364
+public KEY_SPACE: const usize = 32
+public KEY_SHIFT_LEFT: const usize = 65505
+public KEY_CONTROL_LEFT: const usize = 65507
+public KEY_ALT_LEFT: const usize = 65513
+
+public SHIFT_MASK: const usize = 1
+public LOCK_MASK: const usize = 2
+public CONTROL_MASK: const usize = 4
+public ALT_MASK: const usize = 8
+
+; EN: True when the Shift modifier was active for a key event.
+; ES: Indica si Shift estaba activo en el evento.
+public func has_shift(modifiers: usize) bool:
+    return (modifiers & SHIFT_MASK) != 0
+
+; EN: True when Ctrl was active.
+; ES: Indica si Ctrl estaba activo.
+public func has_control(modifiers: usize) bool:
+    return (modifiers & CONTROL_MASK) != 0
+
+; EN: True when the Mod1 modifier was active (normally Alt).
+; ES: Indica si Mod1, generalmente Alt, estaba activo.
+public func has_alt(modifiers: usize) bool:
+    return (modifiers & ALT_MASK) != 0
