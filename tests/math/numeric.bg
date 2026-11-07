@@ -1,0 +1,502 @@
+; 121 golden numeric comparisons. Generated reference values from JavaScript math.
+; Each test uses typed double variables to preserve precision of constants.
+clause System "auto"
+clause Arch "amd"
+library math as Math
+import { sin, cos, exp, ln, sqrt, cbrt, atan, tanh, abs } from Math
+
+@unsafe
+func close(a: double, b: double, tolerance: double) bool:
+    difference: double = abs(a - b)
+    scale: double = abs(b)
+    if scale < 1.0:
+        scale = 1.0
+    return difference <= tolerance * scale
+
+@unsafe
+func main() int32:
+    value1: double = -20.0
+    expected1: double = -0.9129452507276277
+    if not close(sin(value1), expected1, 0.000001):
+        return 1
+    value2: double = -9.1
+    expected2: double = -0.3190983623493521
+    if not close(sin(value2), expected2, 0.000001):
+        return 2
+    value3: double = -6.3
+    expected3: double = -0.016813900484349713
+    if not close(sin(value3), expected3, 0.000001):
+        return 3
+    value4: double = -3.5
+    expected4: double = 0.35078322768961984
+    if not close(sin(value4), expected4, 0.000001):
+        return 4
+    value5: double = -1.1
+    expected5: double = -0.8912073600614354
+    if not close(sin(value5), expected5, 0.000001):
+        return 5
+    value6: double = -0.5
+    expected6: double = -0.479425538604203
+    if not close(sin(value6), expected6, 0.000001):
+        return 6
+    value7: double = -0.0002
+    expected7: double = -0.0001999999986666667
+    if not close(sin(value7), expected7, 0.000001):
+        return 7
+    value8: double = 0.0
+    expected8: double = 0.0
+    if not close(sin(value8), expected8, 0.000001):
+        return 8
+    value9: double = 0.1
+    expected9: double = 0.09983341664682815
+    if not close(sin(value9), expected9, 0.000001):
+        return 9
+    value10: double = 1.0
+    expected10: double = 0.8414709848078965
+    if not close(sin(value10), expected10, 0.000001):
+        return 10
+    value11: double = 1.7
+    expected11: double = 0.9916648104524686
+    if not close(sin(value11), expected11, 0.000001):
+        return 11
+    value12: double = 2.5
+    expected12: double = 0.5984721441039565
+    if not close(sin(value12), expected12, 0.000001):
+        return 12
+    value13: double = 3.0
+    expected13: double = 0.1411200080598672
+    if not close(sin(value13), expected13, 0.000001):
+        return 13
+    value14: double = 4.0
+    expected14: double = -0.7568024953079282
+    if not close(sin(value14), expected14, 0.000001):
+        return 14
+    value15: double = 6.3
+    expected15: double = 0.016813900484349713
+    if not close(sin(value15), expected15, 0.000001):
+        return 15
+    value16: double = 9.1
+    expected16: double = 0.3190983623493521
+    if not close(sin(value16), expected16, 0.000001):
+        return 16
+    value17: double = 20.0
+    expected17: double = 0.9129452507276277
+    if not close(sin(value17), expected17, 0.000001):
+        return 17
+    value18: double = -20.0
+    expected18: double = 0.40808206181339196
+    if not close(cos(value18), expected18, 0.000001):
+        return 18
+    value19: double = -9.1
+    expected19: double = -0.9477216021311119
+    if not close(cos(value19), expected19, 0.000001):
+        return 19
+    value20: double = -6.3
+    expected20: double = 0.9998586363834151
+    if not close(cos(value20), expected20, 0.000001):
+        return 20
+    value21: double = -3.5
+    expected21: double = -0.9364566872907963
+    if not close(cos(value21), expected21, 0.000001):
+        return 21
+    value22: double = -1.1
+    expected22: double = 0.4535961214255773
+    if not close(cos(value22), expected22, 0.000001):
+        return 22
+    value23: double = -0.5
+    expected23: double = 0.8775825618903728
+    if not close(cos(value23), expected23, 0.000001):
+        return 23
+    value24: double = -0.0002
+    expected24: double = 0.9999999800000001
+    if not close(cos(value24), expected24, 0.000001):
+        return 24
+    value25: double = 0.0
+    expected25: double = 1.0
+    if not close(cos(value25), expected25, 0.000001):
+        return 25
+    value26: double = 0.1
+    expected26: double = 0.9950041652780258
+    if not close(cos(value26), expected26, 0.000001):
+        return 26
+    value27: double = 1.0
+    expected27: double = 0.5403023058681398
+    if not close(cos(value27), expected27, 0.000001):
+        return 27
+    value28: double = 1.7
+    expected28: double = -0.12884449429552464
+    if not close(cos(value28), expected28, 0.000001):
+        return 28
+    value29: double = 2.5
+    expected29: double = -0.8011436155469337
+    if not close(cos(value29), expected29, 0.000001):
+        return 29
+    value30: double = 3.0
+    expected30: double = -0.9899924966004454
+    if not close(cos(value30), expected30, 0.000001):
+        return 30
+    value31: double = 4.0
+    expected31: double = -0.6536436208636119
+    if not close(cos(value31), expected31, 0.000001):
+        return 31
+    value32: double = 6.3
+    expected32: double = 0.9998586363834151
+    if not close(cos(value32), expected32, 0.000001):
+        return 32
+    value33: double = 9.1
+    expected33: double = -0.9477216021311119
+    if not close(cos(value33), expected33, 0.000001):
+        return 33
+    value34: double = 20.0
+    expected34: double = 0.40808206181339196
+    if not close(cos(value34), expected34, 0.000001):
+        return 34
+    value35: double = -20.0
+    expected35: double = 2.061153622438558e-9
+    if not close(exp(value35), expected35, 0.000001):
+        return 35
+    value36: double = -9.1
+    expected36: double = 0.00011166580849011478
+    if not close(exp(value36), expected36, 0.000001):
+        return 36
+    value37: double = -6.3
+    expected37: double = 0.0018363047770289071
+    if not close(exp(value37), expected37, 0.000001):
+        return 37
+    value38: double = -3.5
+    expected38: double = 0.0301973834223185
+    if not close(exp(value38), expected38, 0.000001):
+        return 38
+    value39: double = -1.1
+    expected39: double = 0.33287108369807955
+    if not close(exp(value39), expected39, 0.000001):
+        return 39
+    value40: double = -0.5
+    expected40: double = 0.6065306597126334
+    if not close(exp(value40), expected40, 0.000001):
+        return 40
+    value41: double = -0.0002
+    expected41: double = 0.9998000199986667
+    if not close(exp(value41), expected41, 0.000001):
+        return 41
+    value42: double = 0.0
+    expected42: double = 1.0
+    if not close(exp(value42), expected42, 0.000001):
+        return 42
+    value43: double = 0.1
+    expected43: double = 1.1051709180756477
+    if not close(exp(value43), expected43, 0.000001):
+        return 43
+    value44: double = 1.0
+    expected44: double = 2.718281828459045
+    if not close(exp(value44), expected44, 0.000001):
+        return 44
+    value45: double = 1.7
+    expected45: double = 5.4739473917272
+    if not close(exp(value45), expected45, 0.000001):
+        return 45
+    value46: double = 2.5
+    expected46: double = 12.182493960703473
+    if not close(exp(value46), expected46, 0.000001):
+        return 46
+    value47: double = 3.0
+    expected47: double = 20.085536923187668
+    if not close(exp(value47), expected47, 0.000001):
+        return 47
+    value48: double = 4.0
+    expected48: double = 54.598150033144236
+    if not close(exp(value48), expected48, 0.000001):
+        return 48
+    value49: double = 6.3
+    expected49: double = 544.571910125929
+    if not close(exp(value49), expected49, 0.000001):
+        return 49
+    value50: double = 9.1
+    expected50: double = 8955.292703482508
+    if not close(exp(value50), expected50, 0.000001):
+        return 50
+    value51: double = 20.0
+    expected51: double = 485165195.4097903
+    if not close(exp(value51), expected51, 0.000001):
+        return 51
+    value52: double = 0.000001
+    expected52: double = -13.815510557964274
+    if not close(ln(value52), expected52, 0.000001):
+        return 52
+    value53: double = 0.003
+    expected53: double = -5.809142990314028
+    if not close(ln(value53), expected53, 0.000001):
+        return 53
+    value54: double = 0.1
+    expected54: double = -2.3025850929940455
+    if not close(ln(value54), expected54, 0.000001):
+        return 54
+    value55: double = 0.3
+    expected55: double = -1.2039728043259361
+    if not close(ln(value55), expected55, 0.000001):
+        return 55
+    value56: double = 0.7
+    expected56: double = -0.35667494393873245
+    if not close(ln(value56), expected56, 0.000001):
+        return 56
+    value57: double = 0.9
+    expected57: double = -0.10536051565782628
+    if not close(ln(value57), expected57, 0.000001):
+        return 57
+    value58: double = 1.0
+    expected58: double = 0.0
+    if not close(ln(value58), expected58, 0.000001):
+        return 58
+    value59: double = 1.1
+    expected59: double = 0.09531017980432493
+    if not close(ln(value59), expected59, 0.000001):
+        return 59
+    value60: double = 2.0
+    expected60: double = 0.6931471805599453
+    if not close(ln(value60), expected60, 0.000001):
+        return 60
+    value61: double = 3.0
+    expected61: double = 1.0986122886681098
+    if not close(ln(value61), expected61, 0.000001):
+        return 61
+    value62: double = 8.0
+    expected62: double = 2.0794415416798357
+    if not close(ln(value62), expected62, 0.000001):
+        return 62
+    value63: double = 100.0
+    expected63: double = 4.605170185988092
+    if not close(ln(value63), expected63, 0.000001):
+        return 63
+    value64: double = 1000.0
+    expected64: double = 6.907755278982137
+    if not close(ln(value64), expected64, 0.000001):
+        return 64
+    value65: double = 1000000.0
+    expected65: double = 13.815510557964274
+    if not close(ln(value65), expected65, 0.000001):
+        return 65
+    value66: double = 10000000000.0
+    expected66: double = 23.025850929940457
+    if not close(ln(value66), expected66, 0.000001):
+        return 66
+    value67: double = 1e-20
+    expected67: double = 1e-10
+    if not close(sqrt(value67), expected67, 0.000001):
+        return 67
+    value68: double = 1e-10
+    expected68: double = 0.00001
+    if not close(sqrt(value68), expected68, 0.000001):
+        return 68
+    value69: double = 0.000001
+    expected69: double = 0.001
+    if not close(sqrt(value69), expected69, 0.000001):
+        return 69
+    value70: double = 0.1
+    expected70: double = 0.31622776601683794
+    if not close(sqrt(value70), expected70, 0.000001):
+        return 70
+    value71: double = 0.9
+    expected71: double = 0.9486832980505138
+    if not close(sqrt(value71), expected71, 0.000001):
+        return 71
+    value72: double = 1.0
+    expected72: double = 1.0
+    if not close(sqrt(value72), expected72, 0.000001):
+        return 72
+    value73: double = 2.0
+    expected73: double = 1.4142135623730951
+    if not close(sqrt(value73), expected73, 0.000001):
+        return 73
+    value74: double = 10.0
+    expected74: double = 3.1622776601683795
+    if not close(sqrt(value74), expected74, 0.000001):
+        return 74
+    value75: double = 100.0
+    expected75: double = 10.0
+    if not close(sqrt(value75), expected75, 0.000001):
+        return 75
+    value76: double = 1000.0
+    expected76: double = 31.622776601683793
+    if not close(sqrt(value76), expected76, 0.000001):
+        return 76
+    value77: double = 1000000000.0
+    expected77: double = 31622.776601683792
+    if not close(sqrt(value77), expected77, 0.000001):
+        return 77
+    value78: double = 100000000000000000000.0
+    expected78: double = 10000000000.0
+    if not close(sqrt(value78), expected78, 0.000001):
+        return 78
+    value79: double = -100000000000000000000.0
+    expected79: double = -4641588.833612779
+    if not close(cbrt(value79), expected79, 0.000001):
+        return 79
+    value80: double = -1000000000.0
+    expected80: double = -1000.0
+    if not close(cbrt(value80), expected80, 0.000001):
+        return 80
+    value81: double = -1000.0
+    expected81: double = -10.0
+    if not close(cbrt(value81), expected81, 0.000001):
+        return 81
+    value82: double = -27.0
+    expected82: double = -3.0
+    if not close(cbrt(value82), expected82, 0.000001):
+        return 82
+    value83: double = -1.0
+    expected83: double = -1.0
+    if not close(cbrt(value83), expected83, 0.000001):
+        return 83
+    value84: double = -0.00001
+    expected84: double = -0.02154434690031884
+    if not close(cbrt(value84), expected84, 0.000001):
+        return 84
+    value85: double = 0.0
+    expected85: double = 0.0
+    if not close(cbrt(value85), expected85, 0.000001):
+        return 85
+    value86: double = 0.00001
+    expected86: double = 0.02154434690031884
+    if not close(cbrt(value86), expected86, 0.000001):
+        return 86
+    value87: double = 1.0
+    expected87: double = 1.0
+    if not close(cbrt(value87), expected87, 0.000001):
+        return 87
+    value88: double = 27.0
+    expected88: double = 3.0
+    if not close(cbrt(value88), expected88, 0.000001):
+        return 88
+    value89: double = 1000.0
+    expected89: double = 10.0
+    if not close(cbrt(value89), expected89, 0.000001):
+        return 89
+    value90: double = 1000000000.0
+    expected90: double = 1000.0
+    if not close(cbrt(value90), expected90, 0.000001):
+        return 90
+    value91: double = 100000000000000000000.0
+    expected91: double = 4641588.833612779
+    if not close(cbrt(value91), expected91, 0.000001):
+        return 91
+    value92: double = -1000000000.0
+    expected92: double = -1.5707963257948967
+    if not close(atan(value92), expected92, 0.000001):
+        return 92
+    value93: double = -100.0
+    expected93: double = -1.5607966601082315
+    if not close(atan(value93), expected93, 0.000001):
+        return 93
+    value94: double = -30.0
+    expected94: double = -1.5374753309166493
+    if not close(atan(value94), expected94, 0.000001):
+        return 94
+    value95: double = -4.0
+    expected95: double = -1.3258176636680326
+    if not close(atan(value95), expected95, 0.000001):
+        return 95
+    value96: double = -1.0
+    expected96: double = -0.7853981633974483
+    if not close(atan(value96), expected96, 0.000001):
+        return 96
+    value97: double = -0.9
+    expected97: double = -0.7328151017865066
+    if not close(atan(value97), expected97, 0.000001):
+        return 97
+    value98: double = -0.1
+    expected98: double = -0.09966865249116204
+    if not close(atan(value98), expected98, 0.000001):
+        return 98
+    value99: double = 0.0
+    expected99: double = 0.0
+    if not close(atan(value99), expected99, 0.000001):
+        return 99
+    value100: double = 0.1
+    expected100: double = 0.09966865249116204
+    if not close(atan(value100), expected100, 0.000001):
+        return 100
+    value101: double = 0.9
+    expected101: double = 0.7328151017865066
+    if not close(atan(value101), expected101, 0.000001):
+        return 101
+    value102: double = 1.0
+    expected102: double = 0.7853981633974483
+    if not close(atan(value102), expected102, 0.000001):
+        return 102
+    value103: double = 4.0
+    expected103: double = 1.3258176636680326
+    if not close(atan(value103), expected103, 0.000001):
+        return 103
+    value104: double = 30.0
+    expected104: double = 1.5374753309166493
+    if not close(atan(value104), expected104, 0.000001):
+        return 104
+    value105: double = 100.0
+    expected105: double = 1.5607966601082315
+    if not close(atan(value105), expected105, 0.000001):
+        return 105
+    value106: double = 1000000000.0
+    expected106: double = 1.5707963257948967
+    if not close(atan(value106), expected106, 0.000001):
+        return 106
+    value107: double = -100.0
+    expected107: double = -1.0
+    if not close(tanh(value107), expected107, 0.000001):
+        return 107
+    value108: double = -20.0
+    expected108: double = -1.0
+    if not close(tanh(value108), expected108, 0.000001):
+        return 108
+    value109: double = -6.0
+    expected109: double = -0.9999877116507956
+    if not close(tanh(value109), expected109, 0.000001):
+        return 109
+    value110: double = -2.0
+    expected110: double = -0.9640275800758169
+    if not close(tanh(value110), expected110, 0.000001):
+        return 110
+    value111: double = -1.0
+    expected111: double = -0.7615941559557649
+    if not close(tanh(value111), expected111, 0.000001):
+        return 111
+    value112: double = -0.5
+    expected112: double = -0.46211715726000974
+    if not close(tanh(value112), expected112, 0.000001):
+        return 112
+    value113: double = -0.1
+    expected113: double = -0.09966799462495582
+    if not close(tanh(value113), expected113, 0.000001):
+        return 113
+    value114: double = 0.0
+    expected114: double = 0.0
+    if not close(tanh(value114), expected114, 0.000001):
+        return 114
+    value115: double = 0.1
+    expected115: double = 0.09966799462495582
+    if not close(tanh(value115), expected115, 0.000001):
+        return 115
+    value116: double = 0.5
+    expected116: double = 0.46211715726000974
+    if not close(tanh(value116), expected116, 0.000001):
+        return 116
+    value117: double = 1.0
+    expected117: double = 0.7615941559557649
+    if not close(tanh(value117), expected117, 0.000001):
+        return 117
+    value118: double = 2.0
+    expected118: double = 0.9640275800758169
+    if not close(tanh(value118), expected118, 0.000001):
+        return 118
+    value119: double = 6.0
+    expected119: double = 0.9999877116507956
+    if not close(tanh(value119), expected119, 0.000001):
+        return 119
+    value120: double = 20.0
+    expected120: double = 1.0
+    if not close(tanh(value120), expected120, 0.000001):
+        return 120
+    value121: double = 100.0
+    expected121: double = 1.0
+    if not close(tanh(value121), expected121, 0.000001):
+        return 121
+    return 0
