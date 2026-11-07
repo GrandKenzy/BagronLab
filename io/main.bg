@@ -1,15 +1,12 @@
 ; Library source root for the standard I/O API.
-#if OS, "windows"
-clause System "windows"
+; Keep the lib1 target portable; select native dependencies for the consumer OS.
+clause System "auto"
 clause Arch "amd"
+
+#if OS, "windows"
 library windows as Win
 library string as String
 #elif OS, "linux"
-clause System "linux"
-clause Arch "amd"
 library gnulibrary as Gnu
 library string as String
-#else
-clause System "auto"
-clause Arch "auto"
 #end
