@@ -1,0 +1,19 @@
+[package]
+name = "windows"
+version = "1.1.4"
+kind = "lib1"
+description = "Native Microsoft Windows x64 ABI declarations"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:8e42c4c8fc94755d775c48be45eeeeaa69b5a226f5d75c1d2fc6b347e7994401"
+
+[target]
+system = "windows"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

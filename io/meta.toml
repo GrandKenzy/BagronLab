@@ -1,0 +1,19 @@
+[package]
+name = "io"
+version = "1.1.4"
+kind = "lib1"
+description = "Standard text and byte input/output helpers for Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:3bbb7b0070981b398b564210c76ac0e44352fcc7317ac18754bc139214dd883e"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

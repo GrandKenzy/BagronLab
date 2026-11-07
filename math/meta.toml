@@ -1,0 +1,19 @@
+[package]
+name = "math"
+version = "1.1.4"
+kind = "lib1"
+description = "Mathematical algorithms and constants for Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:37bcc5770ea400db63c23dfbeea099b77f88c913f0455255f39f6a173f71227b"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

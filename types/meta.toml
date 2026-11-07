@@ -1,0 +1,19 @@
+[package]
+name = "types"
+version = "1.1.4"
+kind = "lib1"
+description = "Reusable type helpers and big-integer utilities"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:f06d340874fde0eb2b29c32f7074a7295d310dba8b24187eb44d9507a9287ca9"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

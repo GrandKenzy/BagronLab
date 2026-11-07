@@ -1,0 +1,19 @@
+[package]
+name = "mem"
+version = "1.1.4"
+kind = "lib1"
+description = "Dynamic buffer and memory management helpers for Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:e0cf7e13a24882548cdc26beb7cf9daadd418c7298e17870a363d47d96173c4a"
+
+[target]
+system = "windows"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

@@ -1,0 +1,19 @@
+[package]
+name = "mmap"
+version = "1.1.4"
+kind = "lib1"
+description = "Memory-mapping library for Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:b183004ad99a98ff7204039a0cc42d3f3a13e227d923b8b666868c9b487ed997"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

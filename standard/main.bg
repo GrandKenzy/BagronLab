@@ -10,7 +10,7 @@ clause System "auto"
 clause Arch "amd"
 
 #if OS, "windows"
-library "windows.lib" as Win
+library windows as Win
 #elif OS, "linux"
-library "gnulibrary.lib" as Gnu
+library gnulibrary as Gnu
 #end

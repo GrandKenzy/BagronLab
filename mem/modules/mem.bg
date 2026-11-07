@@ -1,8 +1,5 @@
 ; Prueba mínima del buffer dinámico nativo de Bagron.
 
-import time
-import io
-
 func test_buffer() int32:
     data: buffer[4096] = 0
     data[0] = 65
@@ -48,15 +45,16 @@ func run_buffer_benchmark() void:
         if data[0] == 65:
             checksum = 1
         if data[4095] == 90:
-            checksum = 2
+            checksum += 1
     read_us = time.time_microseconds(start_ticks, time.time_ticks())
 
     start_ticks = time.time_ticks()
     for iteration: uint32 ran (0, 10000, 1):
-        data[0] = 0
-        data[4095] = 0
-    Del data
+        temporary: buffer[4096] = 0
+        Del temporary
     delete_us = time.time_microseconds(start_ticks, time.time_ticks())
+
+    Del data
 
     io.print("buffer_create_delete_us=")
     io.print_int(create_delete_us, false)

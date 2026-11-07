@@ -1,0 +1,19 @@
+[package]
+name = "standard"
+version = "1.1.4"
+kind = "lib1"
+description = "Historical compatibility library for Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:3996d3044ae76983fa9f356f08451c9423d53c5e8ffa513654a7b605175907f8"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"

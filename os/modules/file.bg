@@ -179,7 +179,7 @@ public class File:
             creation_disposition,
             flags_and_attributes
         )
-        self.open_error: uint32 = Win.GetLastError()
+        self.open_error: uint32 = Win.last_error()
         self.closed: bool = false
         self.close_error: uint32 = 0
 
@@ -283,7 +283,7 @@ public class File:
     func close() void:
         if not self.closed:
             if self.is_open() && Win.CloseHandle(self.resource) == 0:
-                self.close_error = Win.GetLastError()
+                self.close_error = Win.last_error()
             self.closed = true
         return
 

@@ -1,3 +1,5 @@
 ; Library source root for the standard memory-buffer API.
 clause System "windows"
 clause Arch "amd"
+library io as io
+library time as time

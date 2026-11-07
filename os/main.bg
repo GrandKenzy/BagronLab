@@ -5,13 +5,12 @@
 #if OS, "windows"
 clause System "windows"
 clause Arch "amd"
-library "windows.lib" as Win
+library windows as Win
 #elif OS, "linux"
 clause System "linux"
 clause Arch "amd"
-library "gnulibrary.lib" as Gnu
+library gnulibrary as Gnu
 #else
 clause System "auto"
 clause Arch "auto"
 #end
-

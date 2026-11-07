@@ -1,0 +1,19 @@
+[package]
+name = "hashlib"
+version = "1.1.4"
+kind = "lib1"
+description = "Hashing algorithms implemented natively in Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:7908fb12b38a092d2fefbf2f5ce602de6996a0063298bf0a9d791593929c2174"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"
