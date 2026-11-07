@@ -1,0 +1,161 @@
+; Arc tangent, two-argument arc tangent and inverse trigonometry.
+; Small-argument Taylor series with argument reduction, no libc required.
+
+import { PI, HALF_PI, ATAN_HALF } from consts
+import { sqrt } from sqrt
+
+#if ARCHB, "64"
+private func _atan_small(value: double) double:
+    square: double = value * value
+    term: double = value
+    result: double = value
+    denominator: double = 1.0
+    iteration: uint32 = 0
+    while iteration < 34:
+        term = 0.0 - term * square
+        denominator += 2.0
+        result += term / denominator
+        iteration += 1
+    return result
+
+; EN: Inverse tangent in radians, including negative and large magnitudes.
+; ES: Arcotangente en radianes para valores positivos y negativos.
+public func atan(value: double) double:
+    if value != value:
+        return value
+    negative: bool = value < 0.0
+    magnitude: double = value
+    if negative:
+        magnitude = 0.0 - magnitude
+    inverted: bool = magnitude > 1.0
+    if inverted:
+        magnitude = 1.0 / magnitude
+    answer: double = 0.0
+    if magnitude > 0.5:
+        answer = ATAN_HALF + _atan_small((magnitude - 0.5) / (1.0 + 0.5 * magnitude))
+    else:
+        answer = _atan_small(magnitude)
+    if inverted:
+        answer = HALF_PI - answer
+    if negative:
+        return 0.0 - answer
+    return answer
+
+; EN: Angle of the vector (x,y) in [-pi,pi]. For (0,0) returns 0.
+; ES: Angulo del vector (x,y) en [-pi,pi].
+public func atan2(y: double, x: double) double:
+    if x > 0.0:
+        return atan(y / x)
+    if x < 0.0:
+        if y >= 0.0:
+            return atan(y / x) + PI
+        return atan(y / x) - PI
+    if y > 0.0:
+        return HALF_PI
+    if y < 0.0:
+        return 0.0 - HALF_PI
+    return 0.0
+
+; EN: Returns false outside [-1,1], leaving result untouched.
+; ES: Arcoseno, false cuando el argumento esta fuera de [-1,1].
+@unsafe
+public func asin_checked(value: double, result *: double) bool:
+    if value != value || value < -1.0 || value > 1.0:
+        return false
+    if value == 1.0:
+        (result) = HALF_PI
+        return true
+    if value == -1.0:
+        (result) = 0.0 - HALF_PI
+        return true
+    (result) = atan2(value, sqrt(1.0 - value * value))
+    return true
+
+; EN: Returns false outside [-1,1], leaving result untouched.
+; ES: Arcocoseno, false para argumentos fuera de dominio.
+@unsafe
+public func acos_checked(value: double, result *: double) bool:
+    angle: double = 0.0
+    if not asin_checked(value, $angle):
+        return false
+    (result) = HALF_PI - angle
+    return true
+
+#elif ARCHB, "32"
+private func _atan_small(value: float) float:
+    square: float = value * value
+    term: float = value
+    result: float = value
+    denominator: float = 1.0
+    iteration: uint32 = 0
+    while iteration < 17:
+        term = 0.0 - term * square
+        denominator += 2.0
+        result += term / denominator
+        iteration += 1
+    return result
+
+; EN: Inverse tangent in radians, including negative and large magnitudes.
+; ES: Arcotangente en radianes para valores positivos y negativos.
+public func atan(value: float) float:
+    if value != value:
+        return value
+    negative: bool = value < 0.0
+    magnitude: float = value
+    if negative:
+        magnitude = 0.0 - magnitude
+    inverted: bool = magnitude > 1.0
+    if inverted:
+        magnitude = 1.0 / magnitude
+    answer: float = 0.0
+    if magnitude > 0.5:
+        answer = ATAN_HALF + _atan_small((magnitude - 0.5) / (1.0 + 0.5 * magnitude))
+    else:
+        answer = _atan_small(magnitude)
+    if inverted:
+        answer = HALF_PI - answer
+    if negative:
+        return 0.0 - answer
+    return answer
+
+; EN: Angle of the vector (x,y) in [-pi,pi]. For (0,0) returns 0.
+; ES: Angulo del vector (x,y) en [-pi,pi].
+public func atan2(y: float, x: float) float:
+    if x > 0.0:
+        return atan(y / x)
+    if x < 0.0:
+        if y >= 0.0:
+            return atan(y / x) + PI
+        return atan(y / x) - PI
+    if y > 0.0:
+        return HALF_PI
+    if y < 0.0:
+        return 0.0 - HALF_PI
+    return 0.0
+
+; EN: Returns false outside [-1,1], leaving result untouched.
+; ES: Arcoseno, false cuando el argumento esta fuera de [-1,1].
+@unsafe
+public func asin_checked(value: float, result *: float) bool:
+    if value != value || value < -1.0 || value > 1.0:
+        return false
+    if value == 1.0:
+        (result) = HALF_PI
+        return true
+    if value == -1.0:
+        (result) = 0.0 - HALF_PI
+        return true
+    (result) = atan2(value, sqrt(1.0 - value * value))
+    return true
+
+; EN: Returns false outside [-1,1], leaving result untouched.
+; ES: Arcocoseno, false para argumentos fuera de dominio.
+@unsafe
+public func acos_checked(value: float, result *: float) bool:
+    angle: float = 0.0
+    if not asin_checked(value, $angle):
+        return false
+    (result) = HALF_PI - angle
+    return true
+
+#end
