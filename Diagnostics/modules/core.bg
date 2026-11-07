@@ -1,0 +1,282 @@
+; Allocation-free diagnostic records and bounded diagnostic storage for Bagron.
+
+; Severity values follow DiagnosticsLite so tools can map records without a
+; translation table.
+public SeverityDebug: const uint32 = 0
+public SeverityAdvice: const uint32 = 1
+public SeverityWarning: const uint32 = 2
+public SeverityError: const uint32 = 3
+public SeverityFatal: const uint32 = 4
+
+public PolicyRecover: const uint32 = 0
+public PolicyStopOnError: const uint32 = 1
+public PolicyStopOnFatal: const uint32 = 2
+
+public CodeNone: const uint32 = 0
+public CodeEmptyKeywords: const uint32 = 1
+public CodeKeywordAlreadyExists: const uint32 = 2
+public CodeKeywordNotFound: const uint32 = 3
+public CodeGroupNotFound: const uint32 = 4
+public CodeKeywordInvalidName: const uint32 = 5
+public CodeUnexpectedCharacter: const uint32 = 6
+public CodeUnclosedString: const uint32 = 7
+public CodeIndentationMismatch: const uint32 = 8
+public CodeInvalidNumber: const uint32 = 9
+public CodeWordGroupAlreadyExists: const uint32 = 10
+public CodeWordGroupNotFound: const uint32 = 11
+public CodeWordGroupKeywordNotRegistered: const uint32 = 12
+public CodeFileNotFound: const uint32 = 13
+public CodeInvalidUtf8: const uint32 = 14
+public CodeInvalidCommentSymbol: const uint32 = 15
+public CodeCustomBase: const uint32 = 1000
+public MessageStorageCapacity: const usize = 4096
+
+; EN : Describes one diagnostic and locates its message in the buffer arena.
+; The record remains valid while its DiagnosticBuffer remains alive.
+;
+; ES : Describe un diagnóstico y localiza su mensaje en la arena del buffer.
+; El registro es válido mientras viva su DiagnosticBuffer.
+public struct Diagnostic:
+    code: uint32
+    severity: uint32
+    start: uint32
+    end: uint32
+    line: uint32
+    column: uint32
+    message_offset: usize
+    message_length: usize
+
+; EN : Overrides the default severity for one diagnostic code.
+; ES : Sobrescribe la severidad predeterminada de un código de diagnóstico.
+public struct SeverityOverride:
+    code: uint32
+    severity: uint32
+
+; EN : Owns metadata and a fixed message arena; item and override storage stay
+; with the caller. The buffer never allocates or releases external regions.
+;
+; ES : Posee metadatos y una arena fija de mensajes; los registros y overrides
+; siguen siendo del llamador. El buffer nunca asigna ni libera regiones externas.
+public struct DiagnosticBuffer:
+    items *: Diagnostic
+    capacity: usize
+    count: usize
+    total_emitted: usize
+    dropped_count: usize
+    max_diagnostics: usize
+    policy: uint32
+    halted: bool
+    error_count: usize
+    fatal_count: usize
+    overrides *: SeverityOverride
+    override_count: usize
+    message_storage: char[4096]
+    message_storage_used: usize
+
+@unsafe
+public func buffer_init(
+    buffer *: DiagnosticBuffer,
+    storage *: Diagnostic,
+    capacity: usize,
+    policy: uint32
+) void:
+    ; EN : Initializes a caller-owned diagnostic buffer without allocating memory.
+    ; `storage` must remain valid for the lifetime of the buffer. `capacity` is the
+    ; number of Diagnostic records available at that pointer.
+    ;
+    ; ES : Inicializa un buffer de diagnósticos propiedad del llamador sin asignar
+    ; memoria. `storage` debe seguir válido durante toda la vida del buffer y
+    ; `capacity` indica cuántos registros hay desde ese puntero.
+    (buffer).items = storage
+    (buffer).capacity = capacity
+    (buffer).count = 0
+    (buffer).total_emitted = 0
+    (buffer).dropped_count = 0
+    (buffer).max_diagnostics = 0
+    (buffer).policy = policy
+    (buffer).halted = false
+    (buffer).error_count = 0
+    (buffer).fatal_count = 0
+    (buffer).overrides = Null
+    (buffer).override_count = 0
+    (buffer).message_storage_used = 0
+    return
+
+@unsafe
+public func buffer_reset(buffer *: DiagnosticBuffer) void:
+    ; EN : Resets counters and halt state while preserving storage and policy.
+    ;
+    ; ES : Restablece contadores y estado de parada conservando almacenamiento y política.
+    (buffer).count = 0
+    (buffer).total_emitted = 0
+    (buffer).dropped_count = 0
+    (buffer).halted = false
+    (buffer).error_count = 0
+    (buffer).fatal_count = 0
+    (buffer).message_storage_used = 0
+    return
+
+@unsafe
+public func buffer_set_max_limit(
+    buffer *: DiagnosticBuffer,
+    max_diagnostics: usize
+) void:
+    ; EN : Sets a hard emission limit; zero means only storage capacity limits it.
+    ;
+    ; ES : Establece un límite duro de emisiones; cero deja solo el límite de almacenamiento.
+    (buffer).max_diagnostics = max_diagnostics
+    return
+
+@unsafe
+public func buffer_set_overrides(
+    buffer *: DiagnosticBuffer,
+    overrides *: SeverityOverride,
+    count: usize
+) void:
+    ; EN : Attaches caller-owned per-code severity overrides.
+    ; `count` is the number of entries available at the pointer.
+    ;
+    ; ES : Conecta overrides de severidad por código propiedad del llamador.
+    ; `count` indica cuántas entradas hay desde ese puntero.
+    (buffer).overrides = overrides
+    (buffer).override_count = count
+    return
+
+@unsafe
+public func resolve_severity(
+    code: uint32,
+    default_severity: uint32,
+    overrides *: SeverityOverride,
+    override_count: usize
+) uint32:
+    ; EN : Resolves a code-specific severity, falling back to the supplied default.
+    ;
+    ; ES : Resuelve la severidad específica de un código o devuelve la predeterminada.
+    index: usize = 0
+    while index < override_count:
+        if overrides[index].code == code:
+            return overrides[index].severity
+        index += 1
+    return default_severity
+
+public inline func should_halt(severity: uint32, policy: uint32) bool:
+    ; EN : Returns whether a severity activates the selected stop policy.
+    ;
+    ; ES : Devuelve si una severidad activa la política de parada seleccionada.
+    if policy == PolicyStopOnError:
+        return severity >= SeverityError
+    if policy == PolicyStopOnFatal:
+        return severity >= SeverityFatal
+    return false
+
+@unsafe
+public func buffer_is_halted(buffer *: DiagnosticBuffer) bool:
+    ; EN : Returns the current halt state of a diagnostic buffer.
+    ;
+    ; ES : Devuelve el estado actual de parada de un buffer de diagnósticos.
+    return (buffer).halted
+
+@unsafe
+public func emit(
+    buffer *: DiagnosticBuffer,
+    code: uint32,
+    severity: uint32,
+    start: uint32,
+    end: uint32,
+    line: uint32,
+    column: uint32,
+    message: char[],
+    message_length: Len_t,
+    message_size: Size_t
+) bool:
+    ; EN : Emits one bounded diagnostic and returns true when it is stored.
+    ; The source text is copied into the buffer's fixed message arena.
+    ; An arena overflow is counted as a dropped emission.
+    ;
+    ; ES : Emite un diagnóstico acotado y devuelve true cuando queda almacenado.
+    ; El texto origen se copia a la arena fija de mensajes del buffer.
+    ; Un desbordamiento de la arena cuenta como emisión descartada.
+    if message_size != 1:
+        return false
+    effective: uint32 = severity
+    if (buffer).override_count > 0:
+        effective = resolve_severity(
+            code,
+            severity,
+            (buffer).overrides,
+            (buffer).override_count
+        )
+
+    if effective == SeverityError:
+        (buffer).error_count += 1
+    elif effective == SeverityFatal:
+        (buffer).fatal_count += 1
+    if should_halt(effective, (buffer).policy):
+        (buffer).halted = true
+
+    if (buffer).max_diagnostics > 0 && (buffer).total_emitted >= (buffer).max_diagnostics:
+        (buffer).total_emitted += 1
+        (buffer).dropped_count += 1
+        return false
+
+    (buffer).total_emitted += 1
+    record: Diagnostic
+    record.code = code
+    record.severity = effective
+    record.start = start
+    record.end = end
+    record.line = line
+    record.column = column
+    record.message_offset = 0
+    record.message_length = 0
+
+    copy_length: usize = message_length
+    if copy_length > 0 && message[copy_length - 1] == 0:
+        copy_length -= 1
+    remaining: usize = MessageStorageCapacity - (buffer).message_storage_used
+    if copy_length + 1 > remaining:
+        (buffer).dropped_count += 1
+        return false
+    arena_index: usize = (buffer).message_storage_used
+    copy_index: usize = 0
+    while copy_index < copy_length:
+        (buffer).message_storage[arena_index + copy_index] = message[copy_index]
+        copy_index += 1
+    (buffer).message_storage[arena_index + copy_length] = "\0"
+    record.message_offset = arena_index
+    record.message_length = copy_length
+    (buffer).message_storage_used += copy_length + 1
+
+    if (buffer).capacity == 0 || (buffer).count >= (buffer).capacity:
+        (buffer).dropped_count += 1
+        return false
+    (buffer).items[(buffer).count].code = record.code
+    (buffer).items[(buffer).count].severity = record.severity
+    (buffer).items[(buffer).count].start = record.start
+    (buffer).items[(buffer).count].end = record.end
+    (buffer).items[(buffer).count].line = record.line
+    (buffer).items[(buffer).count].column = record.column
+    (buffer).items[(buffer).count].message_offset = record.message_offset
+    (buffer).items[(buffer).count].message_length = record.message_length
+    (buffer).count += 1
+    return true
+@unsafe
+public func buffer_read(
+    buffer *: DiagnosticBuffer,
+    index: usize,
+    destination *: Diagnostic
+) bool:
+    ; EN : Copies one stored record into caller-owned output storage.
+    ;
+    ; ES : Copia un registro almacenado al almacenamiento de salida del llamador.
+    if index >= (buffer).count:
+        return false
+    (destination).code = (buffer).items[index].code
+    (destination).severity = (buffer).items[index].severity
+    (destination).start = (buffer).items[index].start
+    (destination).end = (buffer).items[index].end
+    (destination).line = (buffer).items[index].line
+    (destination).column = (buffer).items[index].column
+    (destination).message_offset = (buffer).items[index].message_offset
+    (destination).message_length = (buffer).items[index].message_length
+    return true

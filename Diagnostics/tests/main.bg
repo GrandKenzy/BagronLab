@@ -1,0 +1,53 @@
+; Focused smoke test for the native Bagron Diagnostics API.
+clause System "windows"
+clause Arch "amd"
+library Diagnostics as Diag
+
+import {
+    Diagnostic,
+    DiagnosticBuffer,
+    SeverityOverride,
+    SeverityWarning,
+    SeverityError,
+    PolicyStopOnError,
+    buffer_init,
+    buffer_set_max_limit,
+    buffer_set_overrides,
+    emit,
+    buffer_read,
+    buffer_is_halted
+} from Diag
+
+@unsafe
+func main() int32:
+    ; EN : Verifies severity overrides, arena persistence, limits, and halting.
+    ;
+    ; ES : Verifica overrides de severidad, persistencia de arena, límites y parada.
+    records: Diagnostic[4]
+    overrides: SeverityOverride[1]
+    state: DiagnosticBuffer
+    overrides[0].code = 7
+    overrides[0].severity = SeverityError
+    buffer_init($state, $records[0], 4, PolicyStopOnError)
+    buffer_set_overrides($state, $overrides[0], 1)
+    buffer_set_max_limit($state, 1)
+
+    if not emit($state, 7, SeverityWarning, 2, 4, 1, 2, "warning"):
+        return 2
+    if not buffer_is_halted($state):
+        return 3
+    if emit($state, 8, SeverityWarning, 5, 6, 1, 5, "dropped"):
+        return 4
+    if state.count != 1 || state.total_emitted != 2 || state.dropped_count != 1:
+        return 5
+
+    read_back: Diagnostic
+    if not buffer_read($state, 0, $read_back):
+        return 6
+    if read_back.severity != SeverityError || read_back.message_length != 7:
+        return 7
+    expected_w: char = "w"
+    expected_g: char = "g"
+    if state.message_storage[read_back.message_offset] != expected_w || state.message_storage[read_back.message_offset + 6] != expected_g:
+        return 8
+    return 0

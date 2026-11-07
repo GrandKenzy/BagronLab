@@ -1,0 +1,45 @@
+; Public entry point for Bagron diagnostics.
+; The implementation is allocation-free and keeps storage under caller control.
+clause System "auto"
+clause Arch "auto"
+clause Privacy "public"
+
+import {
+    SeverityDebug,
+    SeverityAdvice,
+    SeverityWarning,
+    SeverityError,
+    SeverityFatal,
+    PolicyRecover,
+    PolicyStopOnError,
+    PolicyStopOnFatal,
+    CodeNone,
+    CodeEmptyKeywords,
+    CodeKeywordAlreadyExists,
+    CodeKeywordNotFound,
+    CodeGroupNotFound,
+    CodeKeywordInvalidName,
+    CodeUnexpectedCharacter,
+    CodeUnclosedString,
+    CodeIndentationMismatch,
+    CodeInvalidNumber,
+    CodeWordGroupAlreadyExists,
+    CodeWordGroupNotFound,
+    CodeWordGroupKeywordNotRegistered,
+    CodeFileNotFound,
+    CodeInvalidUtf8,
+    CodeInvalidCommentSymbol,
+    CodeCustomBase,
+    Diagnostic,
+    SeverityOverride,
+    DiagnosticBuffer,
+    buffer_init,
+    buffer_reset,
+    buffer_set_max_limit,
+    buffer_set_overrides,
+    resolve_severity,
+    should_halt,
+    buffer_is_halted,
+    emit,
+    buffer_read
+} from core
