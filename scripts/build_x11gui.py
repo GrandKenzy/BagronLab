@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bagron", default="bagron")
-    parser.add_argument("--version", default="0.1.0")
+    parser.add_argument("--version", default="0.1.1")
     parser.add_argument("--output", type=Path, default=ROOT / "build" / "x11gui.lib")
     args = parser.parse_args()
     if platform.system() != "Linux" or platform.machine().lower() not in {"x86_64", "amd64"}:
