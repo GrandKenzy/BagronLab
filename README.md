@@ -30,6 +30,7 @@ remain outside it.
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
 | `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `x11gui/` | Linux AMD64 X11 graphical backend (Xlib): windows, events, drawing and button hit-testing. |
 | `win32gui/` | Windows-only GUI backend with separate modules for windows, events, controls, drawing and dialogs. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
@@ -188,3 +189,21 @@ Windows backend. See `docs/win32gui/README.md`. A native Windows smoke test
 exists at `examples/win32gui/message_box.bg`. Build on Windows with
 `python scripts/build_win32gui.py`. **This is not a validated Windows
 release yet**; the WNDPROC callback ABI needs a native test.
+
+## x11gui backend prototype
+
+`x11gui/` implements an Xlib-based GUI backend on Linux AMD64 and
+corresponds to the existing `win32gui/` backend on Windows x64. It uses
+`gnulibrary/modules/x11_{display,events,draw}.bg` for native ABI declarations;
+`x11gui` itself declares no external functions.
+
+The prototype opens X11 windows, renders basic shapes/text, handles mouse
+clicks and WM_DELETE_WINDOW, and provides blocking or non-blocking event loops.
+It was compiled and tested under Xvfb with Bagron 1.1.4 and a local PIC
+workaround. See `docs/x11gui/README.md` and `tests/x11gui/`.
+
+`guilib` remains reserved for the future platform-neutral facade.
+Native Wayland support is **not** implemented yet. The new source packages
+are not yet published as refreshed `build/gnulibrary.lib` or
+`build/x11gui.lib`, and Central manifests must not reference an unpublished
+binary.
