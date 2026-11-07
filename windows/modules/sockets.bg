@@ -1,5 +1,6 @@
 clause Privacy "public"
 
+AF_UNSPEC: const int32 = 0
 SOCKET_ERROR: const int32 = -1
 INVALID_SOCKET: const usize = 18446744073709551615
 WINSOCK_VERSION: const uint16 = 514
@@ -343,6 +344,10 @@ class Socket:
         return
 
 
+private mold NetSockLen:
+    wide: usize
+    small: int32
+
 ; EN: Resolve a hostname and open a connected TCP socket using the native API.
 ; ES: Resuelve un host y abre un socket TCP conectado con la ABI nativa.
 @unsafe
@@ -364,7 +369,13 @@ public func OpenTcpHost(node *: const char, service *: const char, timeout_ms: i
         Close(handle)
         ReleaseAddrInfo(address)
         return INVALID_SOCKET
-    if Connect(handle, (address).ai_addr, (address).ai_addrlen) != 0:
+    if (address).ai_addrlen > 2147483647:
+        Close(handle)
+        ReleaseAddrInfo(address)
+        return INVALID_SOCKET
+    size: NetSockLen
+    size.wide = (address).ai_addrlen
+    if Connect(handle, (address).ai_addr, size.small) != 0:
         Close(handle)
         ReleaseAddrInfo(address)
         return INVALID_SOCKET
