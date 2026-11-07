@@ -1,0 +1,40 @@
+; X11 smoke test: open, draw on Expose, close; return 0 on success.
+clause System "linux"
+clause Arch "amd"
+library x11gui as Gui
+import { Window } from Gui
+import { rectangle, fill_rectangle, line, text } from Gui
+import { should_repaint, is_close_request } from Gui
+
+@unsafe
+func main() int32:
+    app: Window = Window()
+    if not app.open("Bagron X11 smoke", 320, 200):
+        return 2
+    painted: bool = false
+    attempts: int32 = 0
+    while attempts < 200000:
+        kind: int32 = app.poll()
+        if is_close_request(kind):
+            break
+        if should_repaint(kind):
+            if not rectangle(app.display_id, app.window_id, app.gc_id, 15, 10, 120, 80, app.black_pixel):
+                app.close()
+                return 3
+            if not fill_rectangle(app.display_id, app.window_id, app.gc_id, 20, 15, 110, 70, app.black_pixel):
+                app.close()
+                return 4
+            if not line(app.display_id, app.window_id, app.gc_id, 15, 95, 200, 95, app.black_pixel):
+                app.close()
+                return 5
+            if not text(app.display_id, app.window_id, app.gc_id, 20, 125, "Bagron + Xlib", app.black_pixel):
+                app.close()
+                return 6
+            painted = true
+            break
+        attempts += 1
+    if not app.close():
+        return 7
+    if not painted:
+        return 8
+    return 0
