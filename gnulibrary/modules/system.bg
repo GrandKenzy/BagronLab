@@ -1,6 +1,6 @@
 clause Privacy "public"
 
-import { SIGABRT } from linuxc
+import { SIGABRT, PROT_READ, PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS } from linuxc
 
 ; EN: Terminates the current process through the native Linux signal path.
 ; The raw kill syscall is kept in gnulibrary; callers do not depend on libc.
@@ -274,7 +274,7 @@ public func vm_map_rw(size: usize) usize:
         return 0
     count: VirtualMemoryBits
     count.word = size
-    result: int64 = mmap(Null, count.wide, 3, 34, -1, 0)
+    result: int64 = mmap(Null, count.wide, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)
     if result < 0 && result >= -4095:
         return 0
     bits: VirtualMemoryBits
@@ -303,7 +303,7 @@ public func vm_protect(address: usize, size: usize, readonly: bool) bool:
     count: VirtualMemoryBits
     addr.word = address
     count.word = size
-    prot: uint32 = 3
+    prot: uint32 = PROT_READ | PROT_WRITE
     if readonly:
-        prot = 1
+        prot = PROT_READ
     return mprotect(addr.pointer, count.wide, prot) == 0
