@@ -1,0 +1,26 @@
+; Win32 message dispatch and WM_COMMAND helpers.
+
+; EN: Runs the blocking Win32 message loop, returning -1 for native errors.
+; ES: Ejecuta la cola Win32; devuelve -1 ante un error nativo.
+@unsafe
+public func run_loop() int32:
+    return Win.RunMessageLoop()
+
+; EN: Signals the thread's message loop to quit.
+; ES: Señala que termine la cola de mensajes del hilo.
+@unsafe
+public func quit(code: int32) void:
+    Win.PostQuitMessage(code)
+    return
+
+; EN: Extracts control ID (LOWORD of wParam) from WM_COMMAND.
+; ES: Extrae el ID de control desde WM_COMMAND.
+@unsafe
+public func command_id(wparam: usize) usize:
+    return wparam & 65535
+
+; EN: Extracts notification code (HIWORD of wParam) from WM_COMMAND.
+; ES: Extrae el código de notificación desde WM_COMMAND.
+@unsafe
+public func command_notification(wparam: usize) usize:
+    return (wparam >> 16) & 65535
