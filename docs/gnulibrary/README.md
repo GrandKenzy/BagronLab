@@ -76,3 +76,16 @@ proporciona `getaddrinfo`, liberación de cada socket fallido y de la lista
 DNS, y `ReuseAddress` para listeners que deban reiniciarse rápidamente.
 `set_timeout` configura E/S pero **no** garantiza un timeout para un
 `connect` bloqueante; queda pendiente implementar nonblocking connect.
+
+## Integración con mmap
+
+`gnulibrary/modules/system.bg` incorpora las operaciones nativas
+`vm_map_rw`, `vm_unmap` y `vm_protect`. La reserva es un
+`mmap` privado/anónimo (`PROT_READ | PROT_WRITE`), la liberación usa
+`munmap` y el cambio de protección usa `mprotect`. Los helpers
+utilizan `usize` para las direcciones y devuelven 0/false en caso de fallo.
+Se usan únicamente en Linux AMD64 y no requieren libc.
+
+La biblioteca `mmap` administra el ownership; **no** llames estos helpers
+sobre una región administrada por un objeto `Mapping` sin transferir la
+propiedad de forma segura.
