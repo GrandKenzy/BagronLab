@@ -104,3 +104,38 @@ extern windows "user32":
     GetDC(hwnd: usize) usize
     ReleaseDC(hwnd: usize, dc: usize) int32
     FillRect(dc: usize, rect *: WIN32_RECT, brush: usize) int32
+
+; EN: Registers a UTF-16 window class with a caller-provided WNDPROC.
+; ES: Registra una clase de ventana UTF-16 con callback WNDPROC del llamador.
+; IMPORTANT: callback must use the Microsoft x64 WNDPROC ABI and remain valid.
+@unsafe
+public func RegisterWindowClass(class_name *: const uint16, callback *: void, instance: usize) bool:
+    details: WIN32_WNDCLASSEXW
+    details.size = 80
+    details.style = 0
+    details.window_proc = callback
+    details.class_extra = 0
+    details.window_extra = 0
+    details.instance = instance
+    details.icon = 0
+    details.cursor = 0
+    details.background = 0
+    details.menu_name = Null
+    details.class_name = class_name
+    details.small_icon = 0
+    return RegisterClassExW($details) != 0
+
+; EN: Dispatches Win32 messages until WM_QUIT or an API error.
+; Returns 0 for WM_QUIT and -1 for a GetMessageW error.
+; ES: Despacha mensajes hasta WM_QUIT o error de Win32.
+@unsafe
+public func RunMessageLoop() int32:
+    message: WIN32_MSG
+    while true:
+        status: int32 = GetMessageW($message, 0, 0, 0)
+        if status == -1:
+            return -1
+        if status == 0:
+            return 0
+        TranslateMessage($message)
+        DispatchMessageW($message)
