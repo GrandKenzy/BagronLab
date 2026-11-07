@@ -75,6 +75,20 @@ public class Window:
             self.pointer_y = coords[1]
         return event_kind
 
+
+    ; EN: Blocks until an X11 event arrives; use for efficient UI event loops.
+    ; ES: Espera el siguiente evento sin sondeo activo de CPU.
+    @unsafe
+    func wait() int32:
+        if not self.opened:
+            return -1
+        coords: int32[2]
+        event_kind: int32 = XNative.X11WaitEvent(self.display_id, self.protocol_atom, self.close_atom, coords)
+        if event_kind == XNative.X11_BUTTON_PRESS:
+            self.pointer_x = coords[0]
+            self.pointer_y = coords[1]
+        return event_kind
+
     ; EN: Releases graphics context, window and display. Idempotent if closed.
     ; ES: Libera contexto de dibujo, ventana y conexión X11.
     @unsafe
