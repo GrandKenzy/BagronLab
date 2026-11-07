@@ -38,14 +38,6 @@ public func exit_process(code: uint32) void:
     ExitProcess(code)
     return
 
-; EN: Suspends the current thread for the requested number of milliseconds.
-;
-; ES: Suspende la hebra actual durante los milisegundos solicitados.
-@unsafe
-public func sleep_ms(milliseconds: uint32) void:
-    Sleep(milliseconds)
-    return
-
 ; EN: Yields the current thread and reports whether another thread was scheduled.
 ;
 ; ES: Cede la hebra actual e indica si se planificó otra hebra.

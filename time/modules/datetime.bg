@@ -1,0 +1,740 @@
+; EN: Date, calendar, and datetime formatting operations.
+; Provides broken-down calendar representations, leap-year calculations,
+; Unix timestamp conversions, and ISO-8601 formatting.
+;
+; ES: Operaciones de fecha, calendario y formateo de fecha y hora.
+; Proporciona representaciones de calendario desglosadas, calculo de anios bisiestos,
+; conversiones de marcas de tiempo Unix y formateo ISO-8601.
+
+; ============================================================================
+; DateTime structure
+; ============================================================================
+
+struct DateTime:
+    ; EN: Broken-down calendar representation in UTC.
+    ; day_of_week is 0 = Sunday, 1 = Monday, ..., 6 = Saturday.
+    ; day_of_year is 1 to 366.
+    ;
+    ; ES: Representacion de calendario desglosada en UTC.
+    ; day_of_week es 0 = Domingo, 1 = Lunes, ..., 6 = Sabado.
+    ; day_of_year es de 1 a 366.
+    year: int64
+    month: int64
+    day: int64
+    hour: int64
+    minute: int64
+    second: int64
+    millisecond: int64
+    day_of_week: int64
+    day_of_year: int64
+
+; ============================================================================
+; Calendar inspection
+; ============================================================================
+
+; EN: Returns true if the specified year is a leap year in the Gregorian calendar.
+;
+; ES: Devuelve true si el anio especificado es bisiesto en el calendario gregoriano.
+func is_leap_year(year: int64) bool:
+    if (year % 400) == 0:
+        return true
+    if (year % 100) == 0:
+        return false
+    return (year % 4) == 0
+
+; EN: Returns the number of days in the specified month of a given year (1-12).
+;
+; ES: Devuelve la cantidad de dias del mes especificado en un anio dado (1-12).
+func days_in_month(year: int64, month: int64) int64:
+    if month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12:
+        return 31
+    if month == 4 || month == 6 || month == 9 || month == 11:
+        return 30
+    if month == 2:
+        if is_leap_year(year):
+            return 29
+        return 28
+    return 0
+
+; EN: Returns the total number of days in a year (366 for leap years, 365 otherwise).
+;
+; ES: Devuelve la cantidad total de dias en un anio (366 para bisiestos, 365 en caso contrario).
+func days_in_year(year: int64) int64:
+    if is_leap_year(year):
+        return 366
+    return 365
+
+; ============================================================================
+; Timestamp conversions
+; ============================================================================
+
+; EN: Converts Unix seconds since 1970-01-01 00:00:00 UTC into a broken-down DateTime.
+; Uses the proleptic Gregorian civil calendar algorithm.
+;
+; ES: Convierte segundos Unix desde 1970-01-01 00:00:00 UTC en un DateTime desglosado.
+; Usa el algoritmo del calendario civil gregoriano proleptico.
+@unsafe
+func from_unix_seconds(unix_sec: int64) DateTime:
+    days: int64 = unix_sec / 86400
+    rem_sec: int64 = unix_sec % 86400
+    if rem_sec < 0:
+        days -= 1
+        rem_sec += 86400
+
+    h: int64 = rem_sec / 3600
+    m_sec: int64 = rem_sec % 3600
+    min: int64 = m_sec / 60
+    s: int64 = m_sec % 60
+
+    ; 1970-01-01 fue jueves (dia 4, donde domingo = 0)
+    wday_64: int64 = (days + 4) % 7
+    if wday_64 < 0:
+        wday_64 += 7
+
+    ; Algoritmo civil gregoriano desplazado
+    z: int64 = days + 719468
+    era: int64 = 0
+    if z >= 0:
+        era = z / 146097
+    else:
+        era = (z - 146096) / 146097
+
+    doe: int64 = z - (era * 146097)
+    yoe: int64 = (doe - (doe / 1024) + (doe / 1460) - (doe / 36524)) / 365
+    y: int64 = yoe + (era * 400)
+    doy: int64 = doe - ((365 * yoe) + (yoe / 4) - (yoe / 100))
+    mp: int64 = ((5 * doy) + 2) / 153
+    d: int64 = doy - (((153 * mp) + 2) / 5) + 1
+    m: int64 = 0
+    if mp < 10:
+        m = mp + 3
+    else:
+        m = mp - 9
+
+    cal_year: int64 = 0
+    if m <= 2:
+        cal_year = y + 1
+    else:
+        cal_year = y
+
+    ; Calcular dia del anio
+    day_year: int64 = 0
+    cur_m: int64 = 1
+    while cur_m < m:
+        day_year += days_in_month(cal_year, cur_m)
+        cur_m += 1
+    day_year += d
+
+    dt: DateTime
+    dt.year = cal_year
+    dt.month = m
+    dt.day = d
+    dt.hour = h
+    dt.minute = min
+    dt.second = s
+    dt.millisecond = 0
+    dt.day_of_week = wday_64
+    dt.day_of_year = day_year
+
+    return dt
+
+; EN: Converts Unix milliseconds into a broken-down DateTime with millisecond precision.
+;
+; ES: Convierte milisegundos Unix en un DateTime desglosado con precision de milisegundos.
+@unsafe
+func from_unix_ms(unix_ms: int64) DateTime:
+    sec: int64 = unix_ms / 1000
+    rem_ms: int64 = unix_ms % 1000
+    if rem_ms < 0:
+        sec -= 1
+        rem_ms += 1000
+
+    dt: DateTime = from_unix_seconds(sec)
+    dt.millisecond = rem_ms
+    return dt
+
+; EN: Converts a broken-down DateTime into Unix seconds since 1970-01-01 00:00:00 UTC.
+;
+; ES: Convierte un DateTime desglosado en segundos Unix desde 1970-01-01 00:00:00 UTC.
+@unsafe
+func to_unix_seconds(dt: DateTime) int64:
+    y: int64 = dt.year
+    m: int64 = dt.month
+    d: int64 = dt.day
+
+    y_adj: int64 = 0
+    m_adj: int64 = 0
+    if m <= 2:
+        y_adj = y - 1
+        m_adj = m + 9
+    else:
+        y_adj = y
+        m_adj = m - 3
+
+    era: int64 = 0
+    if y_adj >= 0:
+        era = y_adj / 400
+    else:
+        era = (y_adj - 399) / 400
+
+    yoe: int64 = y_adj - (era * 400)
+    doy: int64 = (((153 * m_adj) + 2) / 5) + d - 1
+    doe: int64 = (yoe * 365) + (yoe / 4) - (yoe / 100) + doy
+    days: int64 = (era * 146097) + doe - 719468
+
+    h: int64 = dt.hour
+    min: int64 = dt.minute
+    s: int64 = dt.second
+
+    total_sec: int64 = (days * 86400) + (h * 3600) + (min * 60) + s
+    return total_sec
+
+; EN: Returns the current UTC wall-clock time as a broken-down DateTime.
+;
+; ES: Devuelve la hora de reloj UTC actual como un DateTime desglosado.
+@unsafe
+func now_datetime() DateTime:
+    return from_unix_ms(Platform.unix_milliseconds())
+
+; ============================================================================
+; Text formatting helpers (Zero-Allocation)
+; ============================================================================
+
+@unsafe
+func digit_to_char(digit: int64) char:
+    digits: chain = "0123456789"
+    idx: usize = 0
+    c: int64 = 0
+    while c < digit && c < 9:
+        idx += 1
+        c += 1
+    return digits[idx]
+
+@unsafe
+func write_2digits(val: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t, offset: usize) void:
+    if dest_sz != 1 || offset + 2 > dest_len:
+        return
+    v: int64 = val
+    if v < 0:
+        v = 0
+    d0: int64 = (v / 10) % 10
+    d1: int64 = v % 10
+    dest[offset] = digit_to_char(d0)
+    dest[offset + 1] = digit_to_char(d1)
+    return
+
+@unsafe
+func write_4digits(val: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t, offset: usize) void:
+    if dest_sz != 1 || offset + 4 > dest_len:
+        return
+    v: int64 = val
+    if v < 0:
+        v = 0
+    d0: int64 = (v / 1000) % 10
+    d1: int64 = (v / 100) % 10
+    d2: int64 = (v / 10) % 10
+    d3: int64 = v % 10
+    dest[offset] = digit_to_char(d0)
+    dest[offset + 1] = digit_to_char(d1)
+    dest[offset + 2] = digit_to_char(d2)
+    dest[offset + 3] = digit_to_char(d3)
+    return
+
+; EN: Formats a DateTime into an ISO-8601 string: YYYY-MM-DDTHH:MM:SSZ.
+; Requires dest capacity of at least 20 characters. Returns 20 on success, or 0 if dest is small.
+; Appends a null terminator if capacity allows.
+;
+; ES: Formatea un DateTime en una cadena ISO-8601: YYYY-MM-DDTHH:MM:SSZ.
+; Requiere capacidad de dest de al menos 20 caracteres. Devuelve 20 en exito, o 0 si dest es chico.
+; Agrega terminador nulo si la capacidad lo permite.
+@unsafe
+func format_iso8601(dt: DateTime, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if dest_sz != 1 || dest_len < 20:
+        return 0
+
+    write_4digits(dt.year, dest, 0)
+    dest[4] = "-"
+    write_2digits(dt.month, dest, 5)
+    dest[7] = "-"
+    write_2digits(dt.day, dest, 8)
+    dest[10] = "T"
+    write_2digits(dt.hour, dest, 11)
+    dest[13] = ":"
+    write_2digits(dt.minute, dest, 14)
+    dest[16] = ":"
+    write_2digits(dt.second, dest, 17)
+    dest[19] = "Z"
+
+    if dest_len > 20:
+        dest[20] = "\0"
+
+    return 20
+
+; EN: Formats a DateTime into a date string: YYYY-MM-DD.
+; Requires dest capacity of at least 10 characters. Returns 10 on success, or 0 if dest is small.
+;
+; ES: Formatea un DateTime en una cadena de fecha: YYYY-MM-DD.
+; Requiere capacidad de dest de al menos 10 caracteres. Devuelve 10 en exito, o 0 si dest es chico.
+@unsafe
+func format_date(dt: DateTime, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if dest_sz != 1 || dest_len < 10:
+        return 0
+
+    write_4digits(dt.year, dest, 0)
+    dest[4] = "-"
+    write_2digits(dt.month, dest, 5)
+    dest[7] = "-"
+    write_2digits(dt.day, dest, 8)
+
+    if dest_len > 10:
+        dest[10] = "\0"
+
+    return 10
+
+; EN: Formats a DateTime into a 24-hour time string: HH:MM:SS.
+; Requires dest capacity of at least 8 characters. Returns 8 on success, or 0 if dest is small.
+;
+; ES: Formatea un DateTime en una cadena de hora de 24 horas: HH:MM:SS.
+; Requiere capacidad de dest de al menos 8 caracteres. Devuelve 8 en exito, o 0 si dest es chico.
+@unsafe
+func format_time(dt: DateTime, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if dest_sz != 1 || dest_len < 8:
+        return 0
+
+    write_2digits(dt.hour, dest, 0)
+    dest[2] = ":"
+    write_2digits(dt.minute, dest, 3)
+    dest[5] = ":"
+    write_2digits(dt.second, dest, 6)
+
+    if dest_len > 8:
+        dest[8] = "\0"
+
+    return 8
+
+; EN: Formats a DateTime into a time string with millisecond precision: HH:MM:SS.mmm.
+; Requires dest capacity of at least 12 characters. Returns 12 on success, or 0 if dest is small.
+;
+; ES: Formatea un DateTime en una cadena de hora con precision de milisegundos: HH:MM:SS.mmm.
+; Requiere capacidad de dest de al menos 12 caracteres. Devuelve 12 en exito, o 0 si dest es chico.
+@unsafe
+func format_time_ms(dt: DateTime, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if dest_sz != 1 || dest_len < 12:
+        return 0
+
+    write_2digits(dt.hour, dest, 0)
+    dest[2] = ":"
+    write_2digits(dt.minute, dest, 3)
+    dest[5] = ":"
+    write_2digits(dt.second, dest, 6)
+    dest[8] = "."
+
+    ms: int64 = dt.millisecond
+    if ms < 0:
+        ms = 0
+    m0: int64 = (ms / 100) % 10
+    m1: int64 = (ms / 10) % 10
+    m2: int64 = ms % 10
+    dest[9] = digit_to_char(m0)
+    dest[10] = digit_to_char(m1)
+    dest[11] = digit_to_char(m2)
+
+    if dest_len > 12:
+        dest[12] = "\0"
+
+    return 12
+
+
+; ============================================================================
+; Date arithmetic
+; ============================================================================
+
+; EN: Returns dt shifted by a number of seconds (negative values go back in time).
+; The millisecond field is preserved.
+;
+; ES: Devuelve dt desplazado por una cantidad de segundos (negativos retroceden).
+; El campo de milisegundos se conserva.
+@unsafe
+func add_seconds(dt: DateTime, seconds: int64) DateTime:
+    ms: int64 = dt.millisecond
+    out: DateTime = from_unix_seconds(to_unix_seconds(dt) + seconds)
+    out.millisecond = ms
+    return out
+
+; EN: Returns dt shifted by a number of milliseconds.
+;
+; ES: Devuelve dt desplazado por una cantidad de milisegundos.
+@unsafe
+func add_milliseconds(dt: DateTime, milliseconds: int64) DateTime:
+    total: int64 = (to_unix_seconds(dt) * 1000) + dt.millisecond + milliseconds
+    return from_unix_ms(total)
+
+; EN: Returns dt shifted by a number of days.
+;
+; ES: Devuelve dt desplazado por una cantidad de dias.
+@unsafe
+func add_days(dt: DateTime, days: int64) DateTime:
+    return add_seconds(dt, days * 86400)
+
+; EN: Returns the difference a - b in whole seconds.
+;
+; ES: Devuelve la diferencia a - b en segundos enteros.
+@unsafe
+func diff_seconds(a: DateTime, b: DateTime) int64:
+    return to_unix_seconds(a) - to_unix_seconds(b)
+
+; EN: Compares two datetimes. Returns -1 if a is earlier, 0 if equal, 1 if a is later.
+; Milliseconds take part in the comparison.
+;
+; ES: Compara dos datetimes. Devuelve -1 si a es anterior, 0 si son iguales, 1 si a es posterior.
+; Los milisegundos participan en la comparacion.
+@unsafe
+func compare_datetime(a: DateTime, b: DateTime) int64:
+    sa: int64 = to_unix_seconds(a)
+    sb: int64 = to_unix_seconds(b)
+    if sa < sb:
+        return -1
+    if sa > sb:
+        return 1
+    if a.millisecond < b.millisecond:
+        return -1
+    if a.millisecond > b.millisecond:
+        return 1
+    return 0
+
+; EN: Returns true if a is strictly earlier than b.
+;
+; ES: Devuelve true si a es estrictamente anterior a b.
+@unsafe
+func is_before(a: DateTime, b: DateTime) bool:
+    return compare_datetime(a, b) < 0
+
+; EN: Returns true if a is strictly later than b.
+;
+; ES: Devuelve true si a es estrictamente posterior a b.
+@unsafe
+func is_after(a: DateTime, b: DateTime) bool:
+    return compare_datetime(a, b) > 0
+
+; EN: Returns dt truncated to 00:00:00.000 of the same day.
+;
+; ES: Devuelve dt truncado a las 00:00:00.000 del mismo dia.
+@unsafe
+func start_of_day(dt: DateTime) DateTime:
+    since_midnight: int64 = (dt.hour * 3600) + (dt.minute * 60) + dt.second
+    out: DateTime = from_unix_seconds(to_unix_seconds(dt) - since_midnight)
+    out.millisecond = 0
+    return out
+
+; ============================================================================
+; Weekday and month names (English)
+; ============================================================================
+
+; Copies one entry of a fixed-width, space-padded name table into dest at offset.
+; Returns the copied length, or 0 if it does not fit.
+@unsafe
+func write_padded_name(names: chain, index: int64, width: usize, dest: char[], dest_len: Len_t, dest_sz: Size_t, offset: usize) usize:
+    if dest_sz != 1:
+        return 0
+    space: char = " "
+    start: usize = 0
+    k: int64 = 0
+    while k < index:
+        start += width
+        k += 1
+    n: usize = 0
+    c: char = names[start]
+    while n < width && c != space:
+        n += 1
+        if n < width:
+            c = names[start + n]
+    if offset + n > dest_len:
+        return 0
+    i: usize = 0
+    while i < n:
+        dest[offset + i] = names[start + i]
+        i += 1
+    return n
+
+; EN: Writes the full weekday name (Sunday..Saturday) for day_of_week 0..6.
+; Returns the length written, or 0 if the index is invalid or dest is small.
+; Appends a null terminator if capacity allows.
+;
+; ES: Escribe el nombre completo del dia (Sunday..Saturday) para day_of_week 0..6.
+; Devuelve la longitud escrita, o 0 si el indice es invalido o dest es chico.
+; Agrega terminador nulo si la capacidad lo permite.
+@unsafe
+func weekday_name(day_of_week: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if day_of_week < 0 || day_of_week > 6:
+        return 0
+    n: usize = write_padded_name("Sunday   Monday   Tuesday  WednesdayThursday Friday   Saturday ", day_of_week, 9, dest, 0)
+    if n > 0 && dest_len > n:
+        dest[n] = "\0"
+    return n
+
+; EN: Writes the three-letter weekday abbreviation (Sun..Sat) for day_of_week 0..6.
+; Returns 3 on success, or 0 if the index is invalid or dest is small.
+;
+; ES: Escribe la abreviatura de tres letras del dia (Sun..Sat) para day_of_week 0..6.
+; Devuelve 3 en exito, o 0 si el indice es invalido o dest es chico.
+@unsafe
+func weekday_abbr(day_of_week: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if day_of_week < 0 || day_of_week > 6:
+        return 0
+    n: usize = write_padded_name("SunMonTueWedThuFriSat", day_of_week, 3, dest, 0)
+    if n > 0 && dest_len > n:
+        dest[n] = "\0"
+    return n
+
+; EN: Writes the full month name (January..December) for month 1..12.
+; Returns the length written, or 0 if the month is invalid or dest is small.
+;
+; ES: Escribe el nombre completo del mes (January..December) para month 1..12.
+; Devuelve la longitud escrita, o 0 si el mes es invalido o dest es chico.
+@unsafe
+func month_name(month: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if month < 1 || month > 12:
+        return 0
+    n: usize = write_padded_name("January  February March    April    May      June     July     August   SeptemberOctober  November December ", month - 1, 9, dest, 0)
+    if n > 0 && dest_len > n:
+        dest[n] = "\0"
+    return n
+
+; EN: Writes the three-letter month abbreviation (Jan..Dec) for month 1..12.
+; Returns 3 on success, or 0 if the month is invalid or dest is small.
+;
+; ES: Escribe la abreviatura de tres letras del mes (Jan..Dec) para month 1..12.
+; Devuelve 3 en exito, o 0 si el mes es invalido o dest es chico.
+@unsafe
+func month_abbr(month: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if month < 1 || month > 12:
+        return 0
+    n: usize = write_padded_name("JanFebMarAprMayJunJulAugSepOctNovDec", month - 1, 3, dest, 0)
+    if n > 0 && dest_len > n:
+        dest[n] = "\0"
+    return n
+
+; ============================================================================
+; HTTP date and strftime
+; ============================================================================
+
+@unsafe
+func write_3digits(val: int64, dest: char[], dest_len: Len_t, dest_sz: Size_t, offset: usize) void:
+    if dest_sz != 1 || offset + 3 > dest_len:
+        return
+    v: int64 = val
+    if v < 0:
+        v = 0
+    dest[offset] = digit_to_char((v / 100) % 10)
+    dest[offset + 1] = digit_to_char((v / 10) % 10)
+    dest[offset + 2] = digit_to_char(v % 10)
+    return
+
+; EN: Formats a DateTime as an HTTP/RFC 7231 date: "Sat, 09 Mar 2024 16:00:00 GMT".
+; Requires dest capacity of at least 29 characters. Returns 29 on success, or 0 if dest is small
+; or the weekday/month fields are out of range. Appends a null terminator if capacity allows.
+;
+; ES: Formatea un DateTime como fecha HTTP/RFC 7231: "Sat, 09 Mar 2024 16:00:00 GMT".
+; Requiere capacidad de dest de al menos 29 caracteres. Devuelve 29 en exito, o 0 si dest es chico
+; o los campos de dia de la semana/mes estan fuera de rango. Agrega terminador nulo si la capacidad lo permite.
+@unsafe
+func format_http_date(dt: DateTime, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if dest_sz != 1 || dest_len < 29:
+        return 0
+    if dt.day_of_week < 0 || dt.day_of_week > 6 || dt.month < 1 || dt.month > 12:
+        return 0
+    write_padded_name("SunMonTueWedThuFriSat", dt.day_of_week, 3, dest, 0)
+    dest[3] = ","
+    dest[4] = " "
+    write_2digits(dt.day, dest, 5)
+    dest[7] = " "
+    write_padded_name("JanFebMarAprMayJunJulAugSepOctNovDec", dt.month - 1, 3, dest, 8)
+    dest[11] = " "
+    write_4digits(dt.year, dest, 12)
+    dest[16] = " "
+    write_2digits(dt.hour, dest, 17)
+    dest[19] = ":"
+    write_2digits(dt.minute, dest, 20)
+    dest[22] = ":"
+    write_2digits(dt.second, dest, 23)
+    dest[25] = " "
+    dest[26] = "G"
+    dest[27] = "M"
+    dest[28] = "T"
+    if dest_len > 29:
+        dest[29] = "\0"
+    return 29
+
+; EN: Helper that measures the length of text up to the first NUL terminator or text_len.
+;
+; ES: Auxiliar que mide la longitud del texto hasta el primer terminador NUL o text_len.
+@unsafe
+func text_length(text: char[], text_len: Len_t, text_sz: Size_t) usize:
+    if text_sz != 1 || text_len == 0:
+        return 0
+    count: usize = 0
+    while count < text_len && text[count] != 0:
+        count += 1
+    return count
+
+; EN: Formats a DateTime following a strftime-style pattern.
+; Supported: %Y year, %y 2-digit year, %m month, %d day, %H hour, %M minute, %S second,
+; %L milliseconds, %j day of year, %w weekday number (0 = Sunday), %a/%A weekday name,
+; %b/%B month name, %% literal percent. Names are in English.
+; Returns the length written, or 0 if dest is too small or the pattern is invalid.
+; Always appends a null terminator on success.
+;
+; ES: Formatea un DateTime segun un patron estilo strftime.
+; Soporta: %Y anio, %y anio de 2 digitos, %m mes, %d dia, %H hora, %M minuto, %S segundo,
+; %L milisegundos, %j dia del anio, %w numero de dia (0 = Sunday), %a/%A nombre del dia,
+; %b/%B nombre del mes, %% porcentaje literal. Los nombres estan en ingles.
+; Devuelve la longitud escrita, o 0 si dest es chico o el patron es invalido.
+; Siempre agrega terminador nulo en caso de exito.
+@unsafe
+func strftime(dt: DateTime, fmt: char[], fmt_len: Len_t, fmt_sz: Size_t, dest: char[], dest_len: Len_t, dest_sz: Size_t) usize:
+    if fmt_sz != 1 || dest_sz != 1 || dest_len == 0:
+        return 0
+    cap: usize = dest_len - 1
+    wd_full: chain = "Sunday   Monday   Tuesday  WednesdayThursday Friday   Saturday "
+    wd_abbr: chain = "SunMonTueWedThuFriSat"
+    mo_full: chain = "January  February March    April    May      June     July     August   SeptemberOctober  November December "
+    mo_abbr: chain = "JanFebMarAprMayJunJulAugSepOctNovDec"
+    pct: char = "%"
+    k_Y: char = "Y"
+    k_y: char = "y"
+    k_m: char = "m"
+    k_d: char = "d"
+    k_H: char = "H"
+    k_M: char = "M"
+    k_S: char = "S"
+    k_L: char = "L"
+    k_j: char = "j"
+    k_w: char = "w"
+    k_a: char = "a"
+    k_A: char = "A"
+    k_b: char = "b"
+    k_B: char = "B"
+    pos: usize = 0
+    i: usize = 0
+    n: usize = 0
+    c: char = "\0"
+    spec: char = "\0"
+    ok: bool = false
+    ; NOTA: fmt_len es capacidad; el patron termina en el primer NUL logico.
+    flen: usize = text_length(fmt)
+    while i < flen:
+        c = fmt[i]
+        i += 1
+        if c != pct:
+            if pos + 1 > cap:
+                return 0
+            dest[pos] = c
+            pos += 1
+        else:
+            if i >= flen:
+                return 0
+            spec = fmt[i]
+            i += 1
+            ok = false
+            if spec == pct:
+                if pos + 1 > cap:
+                    return 0
+                dest[pos] = pct
+                pos += 1
+                ok = true
+            if spec == k_Y:
+                if pos + 4 > cap:
+                    return 0
+                write_4digits(dt.year, dest, pos)
+                pos += 4
+                ok = true
+            if spec == k_y:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.year % 100, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_m:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.month, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_d:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.day, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_H:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.hour, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_M:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.minute, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_S:
+                if pos + 2 > cap:
+                    return 0
+                write_2digits(dt.second, dest, pos)
+                pos += 2
+                ok = true
+            if spec == k_L:
+                if pos + 3 > cap:
+                    return 0
+                write_3digits(dt.millisecond, dest, pos)
+                pos += 3
+                ok = true
+            if spec == k_j:
+                if pos + 3 > cap:
+                    return 0
+                write_3digits(dt.day_of_year, dest, pos)
+                pos += 3
+                ok = true
+            if spec == k_w:
+                if pos + 1 > cap:
+                    return 0
+                dest[pos] = digit_to_char(dt.day_of_week)
+                pos += 1
+                ok = true
+            if spec == k_a:
+                if dt.day_of_week < 0 || dt.day_of_week > 6:
+                    return 0
+                n = write_padded_name(wd_abbr, dt.day_of_week, 3, dest, pos)
+                if n == 0 || pos + n > cap:
+                    return 0
+                pos += n
+                ok = true
+            if spec == k_A:
+                if dt.day_of_week < 0 || dt.day_of_week > 6:
+                    return 0
+                n = write_padded_name(wd_full, dt.day_of_week, 9, dest, pos)
+                if n == 0 || pos + n > cap:
+                    return 0
+                pos += n
+                ok = true
+            if spec == k_b:
+                if dt.month < 1 || dt.month > 12:
+                    return 0
+                n = write_padded_name(mo_abbr, dt.month - 1, 3, dest, pos)
+                if n == 0 || pos + n > cap:
+                    return 0
+                pos += n
+                ok = true
+            if spec == k_B:
+                if dt.month < 1 || dt.month > 12:
+                    return 0
+                n = write_padded_name(mo_full, dt.month - 1, 9, dest, pos)
+                if n == 0 || pos + n > cap:
+                    return 0
+                pos += n
+                ok = true
+            if !ok:
+                return 0
+    dest[pos] = "\0"
+    return pos

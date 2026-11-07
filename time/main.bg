@@ -1,4 +1,146 @@
 ; Library source root for the standard time API.
+clause Privacy "public"
+
+#if OS, "windows"
 clause System "windows"
+library windows as Platform
+#elif OS, "linux"
+clause System "linux"
+library gnulibrary as Platform
+#else
+clause System "auto"
+#end
+
+#if ARCH, "amd"
 clause Arch "amd"
-library "windows.lib" as Win
+#elif ARCH, "x86"
+clause Arch "x86"
+#elif ARCH, "arm"
+clause Arch "arm"
+#elif ARCH, "riscv32"
+clause Arch "riscv32"
+#elif ARCH, "riscv64"
+clause Arch "riscv64"
+#else
+clause Arch "auto"
+#end
+
+; EN: Portable time API built on platform native clocks and timers.
+; Provides UTC wall-clock time, monotonic duration measurement, and thread sleeping.
+;
+; ES: API de tiempo portable construida sobre los relojes y temporizadores nativos de la plataforma.
+; Proporciona tiempo UTC de reloj de pared, medicion de duracion monotona y suspension de hebras.
+
+SECONDS_PER_MINUTE: const int64 = 60
+SECONDS_PER_HOUR: const int64 = 3600
+SECONDS_PER_DAY: const int64 = 86400
+MILLISECONDS_PER_SECOND: const int64 = 1000
+MICROSECONDS_PER_SECOND: const int64 = 1000000
+NANOSECONDS_PER_SECOND: const int64 = 1000000000
+
+; ============================================================================
+; Wall-clock UTC time
+; ============================================================================
+
+; EN: Returns the current UTC time as Unix seconds since 1970-01-01 00:00:00 UTC.
+;
+; ES: Devuelve la hora UTC actual como segundos Unix desde 1970-01-01 00:00:00 UTC.
+@unsafe
+func unix_seconds() int64:
+    return Platform.unix_seconds()
+
+; EN: Returns the current UTC time as Unix milliseconds since 1970-01-01 00:00:00 UTC.
+;
+; ES: Devuelve la hora UTC actual como milisegundos Unix desde 1970-01-01 00:00:00 UTC.
+@unsafe
+func unix_milliseconds() int64:
+    return Platform.unix_milliseconds()
+
+; EN: Returns the current UTC time in seconds (standard alias for unix_seconds).
+;
+; ES: Devuelve la hora UTC actual en segundos (alias estandar de unix_seconds).
+@unsafe
+func now() int64:
+    return Platform.unix_seconds()
+
+; EN: Returns the current UTC time in milliseconds (standard alias for unix_milliseconds).
+;
+; ES: Devuelve la hora UTC actual en milisegundos (alias estandar de unix_milliseconds).
+@unsafe
+func now_ms() int64:
+    return Platform.unix_milliseconds()
+
+; Legacy compatibility wrappers
+@unsafe
+func time_unix_seconds() int64:
+    return Platform.unix_seconds()
+
+@unsafe
+func time_unix_milliseconds() int64:
+    return Platform.unix_milliseconds()
+
+; ============================================================================
+; High-resolution monotonic clock
+; ============================================================================
+
+; EN: Reads the monotonic high-resolution performance counter.
+;
+; ES: Lee el contador monotono de rendimiento de alta resolucion.
+@unsafe
+func ticks() int64:
+    return Platform.ticks()
+
+; EN: Returns the frequency of the monotonic performance counter in ticks per second.
+;
+; ES: Devuelve la frecuencia del contador monotono de rendimiento en ticks por segundo.
+@unsafe
+func frequency() int64:
+    return Platform.frequency()
+
+; EN: Converts a counter interval into microseconds using the system timer frequency.
+;
+; ES: Convierte un intervalo del contador a microsegundos usando la frecuencia del temporizador.
+@unsafe
+func microseconds(start: int64, end: int64) int64:
+    return Platform.microseconds(start, end)
+
+; EN: Converts a counter interval into milliseconds.
+;
+; ES: Convierte un intervalo del contador a milisegundos.
+@unsafe
+func milliseconds(start: int64, end: int64) int64:
+    usec: int64 = Platform.microseconds(start, end)
+    return usec / 1000
+
+; Legacy compatibility wrappers
+@unsafe
+func time_ticks() int64:
+    return Platform.ticks()
+
+@unsafe
+func time_frequency() int64:
+    return Platform.frequency()
+
+@unsafe
+func time_microseconds(start: int64, end: int64) int64:
+    return Platform.microseconds(start, end)
+
+; ============================================================================
+; Thread suspension (Sleep)
+; ============================================================================
+
+; EN: Suspends execution of the calling thread for the specified number of milliseconds.
+;
+; ES: Suspende la ejecucion de la hebra llamadora durante el numero especificado de milisegundos.
+@unsafe
+func sleep_ms(duration_ms: uint32) void:
+    Platform.sleep_ms(duration_ms)
+    return
+
+; EN: Suspends execution of the calling thread for the specified number of seconds.
+;
+; ES: Suspende la ejecucion de la hebra llamadora durante el numero especificado de segundos.
+@unsafe
+func sleep(seconds: uint32) void:
+    Platform.sleep(seconds)
+    return
