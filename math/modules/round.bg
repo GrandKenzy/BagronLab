@@ -9,7 +9,9 @@ public func trunc(value: double) double:
     if value != value:
         return value
     if value == 0.0:
-        return 0.0
+        return value
+    if value == value * 2.0:
+        return value
 
     negative: bool = false
     magnitude: double = value
@@ -78,7 +80,9 @@ public func trunc(value: float) float:
     if value != value:
         return value
     if value == 0.0:
-        return 0.0
+        return value
+    if value == value * 2.0:
+        return value
 
     negative: bool = false
     magnitude: float = value
