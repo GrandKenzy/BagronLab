@@ -1,71 +1,131 @@
-; Prueba mínima del buffer dinámico nativo de Bagron.
+; Portable primitives for Bagron buffer[] storage.
+; The caller owns the storage. All ranges are checked before access.
 
-func test_buffer() int32:
-    data: buffer[4096] = 0
-    data[0] = 65
-    data[4095] = 90
-
-    result: int32 = 0
-    if data[0] == 65:
-        if data[4095] == 90:
-            result = 1
-
-    Del data
-    return result
-
-func create_delete_once() void:
-    temporary: buffer[4096] = 0
-    Del temporary
-    return
-
+; EN: Fills a range with a byte; false for an invalid range.
+; ES: Rellena un rango con un byte; false si el rango es invalido.
+;
 @unsafe
-func run_buffer_benchmark() void:
-    iterations: uint32 = 10000
-    start_ticks: int64 = 0
-    create_delete_us: int64 = 0
-    write_us: int64 = 0
-    read_us: int64 = 0
-    delete_us: int64 = 0
-    checksum: uint64 = 0
-    data: buffer[4096] = 0
+public func fill(data: buffer[], length: Len_t, start: usize, count: usize, value: byte) bool:
+    if start > length || count > length - start:
+        return false
+    i: usize = 0
+    while i < count:
+        data[start + i] = value
+        i += 1
+    return true
 
-    start_ticks = time.time_ticks()
-    for iteration: uint32 ran (0, 10000, 1):
-        create_delete_once()
-    create_delete_us = time.time_microseconds(start_ticks, time.time_ticks())
+; EN: Zeroes a bounded range. Not guaranteed to securely erase secrets.
+; ES: Limpia a cero un rango. No garantiza borrar secretos.
+;
+@unsafe
+public func zero(data: buffer[], length: Len_t, start: usize, count: usize) bool:
+    if start > length || count > length - start:
+        return false
+    i: usize = 0
+    while i < count:
+        data[start + i] = 0
+        i += 1
+    return true
 
-    start_ticks = time.time_ticks()
-    for iteration: uint32 ran (0, 10000, 1):
-        data[0] = 65
-        data[4095] = 90
-    write_us = time.time_microseconds(start_ticks, time.time_ticks())
+; EN: Copies between disjoint buffers. Overlap is not supported.
+; ES: Copia entre buffers distintos. No se admite solapamiento.
+;
+@unsafe
+public func copy(destination: buffer[], destination_length: Len_t, source: buffer[], source_length: Len_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if destination_start > destination_length || count > destination_length - destination_start:
+        return false
+    if source_start > source_length || count > source_length - source_start:
+        return false
+    i: usize = 0
+    while i < count:
+        destination[destination_start + i] = source[source_start + i]
+        i += 1
+    return true
 
-    start_ticks = time.time_ticks()
-    for iteration: uint32 ran (0, 10000, 1):
-        if data[0] == 65:
-            checksum = 1
-        if data[4095] == 90:
-            checksum += 1
-    read_us = time.time_microseconds(start_ticks, time.time_ticks())
+; EN: Moves data within one buffer, including overlapping ranges.
+; ES: Mueve bytes dentro de un buffer, incluso con solapamiento.
+;
+@unsafe
+public func move_within(data: buffer[], length: Len_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if destination_start > length || count > length - destination_start:
+        return false
+    if source_start > length || count > length - source_start:
+        return false
+    if count == 0 || destination_start == source_start:
+        return true
+    i: usize = 0
+    if destination_start > source_start:
+        i = count
+        while i > 0:
+            i -= 1
+            data[destination_start + i] = data[source_start + i]
+    else:
+        i = 0
+        while i < count:
+            data[destination_start + i] = data[source_start + i]
+            i += 1
+    return true
 
-    start_ticks = time.time_ticks()
-    for iteration: uint32 ran (0, 10000, 1):
-        temporary: buffer[4096] = 0
-        Del temporary
-    delete_us = time.time_microseconds(start_ticks, time.time_ticks())
+; EN: Returns true for identical bounded byte spans.
+; ES: Devuelve true si dos segmentos acotados son identicos.
+;
+@unsafe
+public func equal(left: buffer[], left_length: Len_t, right: buffer[], right_length: Len_t, left_start: usize, right_start: usize, count: usize) bool:
+    if left_start > left_length || count > left_length - left_start:
+        return false
+    if right_start > right_length || count > right_length - right_start:
+        return false
+    i: usize = 0
+    while i < count:
+        if left[left_start + i] != right[right_start + i]:
+            return false
+        i += 1
+    return true
 
-    Del data
+; EN: Returns the first index at or after start, or length if absent.
+; ES: Devuelve el primer indice a partir de start, o length si no existe.
+;
+@unsafe
+public func index_of(data: buffer[], length: Len_t, start: usize, value: byte) usize:
+    if start > length:
+        return length
+    i: usize = start
+    while i < length:
+        if data[i] == value:
+            return i
+        i += 1
+    return length
 
-    io.print("buffer_create_delete_us=")
-    io.print_int(create_delete_us, false)
-    io.print("\nbuffer_write_us=")
-    io.print_int(write_us, false)
-    io.print("\nbuffer_read_us=")
-    io.print_int(read_us, false)
-    io.print("\nbuffer_delete_phase_us=")
-    io.print_int(delete_us, false)
-    io.print("\nbuffer_checksum=")
-    io.print_uint(checksum, false)
-    io.print("\n")
-    io.flush()
-    return
+; EN: Counts occurrences in a bounded range; 0 for an invalid range.
+; ES: Cuenta coincidencias en un rango; devuelve 0 si es invalido.
+;
+@unsafe
+public func count_value(data: buffer[], length: Len_t, start: usize, count: usize, value: byte) usize:
+    if start > length || count > length - start:
+        return 0
+    found: usize = 0
+    i: usize = 0
+    while i < count:
+        if data[start + i] == value:
+            found += 1
+        i += 1
+    return found
+
+; EN: Reverses a bounded buffer range in place.
+; ES: Invierte los bytes de un rango sin memoria adicional.
+;
+@unsafe
+public func reverse(data: buffer[], length: Len_t, start: usize, count: usize) bool:
+    if start > length || count > length - start:
+        return false
+    left: usize = 0
+    right: usize = count
+    while left < right:
+        right -= 1
+        if left >= right:
+            break
+        temporary: byte = data[start + left]
+        data[start + left] = data[start + right]
+        data[start + right] = temporary
+        left += 1
+    return true
