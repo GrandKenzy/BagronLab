@@ -28,7 +28,7 @@ remain outside it.
 | `os/` | Cross-platform file and path operations built on `gnulibrary` and `windows`. |
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
-| `mem/` | Buffer and memory experiments. |
+| `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
 | `mmap/` | Memory-mapping library area. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
@@ -96,7 +96,7 @@ The validated packages currently exposed by this lab are:
 - `build/hashlib.lib` and `build/math.lib` — portable Bagron libraries.
 - `build/string.lib` — precompiled string package whose API is exported from  `source/main.bg`.
 
-`mmap`, `time`, `mem`, `types`, and the historical `standard` tree are not
+`mmap`, `time`, `types`, and the historical `standard` tree are not
 published until their completeness and targets are confirmed. `net/` and `Brixel/`
 remain explicitly omitted from this cleanup; `string/` is now maintained as asingle entry module while `gnulibrary/` and `windows/` own native operations.
 
@@ -142,4 +142,16 @@ belong in each library's `main.bg`; modules inherit the selected target.
 
 When adding a library, create its documentation directory under `docs/` and
 keep the public API, target assumptions, ownership rules, and smoke commands
-there.
+there.
+
+## Mem library (0.1.0)
+
+`mem/` now provides portable, allocation-free buffer and byte-array
+utilities, including checked fill, zero, copy, overlap-safe moves,
+comparisons, search, reverse, and byte[]/buffer[] conversion. The original
+microbenchmark was moved to `mem/benchmarks/`.
+
+Use `python3 scripts/build_mem.py` to produce and verify `build/mem.lib`.
+The published binary and Central integrity manifests must be updated together
+when releasing: this source change does not itself publish a new binary.
+See `docs/mem/README.md` and `tests/mem/README.md` for contracts and tests.
