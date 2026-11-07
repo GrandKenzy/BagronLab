@@ -13,3 +13,13 @@ public func should_repaint(event_kind: int32) bool:
 ; ES: Indica que se presionó un botón del ratón.
 public func is_click(event_kind: int32) bool:
     return event_kind == XNative.X11_BUTTON_PRESS
+ 
+; EN: True for X11 KeyPress; use Window.last_keysym for logical key.
+; ES: Verdadero cuando una tecla se presiona.
+public func is_key_press(event_kind: int32) bool:
+    return event_kind == XNative.X11_KEY_PRESS
+
+; EN: True for X11 KeyRelease (including X11 autorepeat sequences).
+; ES: Verdadero cuando una tecla se libera.
+public func is_key_release(event_kind: int32) bool:
+    return event_kind == XNative.X11_KEY_RELEASE
