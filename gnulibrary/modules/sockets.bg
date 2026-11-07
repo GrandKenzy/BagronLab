@@ -670,6 +670,12 @@ private mold NativeAddrCursor:
     ptr *: ADDRINFO
     numeric: usize
 
+; Enable a listening socket to rebind after previous connections close.
+@unsafe
+public func ReuseAddress(handle: usize) bool:
+    enabled: int32 = 1
+    return setsockopt(handle, SOL_SOCKET, SO_REUSEADDR, $enabled, 4) == 0
+
 @unsafe
 public func OpenTcpHost(node *: const char, service *: const char, timeout_ms: int32) usize:
     if timeout_ms < 1:
