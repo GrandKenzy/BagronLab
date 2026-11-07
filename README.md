@@ -24,12 +24,13 @@ remain outside it.
 | Directory | Responsibility |
 | --- | --- |
 | `gnulibrary/` | Linux x86_64 raw syscalls and shared Linux constants. It is not libc and does not expose C wrappers. |
-| `windows/` | Native Microsoft x64 declarations, currently centered on `kernel32.dll`. |
+| `windows/` | Native Microsoft x64 ABI modules: `kernel32`, `user32`, `gdi32`, `comctl32`, sockets, and more. |
 | `os/` | Cross-platform file and path operations built on `gnulibrary` and `windows`. |
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
-| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `win32gui/` | Windows-only GUI backend with separate modules for windows, events, controls, drawing and dialogs. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
 | `math/` | Mathematical algorithms and constants. |
@@ -173,3 +174,17 @@ Run `python3 scripts/build_mmap.py` to generate and verify the local
 the repository, so do not add a Central distribution manifest entry until
 the actual package and its integrity digest are uploaded.
 See `docs/mmap/README.md` and `tests/mmap/README.md`.
+
+## win32gui source prototype
+
+`win32gui/` is a **Windows x64-only** graphical backend. It keeps the high-level
+window, event-loop, controls, drawing, dialog and text modules separate. Native
+DLL declarations belong only in `windows/modules/user32.bg`,
+`windows/modules/gdi32.bg`, `windows/modules/comctl32.bg` and
+`windows/modules/kernel32.bg`.
+
+The name `guilib` is reserved for the future cross-platform façade, not the
+Windows backend. See `docs/win32gui/README.md`. A native Windows smoke test
+exists at `examples/win32gui/message_box.bg`. Build on Windows with
+`python scripts/build_win32gui.py`. **This is not a validated Windows
+release yet**; the WNDPROC callback ABI needs a native test.
