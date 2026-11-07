@@ -27,7 +27,7 @@ license = "MIT"
 # Paquete: io
 [[packages]]
 name = "io"
-version = "1.1.6"
+version = "1.1.7"
 kind = "librería"
 format = "lib1"
 file = "io.lib"
@@ -57,7 +57,7 @@ license = "MIT"
 # Paquete: string
 [[packages]]
 name = "string"
-version = "1.1.6"
+version = "1.1.7"
 kind = "librería"
 format = "lib1"
 file = "string.lib"

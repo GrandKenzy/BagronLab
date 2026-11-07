@@ -27,9 +27,9 @@ signature = "sha256:661dab48bbc12551d876a65a27fe80ddfdb6b08bbd4153d79eeec96b4c7a
 name = "io"
 file = "io.lib"
 format = "lib1"
-sha256 = "ffd229d3ba13fc899846028c5683485ca178fe3ede57e43c0c7b682f57b86b0e"
-size_bytes = 16854
-signature = "sha256:ed2c88208cdf57664a0bc1bcfe0e9bcc5c71c0f5433e9308319da79aa73f8e1c"
+sha256 = "40abe5a2041bbfbfae9d1ece89d29508e7075de78604616e124f856fbb85dee7"
+size_bytes = 16956
+signature = "sha256:d42246e0bae789d51224e523c1ecb737a5e96527636e9c7bc7b67b65d1a6c0f8"
 
 # Verificación para: math
 [[packages]]
@@ -54,9 +54,9 @@ signature = "sha256:367baca162da38edae4b3df194ce4638670845a7abd3ee74e45f69639829
 name = "string"
 file = "string.lib"
 format = "lib1"
-sha256 = "fa2c76e6e77d60fb9d9c24f3780a510489717e63f97f2752e26d0dc8592cc1f3"
-size_bytes = 40941
-signature = "sha256:0d2022d692de56edfe9a750269db6ffbf341c19df1c1e1824f0537d240ae0647"
+sha256 = "a5ebf6663bea985d310f8da0624f6a50ae17a5e795de474a5cd6c94e6d6dfa48"
+size_bytes = 41000
+signature = "sha256:da49030f7162e80c99a3d7b78acdebaa774ffea471044ad2775cd122ac52b331"
 
 # Verificación para: time
 [[packages]]

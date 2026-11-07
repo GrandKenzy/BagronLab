@@ -86,9 +86,9 @@ Para regenerar los artefactos despues de un cambio de fuentes, empaquetar
 porque `io` depende de `string`:
 
 ```sh
-bagron library --v1 string -o build/string.lib --name string --version 1.1.6
-bagron install --library --v1 string --name string --version 1.1.6
-bagron library --v1 io -o build/io.lib --name io --version 1.1.6
+bagron library --v1 string -o build/string.lib --name string --version 1.1.7
+bagron install --library --v1 string --name string --version 1.1.7
+bagron library --v1 io -o build/io.lib --name io --version 1.1.7
 bagron verify build/string.lib
 bagron verify build/io.lib
 bagron inspect build/io.lib
