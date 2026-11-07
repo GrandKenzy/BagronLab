@@ -86,3 +86,29 @@ lectura y restaurar. El respaldo nativo es Windows x64.
 Estos helpers nuevos están listos en las fuentes, pero la compilación desde
 Linux **no** verifica las exportaciones Windows: regenerar `windows.lib` y
 probar las llamadas en una máquina Windows antes de declararlas compatibles.
+
+## GUI nativa por DLL
+
+La GUI para Windows se mantiene modular, sin poner todas las declaraciones
+en `kernel32.bg` ni dentro de la biblioteca gráfica de alto nivel:
+
+- `modules/user32.bg`: `RegisterClassExW`, `CreateWindowExW`,
+  `GetMessageW`, `DispatchMessageW`, ventanas, controles básicos,
+  mensajes, `BeginPaint`/`EndPaint` y estructuras Win32.
+- `modules/gdi32.bg`: primitivas de dibujo, texto y recursos GDI.
+- `modules/comctl32.bg`: inicialización de controles comunes e ImageList.
+- `modules/kernel32.bg`: `GetModuleHandleW` y conversión UTF-8/UTF-16.
+
+Las estructuras `POINT` y `RECT` tienen alineación de 4 bytes en
+Win64; dentro de `MSG` y `PAINTSTRUCT` esto conserva los offsets ABI.
+Los tamaños esperados en x64 son `MSG=48`, `PAINTSTRUCT=72` y
+`WNDCLASSEXW=80`. Validar el layout con un ejecutable Windows antes de
+declarar el soporte estable.
+
+La biblioteca `win32gui` separa `window`, `events`, `controls`,
+`drawing`, `dialogs` y `text` sin crear externs propias. `guilib`
+queda reservada como futura API multiplataforma.
+
+El punto crítico pendiente es la entrada desde callbacks Win32 `WNDPROC`:
+no basta con declarar `RegisterClassExW`; hay que validar la convención
+Microsoft x64 y el lifetime de los callbacks Bagron en Windows.
