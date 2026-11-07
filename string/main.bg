@@ -1,6 +1,7 @@
 ; Library source root and public API for Bagron string operations.
 ; All string, alphabet, and hexadecimal symbols live in this entry module.
 ; Target-specific process termination is delegated to gnulibrary or windows.
+; Text operations treat char[] and chain values as NUL-terminated UTF-8 byte sequences.
 
 clause Privacy "public"
 
@@ -449,9 +450,9 @@ func word64_to_hex_upper(value: uint64, dest: char[], dest_len: Len_t, dest_sz: 
 
 @unsafe
 public func len(text: char[], length: Len_t, size: Size_t) usize:
-    ; EN : Returns the real length of text up to the first null byte (\0) or buffer capacity.
+    ; EN : Returns the UTF-8 byte length of text up to the first null byte (\0) or buffer capacity.
     ;
-    ; ES : Devuelve la longitud real del texto hasta el primer byte nulo (\0) o la capacidad del buffer.
+    ; ES : Devuelve la longitud en bytes UTF-8 del texto hasta el primer byte nulo (\0) o la capacidad del buffer.
     if size != 1:
         return 0
 

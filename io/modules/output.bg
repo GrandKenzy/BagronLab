@@ -1,4 +1,5 @@
 ; Standard output, buffering, and formatting for Windows.
+; Text chains and char arrays are emitted as UTF-8 bytes; all counts are byte counts.
 
 private stdout_initialized: bool = false
 private stdout_buffer: char[4096]
