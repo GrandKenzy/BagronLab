@@ -52,3 +52,29 @@ Las funciones de rutas (`exists`, `is_dir`, `is_file`, `is_link`, `suffix`,
 de archivo/directorio mantienen también la misma firma pública en Windows y
 Linux. Targets sin backend nativo conservan la forma de la API y devuelven un
 fallo explícito.
+
+## Metadatos y directorios
+
+`stat(path)` devuelve un `FileInfo` portátil con `kind`, `size` y marcas de
+tiempo Unix. `kind` usa `FileKindUnknown`, `FileKindFile`,
+`FileKindDirectory`, `FileKindLink` o `FileKindOther`. Las marcas de creación
+no disponibles en Linux valen cero.
+
+`directory_entry(path, entry_index, name, actual)` devuelve la entrada
+correspondiente al índice, omitiendo `.` y `..`, y devuelve su `FileInfo`.
+La función vuelve a recorrer el directorio en cada consulta; esto mantiene la
+API sin exponer handles ni buffers nativos y hace que cada llamada sea
+reentrante.
+
+## Operaciones y proceso
+
+`create_directories(path)` crea los padres que falten. `copy_file(source,
+target, options)` copia mediante los backends nativos; usa `FileCopyReplace`
+para permitir reemplazar el destino. `replace_file(source, target)` aplica la
+operación de reemplazo del sistema.
+
+`File.truncate(length)` cambia el tamaño y conserva la posición actual;
+`File.sync_data()` fuerza los datos al backend. El contexto de ejecución ofrece
+`current_directory`, `set_current_directory`, `temporary_directory`,
+`get_environment`, `set_environment`, `process_id`, `sleep_ms`,
+`yield_thread` y `exit_process` con firmas portátiles.

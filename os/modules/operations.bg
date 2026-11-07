@@ -1,0 +1,90 @@
+; Portable high-level filesystem operations.
+; Operaciones portátiles de alto nivel para el filesystem.
+
+public FileCopyReplace: const uint32 = 1
+
+#if OS, "windows"
+
+@unsafe
+public func create_directories(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Creates all missing directory components through Windows.
+    ;
+    ; ES: Crea todos los componentes faltantes mediante Windows.
+    return Win.create_directories(path)
+
+@unsafe
+public func copy_file(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t,
+    options: uint32
+) int32:
+    ; EN: Copies a file through the Windows backend.
+    ;
+    ; ES: Copia un archivo mediante el backend Windows.
+    replace: bool = (options & FileCopyReplace) != 0
+    return Win.copy_file(source, target, replace)
+
+@unsafe
+public func replace_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t) int32:
+    ; EN: Replaces a file through Windows atomic replacement semantics.
+    ;
+    ; ES: Reemplaza un archivo mediante la semántica atómica de Windows.
+    return Win.replace_file(source, target)
+
+#elif OS, "linux"
+
+@unsafe
+public func create_directories(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Creates all missing directory components through Linux.
+    ;
+    ; ES: Crea todos los componentes faltantes mediante Linux.
+    return Gnu.create_directories(path)
+
+@unsafe
+public func copy_file(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t,
+    options: uint32
+) int32:
+    ; EN: Copies a file through the Linux backend.
+    ;
+    ; ES: Copia un archivo mediante el backend Linux.
+    replace: bool = (options & FileCopyReplace) != 0
+    return Gnu.copy_file(source, target, replace)
+
+@unsafe
+public func replace_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t) int32:
+    ; EN: Replaces a file through Linux renameat2 semantics.
+    ;
+    ; ES: Reemplaza un archivo mediante la semántica Linux de renameat2.
+    return Gnu.replace_file(source, target)
+
+#else
+
+public func create_directories(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Reports failure without a filesystem backend.
+    ;
+    ; ES: Reporta fallo sin backend de filesystem.
+    return 1
+
+public func copy_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t, options: uint32) int32:
+    ; EN: Reports failure without a filesystem backend.
+    ;
+    ; ES: Reporta fallo sin backend de filesystem.
+    return 1
+
+public func replace_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t) int32:
+    ; EN: Reports failure without a filesystem backend.
+    ;
+    ; ES: Reporta fallo sin backend de filesystem.
+    return 1
+
+#end

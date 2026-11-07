@@ -1,0 +1,259 @@
+; Native Windows filesystem helpers for the portable os library.
+; Ayudas nativas de filesystem Windows para la librería os portátil.
+
+import {
+    ERROR_FILE_NOT_FOUND,
+    ERROR_PATH_NOT_FOUND,
+    FILE_ATTRIBUTE_DIRECTORY,
+    FILE_ATTRIBUTE_REPARSE_POINT,
+    FindClose,
+    FindFirstFileA,
+    FindNextFileA,
+    GetFileAttributesExA,
+    GetLastError,
+    SetLastError,
+    HANDLE,
+    MOVEFILE_REPLACE_EXISTING,
+    MOVEFILE_WRITE_THROUGH,
+    MoveFileExA,
+    CopyFileA,
+    CreateDirectoryA,
+    GetFileAttributesA,
+    INVALID_FILE_ATTRIBUTES
+} from kernel32
+
+private WindowsEpochTicks: const uint64 = 116444736000000000
+private WindowsFileInfoLevel: const uint32 = 0
+
+@align(8)
+private struct NativeFileAttributeData:
+    attributes: uint32
+    creation_time_low: uint32
+    creation_time_high: uint32
+    access_time_low: uint32
+    access_time_high: uint32
+    write_time_low: uint32
+    write_time_high: uint32
+    size_high: uint32
+    size_low: uint32
+
+@align(8)
+private struct NativeFindData:
+    attributes: uint32
+    creation_time_low: uint32
+    creation_time_high: uint32
+    access_time_low: uint32
+    access_time_high: uint32
+    write_time_low: uint32
+    write_time_high: uint32
+    size_high: uint32
+    size_low: uint32
+    reserved0: uint32
+    reserved1: uint32
+    file_name: char[260]
+    alternate_name: char[14]
+
+private mold WindowsSigned64:
+    native: uint64
+    portable: int64
+
+private func filetime_seconds(low: uint32, high: uint32) int64:
+    ; EN: Converts a FILETIME pair into Unix seconds.
+    ;
+    ; ES: Convierte un par FILETIME a segundos Unix.
+    ticks: uint64 = high
+    ticks = (ticks << 32) | low
+    if ticks < WindowsEpochTicks:
+        return 0
+    delta: uint64 = (ticks - WindowsEpochTicks) / 10000000
+    result: WindowsSigned64
+    result.native = delta
+    return result.portable
+
+@unsafe
+public func file_info(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    kind *: uint32,
+    byte_size *: int64,
+    access_seconds *: int64,
+    modify_seconds *: int64,
+    creation_seconds *: int64,
+    change_seconds *: int64
+) bool:
+    ; EN: Reads native Windows path metadata into scalar outputs.
+    ;
+    ; ES: Lee metadatos nativos de Windows en salidas escalares.
+    data: NativeFileAttributeData
+    if path_size != 1 || path_length < 2:
+        return false
+    if GetFileAttributesExA($path[0], WindowsFileInfoLevel, $data) == 0:
+        return false
+    if (data.attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0:
+        (kind) = 3
+    elif (data.attributes & FILE_ATTRIBUTE_DIRECTORY) != 0:
+        (kind) = 2
+    else:
+        (kind) = 1
+    native_size: uint64 = data.size_high
+    native_size = (native_size << 32) | data.size_low
+    size: WindowsSigned64
+    size.native = native_size
+    (byte_size) = size.portable
+    (access_seconds) = filetime_seconds(data.access_time_low, data.access_time_high)
+    (modify_seconds) = filetime_seconds(data.write_time_low, data.write_time_high)
+    (creation_seconds) = filetime_seconds(data.creation_time_low, data.creation_time_high)
+    (change_seconds) = 0
+    return true
+
+@unsafe
+public func directory_entry(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    entry_index: usize,
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    actual *: usize,
+    kind *: uint32,
+    byte_size *: int64,
+    access_seconds *: int64,
+    modify_seconds *: int64,
+    creation_seconds *: int64
+) bool:
+    ; EN: Scans one Windows directory entry without exposing FindData.
+    ;
+    ; ES: Recorre una entrada Windows sin exponer FindData.
+    (actual) = 0
+    if path_size != 1 || name_size != 1 || path_length < 2 || name_length < 2:
+        return false
+    pattern: char[4096]
+    zero: char = "\0"
+    slash: char = "/"
+    backslash: char = "\\"
+    path_index: usize = 0
+    while path_index < path_length && path[path_index] != zero && path_index < 4094:
+        pattern[path_index] = path[path_index]
+        path_index += 1
+    if path_index == 0 || path_index >= 4094:
+        return false
+    if pattern[path_index - 1] != backslash && pattern[path_index - 1] != slash:
+        pattern[path_index] = backslash
+        path_index += 1
+    pattern[path_index] = "*"
+    path_index += 1
+    pattern[path_index] = "\0"
+    data: NativeFindData
+    SetLastError(0)
+    search: HANDLE = FindFirstFileA($pattern[0], $data)
+    if GetLastError() == ERROR_FILE_NOT_FOUND || GetLastError() == ERROR_PATH_NOT_FOUND:
+        FindClose(search)
+        return false
+    current: usize = 0
+    dot: char = "."
+    while true:
+        is_dot: bool = data.file_name[0] == dot && (
+            data.file_name[1] == zero ||
+            (data.file_name[1] == dot && data.file_name[2] == zero)
+        )
+        if not is_dot:
+            if current == entry_index:
+                index: usize = 0
+                while data.file_name[index] != zero:
+                    if index + 1 >= name_length:
+                        FindClose(search)
+                        return false
+                    name[index] = data.file_name[index]
+                    index += 1
+                name[index] = zero
+                (actual) = index
+                if (data.attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0:
+                    (kind) = 3
+                elif (data.attributes & FILE_ATTRIBUTE_DIRECTORY) != 0:
+                    (kind) = 2
+                else:
+                    (kind) = 1
+                native_size: uint64 = data.size_high
+                native_size = (native_size << 32) | data.size_low
+                size: WindowsSigned64
+                size.native = native_size
+                (byte_size) = size.portable
+                (access_seconds) = filetime_seconds(data.access_time_low, data.access_time_high)
+                (modify_seconds) = filetime_seconds(data.write_time_low, data.write_time_high)
+                (creation_seconds) = filetime_seconds(data.creation_time_low, data.creation_time_high)
+                FindClose(search)
+                return true
+            current += 1
+        if FindNextFileA(search, $data) == 0:
+            break
+    FindClose(search)
+    return false
+
+@unsafe
+public func replace_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t) int32:
+    ; EN: Replaces a path with Windows replace-and-write-through semantics.
+    ;
+    ; ES: Reemplaza una ruta con semántica Windows de reemplazo y escritura completa.
+    if source_size != 1 || target_size != 1 || source_length < 2 || target_length < 2:
+        return 1
+    if MoveFileExA($source[0], $target[0], MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0:
+        return 0
+    return 1
+
+@unsafe
+public func create_directories(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Creates missing Windows directory components from a managed path.
+    ;
+    ; ES: Crea los componentes de directorio Windows faltantes desde una ruta administrada.
+    if size != 1 || length < 2:
+        return 1
+    buffer: char[4096]
+    index: usize = 0
+    while index < length && path[index] != 0:
+        if index >= 4095:
+            return 1
+        buffer[index] = path[index]
+        index += 1
+    if index == 0 || index >= 4095:
+        return 1
+    buffer[index] = "\0"
+    slash: char = "/"
+    backslash: char = "\\"
+    component: usize = 0
+    while component < index:
+        if buffer[component] == slash || buffer[component] == backslash:
+            if component > 0:
+                separator: char = buffer[component]
+                buffer[component] = "\0"
+                attributes: uint32 = GetFileAttributesA($buffer[0])
+                if attributes == INVALID_FILE_ATTRIBUTES:
+                    if CreateDirectoryA($buffer[0], Null) == 0 && GetFileAttributesA($buffer[0]) == INVALID_FILE_ATTRIBUTES:
+                        return 1
+                elif (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0:
+                    return 1
+                buffer[component] = separator
+        component += 1
+    final_attributes: uint32 = GetFileAttributesA($buffer[0])
+    if final_attributes != INVALID_FILE_ATTRIBUTES:
+        if (final_attributes & FILE_ATTRIBUTE_DIRECTORY) != 0:
+            return 0
+        return 1
+    if CreateDirectoryA($buffer[0], Null) != 0:
+        return 0
+    return 1
+
+@unsafe
+public func copy_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t, replace: bool) int32:
+    ; EN: Copies one ANSI file using Kernel32's native copy operation.
+    ;
+    ; ES: Copia un archivo ANSI mediante la operación nativa de Kernel32.
+    if source_size != 1 || target_size != 1 || source_length < 2 || target_length < 2:
+        return 1
+    fail_if_exists: int32 = 1
+    if replace:
+        fail_if_exists = 0
+    if CopyFileA($source[0], $target[0], fail_if_exists) != 0:
+        return 0
+    return 1

@@ -1,0 +1,292 @@
+clause System "linux"
+clause Arch "amd"
+
+import { AT_FDCWD, AT_SYMLINK_NOFOLLOW, O_RDONLY, O_WRONLY, O_CREAT, O_TRUNC, O_EXCL, O_DIRECTORY, O_CLOEXEC, MODE_USER_READ_WRITE, MODE_USER_READ_WRITE_EXEC } from linuxc
+import { getdents64, mkdirat, newfstatat, openat, renameat2 } from files
+import { close, read, write } from system
+
+; Native Linux filesystem helpers for the portable os library.
+; Ayudas nativas de filesystem Linux para la librería os portátil.
+
+@align(8)
+private struct NativeStat:
+    device: uint64
+    inode: uint64
+    link_count: uint64
+    mode: uint32
+    user_id: uint32
+    group_id: uint32
+    padding: uint32
+    device_type: uint64
+    byte_size: int64
+    block_size: int64
+    block_count: int64
+    access_seconds: int64
+    access_nanoseconds: int64
+    modify_seconds: int64
+    modify_nanoseconds: int64
+    change_seconds: int64
+    change_nanoseconds: int64
+    reserved: uint64[3]
+
+private LinuxStatTypeMask: const uint32 = 61440
+private LinuxStatTypeFile: const uint32 = 32768
+private LinuxStatTypeDirectory: const uint32 = 16384
+private LinuxStatTypeLink: const uint32 = 40960
+
+private mold LinuxLength:
+    native: uint32
+    portable: usize
+
+private mold LinuxCount:
+    native: int64
+    portable: usize
+
+private mold LinuxByte:
+    native: byte
+    portable: uint32
+
+private mold LinuxChar:
+    native: byte
+    portable: char
+
+@unsafe
+private func linux_byte_value(buffer: byte[], length: Len_t, size: Size_t, offset: usize) uint32:
+    ; EN: Converts one native directory byte to a portable integer.
+    ;
+    ; ES: Convierte un byte nativo del directorio a un entero portátil.
+    value: LinuxByte
+    value.native = buffer[offset]
+    return value.portable
+
+@unsafe
+public func file_info(
+    path *: void,
+    kind *: uint32,
+    byte_size *: int64,
+    access_seconds *: int64,
+    modify_seconds *: int64,
+    creation_seconds *: int64,
+    change_seconds *: int64
+) bool:
+    ; EN: Reads Linux lstat metadata into scalar outputs.
+    ;
+    ; ES: Lee metadatos lstat de Linux en salidas escalares.
+    data: NativeStat
+    if newfstatat(AT_FDCWD, path, $data, AT_SYMLINK_NOFOLLOW) != 0:
+        return false
+    mode: uint32 = data.mode & LinuxStatTypeMask
+    if mode == LinuxStatTypeDirectory:
+        (kind) = 2
+    elif mode == LinuxStatTypeFile:
+        (kind) = 1
+    elif mode == LinuxStatTypeLink:
+        (kind) = 3
+    else:
+        (kind) = 4
+    (byte_size) = data.byte_size
+    (access_seconds) = data.access_seconds
+    (modify_seconds) = data.modify_seconds
+    (creation_seconds) = 0
+    (change_seconds) = data.change_seconds
+    return true
+
+@unsafe
+private func record_length(buffer: byte[], length: Len_t, size: Size_t, offset: usize) usize:
+    ; EN: Decodes one Linux directory record length.
+    ;
+    ; ES: Decodifica la longitud de un registro de directorio Linux.
+    result: uint32 = linux_byte_value(buffer, offset)
+    result = result | (linux_byte_value(buffer, offset + 1) << 8)
+    decoded: LinuxLength
+    decoded.native = result
+    return decoded.portable
+
+@unsafe
+public func directory_entry(
+    path *: void,
+    entry_index: usize,
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    actual *: usize,
+    kind *: uint32,
+    byte_size *: int64,
+    access_seconds *: int64,
+    modify_seconds *: int64,
+    creation_seconds *: int64
+) bool:
+    ; EN: Scans one Linux getdents entry without exposing its native layout.
+    ;
+    ; ES: Recorre una entrada getdents Linux sin exponer su layout nativo.
+    (actual) = 0
+    if name_size != 1 || name_length < 2:
+        return false
+    resource: int64 = openat(AT_FDCWD, path, O_RDONLY | O_DIRECTORY | O_CLOEXEC, 0)
+    if resource < 0:
+        return false
+    buffer: byte[8192]
+    current: usize = 0
+    while true:
+        result: int64 = getdents64(resource, $buffer[0], 8192)
+        if result <= 0:
+            close(resource)
+            return false
+        buffer_count: LinuxCount
+        buffer_count.native = result
+        buffer_length: usize = buffer_count.portable
+        buffer_offset: usize = 0
+        while buffer_offset + 19 <= buffer_length:
+            record_size: usize = record_length(buffer, buffer_offset)
+            if record_size < 20 || buffer_offset + record_size > buffer_length:
+                close(resource)
+                return false
+            name_offset: usize = buffer_offset + 19
+            name_limit: usize = buffer_offset + record_size
+            type_offset: usize = buffer_offset + 18
+            buffer_offset = name_limit
+            entry_name_length: usize = 0
+            while name_offset + entry_name_length < name_limit && linux_byte_value(buffer, name_offset + entry_name_length) != 0:
+                entry_name_length += 1
+            dot_value: LinuxByte
+            dot_value.native = 46
+            first_value: LinuxByte
+            first_value.native = buffer[name_offset]
+            second_value: LinuxByte
+            second_value.native = buffer[name_offset + 1]
+            if entry_name_length == 0 || (entry_name_length == 1 && dot_value.portable == first_value.portable) || (
+                entry_name_length == 2 && dot_value.portable == first_value.portable && dot_value.portable == second_value.portable
+            ):
+                continue
+            if current != entry_index:
+                current += 1
+                continue
+            if entry_name_length + 1 >= name_length:
+                close(resource)
+                return false
+            copy_index: usize = 0
+            while copy_index < entry_name_length:
+                copied: LinuxChar
+                copied.native = buffer[name_offset + copy_index]
+                name[copy_index] = copied.portable
+                copy_index += 1
+            name[entry_name_length] = "\0"
+            (actual) = entry_name_length
+            native_entry_type: byte = buffer[type_offset]
+            entry_type: LinuxByte
+            entry_type.native = native_entry_type
+            if entry_type.portable == 4:
+                (kind) = 2
+            elif entry_type.portable == 8:
+                (kind) = 1
+            elif entry_type.portable == 10:
+                (kind) = 3
+            else:
+                (kind) = 4
+            (byte_size) = -1
+            (access_seconds) = 0
+            (modify_seconds) = 0
+            (creation_seconds) = 0
+            close(resource)
+            return true
+
+
+    return false
+@unsafe
+public func create_directories(path: char[], length: Len_t, size: Size_t) int32:
+    ; EN: Creates missing Linux directory components with native mkdirat calls.
+    ;
+    ; ES: Crea componentes Linux faltantes mediante llamadas nativas mkdirat.
+    if size != 1 || length < 2:
+        return 1
+    buffer: char[4096]
+    index: usize = 0
+    while index < length && path[index] != 0:
+        if index >= 4095:
+            return 1
+        buffer[index] = path[index]
+        index += 1
+    if index == 0 || index >= 4095:
+        return 1
+    buffer[index] = "\0"
+    slash: char = "/"
+    backslash: char = "\\"
+    component: usize = 0
+    while component < index:
+        if buffer[component] == slash || buffer[component] == backslash:
+            if component > 0:
+                separator: char = buffer[component]
+                buffer[component] = "\0"
+                if mkdirat(AT_FDCWD, $buffer[0], MODE_USER_READ_WRITE_EXEC) != 0:
+                    component_metadata: NativeStat
+                    if newfstatat(AT_FDCWD, $buffer[0], $component_metadata, AT_SYMLINK_NOFOLLOW) != 0 || (component_metadata.mode & LinuxStatTypeMask) != LinuxStatTypeDirectory:
+                        return 1
+                buffer[component] = separator
+        component += 1
+    if mkdirat(AT_FDCWD, $buffer[0], MODE_USER_READ_WRITE_EXEC) != 0:
+        final_metadata: NativeStat
+        if newfstatat(AT_FDCWD, $buffer[0], $final_metadata, AT_SYMLINK_NOFOLLOW) != 0 || (final_metadata.mode & LinuxStatTypeMask) != LinuxStatTypeDirectory:
+            return 1
+    return 0
+
+@unsafe
+public func copy_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t, replace: bool) int32:
+    ; EN: Copies a Linux file with bounded native buffers.
+    ;
+    ; ES: Copia un archivo Linux con buffers nativos acotados.
+    if source_size != 1 || target_size != 1 || source_length < 2 || target_length < 2:
+        return 1
+    source_flags: uint32 = O_RDONLY
+    target_flags: uint32 = O_WRONLY | O_CREAT | O_TRUNC
+    if not replace:
+        target_flags = target_flags | O_EXCL
+    source_fd: int64 = openat(AT_FDCWD, $source[0], source_flags, 0)
+    if source_fd < 0:
+        return 1
+    target_fd: int64 = openat(AT_FDCWD, $target[0], target_flags, MODE_USER_READ_WRITE)
+    if target_fd < 0:
+        close(source_fd)
+        return 1
+    buffer: byte[65536]
+    while true:
+        read_result: int64 = read(source_fd, $buffer[0], 65536)
+        if read_result < 0:
+            close(source_fd)
+            close(target_fd)
+            return 1
+        if read_result == 0:
+            break
+        read_count: LinuxCount
+        read_count.native = read_result
+        remaining: usize = read_count.portable
+        offset: usize = 0
+        while remaining > 0:
+            write_result: int64 = write(target_fd, $buffer[offset], remaining)
+            if write_result <= 0:
+                close(source_fd)
+                close(target_fd)
+                return 1
+            write_count: LinuxCount
+            write_count.native = write_result
+            written: usize = write_count.portable
+            if written < remaining:
+                shift: usize = 0
+                while shift < remaining - written:
+                    buffer[shift] = buffer[offset + written + shift]
+                    shift += 1
+            remaining -= written
+            offset = 0
+    close(source_fd)
+    close(target_fd)
+    return 0
+
+@unsafe
+public func replace_file(source: char[], source_length: Len_t, source_size: Size_t, target: char[], target_length: Len_t, target_size: Size_t) int32:
+    ; EN: Atomically replaces a Linux path through renameat2.
+    ;
+    ; ES: Reemplaza atómicamente una ruta Linux mediante renameat2.
+    if source_size != 1 || target_size != 1 || source_length < 2 || target_length < 2:
+        return 1
+    if renameat2(AT_FDCWD, $source[0], AT_FDCWD, $target[0], 0) == 0:
+        return 0
+    return 1

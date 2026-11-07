@@ -178,3 +178,36 @@ func newfstatat(dirfd: int32, path *: void, stat_buffer *: void, stat_flags: uin
     #end
     return asm
 
+@assembler
+func getcwd(buffer *: void, size: uint64) int64:
+    ; EN: Writes the current working directory into a caller-owned buffer.
+    ;
+    ; ES: Escribe el directorio de trabajo actual en un buffer del llamador.
+    #assembler "att"
+        movq $79, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+func chdir(path *: void) int64:
+    ; EN: Changes the current working directory.
+    ;
+    ; ES: Cambia el directorio de trabajo actual.
+    #assembler "att"
+        movq $80, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
+func getdents64(fd: int64, buffer *: void, size: uint64) int64:
+    ; EN: Reads Linux directory entries into a caller-owned buffer.
+    ;
+    ; ES: Lee entradas de directorio Linux en un buffer del llamador.
+    #assembler "att"
+        movq $217, %rax
+        syscall
+    #end
+    return asm
+

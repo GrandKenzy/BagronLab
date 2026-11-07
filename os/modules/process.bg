@@ -1,0 +1,378 @@
+; Portable process and execution context helpers.
+; Ayudas portátiles para procesos y el contexto de ejecución.
+
+@unsafe
+private func copy_literal(
+    source: char[],
+    source_length: Len_t,
+    source_size: Size_t,
+    target: char[],
+    target_length: Len_t,
+    target_size: Size_t,
+    capacity: usize,
+    actual *: usize
+) bool:
+    ; EN: Copies a bounded NUL-terminated literal into caller storage.
+    ;
+    ; ES: Copia un literal terminado en NUL al almacenamiento del llamador.
+    if source_size != 1 || target_size != 1:
+        (actual) = 0
+        return false
+    zero: char = "\0"
+    index: usize = 0
+    while source[index] != zero:
+        if index + 1 >= capacity:
+            (actual) = 0
+            return false
+        target[index] = source[index]
+        index += 1
+    target[index] = zero
+    (actual) = index
+    return true
+
+#if OS, "windows"
+
+private mold ProcessWindowsCount:
+    native: uint32
+    portable: usize
+
+@unsafe
+public func process_id() uint32:
+    ; EN: Returns the current process identifier.
+    ;
+    ; ES: Devuelve el identificador del proceso actual.
+    return Win.process_id()
+
+@unsafe
+public func exit_process(code: uint32) void:
+    ; EN: Terminates the current process with code.
+    ;
+    ; ES: Termina el proceso actual con code.
+    Win.exit_process(code)
+    return
+
+@unsafe
+public func sleep_ms(milliseconds: uint32) void:
+    ; EN: Suspends the current thread for milliseconds.
+    ;
+    ; ES: Suspende la hebra actual durante milliseconds.
+    Win.sleep_ms(milliseconds)
+    return
+
+@unsafe
+public func yield_thread() bool:
+    ; EN: Yields execution to another runnable thread.
+    ;
+    ; ES: Cede la ejecución a otra hebra ejecutable.
+    return Win.yield_thread()
+
+@unsafe
+public func current_directory(
+    buffer: char[],
+    length: Len_t,
+    size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Writes the current directory and its byte count.
+    ;
+    ; ES: Escribe el directorio actual y su cantidad de bytes.
+    (actual) = 0
+    if size != 1 || length < 2 || length > 4294967295:
+        return false
+    native_length: ProcessWindowsCount
+    native_length.portable = length
+    result: uint32 = Win.GetCurrentDirectoryA(native_length.native, $buffer[0])
+    if result == 0 || result >= native_length.native:
+        return false
+    buffer[result] = "\0"
+    native_result: ProcessWindowsCount
+    native_result.native = result
+    (actual) = native_result.portable
+    return true
+
+@unsafe
+public func set_current_directory(path: char[], length: Len_t, size: Size_t) bool:
+    ; EN: Changes the process current directory.
+    ;
+    ; ES: Cambia el directorio actual del proceso.
+    if size != 1 || length < 2:
+        return false
+    return Win.SetCurrentDirectoryA($path[0]) != 0
+
+@unsafe
+public func temporary_directory(
+    buffer: char[],
+    length: Len_t,
+    size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Writes the native temporary-directory path.
+    ;
+    ; ES: Escribe la ruta nativa del directorio temporal.
+    (actual) = 0
+    if size != 1 || length < 2 || length > 4294967295:
+        return false
+    native_length: ProcessWindowsCount
+    native_length.portable = length
+    result: uint32 = Win.GetTempPathA(native_length.native, $buffer[0])
+    if result == 0 || result >= native_length.native:
+        return false
+    buffer[result] = "\0"
+    native_result: ProcessWindowsCount
+    native_result.native = result
+    (actual) = native_result.portable
+    return true
+
+@unsafe
+public func get_environment(
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    buffer: char[],
+    buffer_length: Len_t,
+    buffer_size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Reads one ANSI environment variable into a caller buffer.
+    ;
+    ; ES: Lee una variable ANSI del entorno en un buffer del llamador.
+    (actual) = 0
+    if name_size != 1 || buffer_size != 1 || name_length < 2 || buffer_length < 1:
+        return false
+    if buffer_length > 4294967295:
+        return false
+    native_length: ProcessWindowsCount
+    native_length.portable = buffer_length
+    result: uint32 = Win.GetEnvironmentVariableA(
+        $name[0],
+        $buffer[0],
+        native_length.native
+    )
+    if result == 0 || result >= native_length.native:
+        return false
+    buffer[result] = "\0"
+    native_result: ProcessWindowsCount
+    native_result.native = result
+    (actual) = native_result.portable
+    return true
+
+@unsafe
+public func set_environment(
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    value: char[],
+    value_length: Len_t,
+    value_size: Size_t
+) bool:
+    ; EN: Sets one ANSI environment variable.
+    ;
+    ; ES: Establece una variable ANSI del entorno.
+    if name_size != 1 || value_size != 1 || name_length < 2 || value_length < 1:
+        return false
+    return Win.SetEnvironmentVariableA($name[0], $value[0]) != 0
+
+#elif OS, "linux"
+
+private mold LinuxSize:
+    native: uint64
+    portable: usize
+
+private mold LinuxExit:
+    native: uint32
+    portable: int32
+
+@unsafe
+public func process_id() uint32:
+    ; EN: Returns the current process identifier.
+    ;
+    ; ES: Devuelve el identificador del proceso actual.
+    return Gnu.getpid32()
+
+@unsafe
+public func exit_process(code: uint32) void:
+    ; EN: Terminates the entire Linux process with code.
+    ;
+    ; ES: Termina todo el proceso Linux con code.
+    native_code: LinuxExit
+    native_code.native = code
+    Gnu.exit_group(native_code.portable)
+
+@unsafe
+public func sleep_ms(milliseconds: uint32) void:
+    ; EN: Suspends the current Linux thread for milliseconds.
+    ;
+    ; ES: Suspende la hebra Linux actual durante milliseconds.
+    Gnu.nanosleep_ms(milliseconds)
+    return
+
+@unsafe
+public func yield_thread() bool:
+    ; EN: Yields execution through Linux sched_yield.
+    ;
+    ; ES: Cede la ejecución mediante sched_yield de Linux.
+    return Gnu.sched_yield() == 0
+
+@unsafe
+public func current_directory(
+    buffer: char[],
+    length: Len_t,
+    size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Writes the current directory and scans its NUL-terminated length.
+    ;
+    ; ES: Escribe el directorio actual y calcula su longitud terminada en NUL.
+    (actual) = 0
+    if size != 1 || length < 2:
+        return false
+    native_length: LinuxSize
+    native_length.portable = length
+    if Gnu.getcwd($buffer[0], native_length.native) < 0:
+        return false
+    zero: char = "\0"
+    index: usize = 0
+    while index < length && buffer[index] != zero:
+        index += 1
+    if index >= length:
+        return false
+    (actual) = index
+    return true
+
+@unsafe
+public func set_current_directory(path: char[], length: Len_t, size: Size_t) bool:
+    ; EN: Changes the Linux process current directory.
+    ;
+    ; ES: Cambia el directorio actual del proceso Linux.
+    if size != 1 || length < 2:
+        return false
+    return Gnu.chdir($path[0]) == 0
+
+@unsafe
+public func temporary_directory(
+    buffer: char[],
+    length: Len_t,
+    size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Returns Linux's conventional temporary directory.
+    ;
+    ; ES: Devuelve el directorio temporal convencional de Linux.
+    (actual) = 0
+    if size != 1 || length < 5:
+        return false
+    temp: char[5]
+    temp[0] = "/"
+    temp[1] = "t"
+    temp[2] = "m"
+    temp[3] = "p"
+    temp[4] = "\0"
+    return copy_literal(temp, buffer, length, actual)
+
+@unsafe
+public func get_environment(
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    buffer: char[],
+    buffer_length: Len_t,
+    buffer_size: Size_t,
+    actual *: usize
+) bool:
+    ; EN: Reads one libc environment variable into a caller buffer.
+    ;
+    ; ES: Lee una variable del entorno de libc en un buffer del llamador.
+    (actual) = 0
+    if name_size != 1 || buffer_size != 1 || name_length < 2 || buffer_length < 1:
+        return false
+    native_length: LinuxSize
+    native_length.portable = buffer_length
+    result: uint64 = Gnu.get_environment($name[0], $buffer[0], native_length.native)
+    if result == 0:
+        return false
+    native_result: LinuxSize
+    native_result.native = result
+    (actual) = native_result.portable
+    return true
+
+@unsafe
+public func set_environment(
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    value: char[],
+    value_length: Len_t,
+    value_size: Size_t
+) bool:
+    ; EN: Sets one libc environment variable.
+    ;
+    ; ES: Establece una variable del entorno de libc.
+    if name_size != 1 || value_size != 1 || name_length < 2 || value_length < 1:
+        return false
+    return Gnu.set_environment($name[0], $value[0]) == 0
+
+#else
+
+public func process_id() uint32:
+    ; EN: Reports no process identifier on unsupported targets.
+    ;
+    ; ES: No devuelve identificador en targets no compatibles.
+    return 0
+
+public func exit_process(code: uint32) void:
+    ; EN: Leaves unsupported targets unchanged.
+    ;
+    ; ES: Deja sin cambios los targets no compatibles.
+    return
+
+public func sleep_ms(milliseconds: uint32) void:
+    ; EN: Performs no sleep without a native backend.
+    ;
+    ; ES: No duerme sin backend nativo.
+    return
+
+public func yield_thread() bool:
+    ; EN: Reports that yielding is unavailable.
+    ;
+    ; ES: Indica que ceder la ejecución no está disponible.
+    return false
+
+@unsafe
+public func current_directory(buffer: char[], length: Len_t, size: Size_t, actual *: usize) bool:
+    ; EN: Reports that the current directory is unavailable.
+    ;
+    ; ES: Indica que el directorio actual no está disponible.
+    (actual) = 0
+    return false
+
+@unsafe
+public func set_current_directory(path: char[], length: Len_t, size: Size_t) bool:
+    ; EN: Reports that directory changes are unavailable.
+    ;
+    ; ES: Indica que cambiar de directorio no está disponible.
+    return false
+
+@unsafe
+public func temporary_directory(buffer: char[], length: Len_t, size: Size_t, actual *: usize) bool:
+    ; EN: Reports that temporary paths are unavailable.
+    ;
+    ; ES: Indica que las rutas temporales no están disponibles.
+    (actual) = 0
+    return false
+
+@unsafe
+public func get_environment(name: char[], name_length: Len_t, name_size: Size_t, buffer: char[], buffer_length: Len_t, buffer_size: Size_t, actual *: usize) bool:
+    ; EN: Reports that environment access is unavailable.
+    ;
+    ; ES: Indica que el entorno no está disponible.
+    (actual) = 0
+    return false
+
+@unsafe
+public func set_environment(name: char[], name_length: Len_t, name_size: Size_t, value: char[], value_length: Len_t, value_size: Size_t) bool:
+    ; EN: Reports that environment access is unavailable.
+    ;
+    ; ES: Indica que el entorno no está disponible.
+    return false
+
+#end

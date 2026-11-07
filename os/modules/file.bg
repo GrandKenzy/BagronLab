@@ -351,6 +351,32 @@ public class File:
             return false
         return Win.FlushFileBuffers(self.resource) != 0
 
+    ; EN: Changes the file length without changing the current file pointer.
+    ; ES: Cambia la longitud sin modificar el puntero actual del archivo.
+    ;
+    @unsafe
+    func truncate(length: int64) bool:
+        if not self.is_open() || length < 0:
+            return false
+        current: int64 = 0
+        if Win.SetFilePointerEx(self.resource, 0, $current, Win.FILE_CURRENT) == 0:
+            return false
+        target: int64 = 0
+        if Win.SetFilePointerEx(self.resource, length, $target, Win.FILE_BEGIN) == 0:
+            return false
+        if Win.SetEndOfFile(self.resource) == 0:
+            Win.SetFilePointerEx(self.resource, current, $target, Win.FILE_BEGIN)
+            return false
+        Win.SetFilePointerEx(self.resource, current, $target, Win.FILE_BEGIN)
+        return true
+
+    ; EN: Flushes file data through the native Windows backend.
+    ; ES: Sincroniza los datos mediante el backend nativo de Windows.
+    ;
+    @unsafe
+    func sync_data() bool:
+        return self.flush()
+
     ; EN: Closes the handle once and records a closing error if needed.
     ; ES: Cierra el handle una vez y registra el error de cierre si ocurre.
     ;
@@ -655,6 +681,22 @@ public class File:
             return false
         return remember_error(Gnu.fsync(self.resource)) == 0
 
+    ; EN: Changes the file length through the Linux ftruncate syscall.
+    ; ES: Cambia la longitud mediante el syscall Linux ftruncate.
+    ;
+    @unsafe
+    func truncate(length: int64) bool:
+        if not self.is_open() || length < 0:
+            return false
+        return remember_error(Gnu.ftruncate(self.resource, length)) == 0
+
+    ; EN: Flushes file data through Linux fsync.
+    ; ES: Sincroniza los datos mediante fsync de Linux.
+    ;
+    @unsafe
+    func sync_data() bool:
+        return self.flush()
+
     ; EN: Closes the descriptor once and records a closing error if needed.
     ; ES: Cierra el descriptor una vez y registra el error si ocurre.
     ;
@@ -781,6 +823,20 @@ public class File:
         ; EN: Reports failure because this target has no filesystem backend.
         ;
         ; ES: Reporta fallo porque este target no tiene backend de filesystem.
+        return false
+
+    @unsafe
+    func truncate(length: int64) bool:
+        ; EN: Reports failure because no native file exists.
+        ;
+        ; ES: Reporta fallo porque no existe un archivo nativo.
+        return false
+
+    @unsafe
+    func sync_data() bool:
+        ; EN: Reports failure because no native file exists.
+        ;
+        ; ES: Reporta fallo porque no existe un archivo nativo.
         return false
 
     @unsafe

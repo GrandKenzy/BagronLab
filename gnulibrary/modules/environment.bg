@@ -1,0 +1,39 @@
+clause System "linux"
+clause Arch "amd"
+
+; EN: The libc environment boundary is isolated in gnulibrary.
+;
+; ES: La frontera del entorno de libc queda aislada en gnulibrary.
+extern c "c":
+    getenv(name *: const char) int64
+    strlen(value: int64) uint64
+    memcpy(destination *: char, source: int64, length: uint64) void
+    setenv(name *: const char, value *: const char, overwrite: int32) int32
+
+@unsafe
+public func get_environment(
+    name *: const char,
+    buffer *: char,
+    length: uint64
+) uint64:
+    ; EN: Copies one libc environment value into a caller-owned buffer.
+    ;
+    ; ES: Copia un valor del entorno de libc a un buffer del llamador.
+    value: int64 = getenv(name)
+    if value == 0:
+        return 0
+    value_length: uint64 = strlen(value)
+    if value_length + 1 > length:
+        return 0
+    memcpy(buffer, value, value_length + 1)
+    return value_length
+
+@unsafe
+public func set_environment(
+    name *: const char,
+    value *: const char
+) int32:
+    ; EN: Sets one environment value through libc.
+    ;
+    ; ES: Establece un valor del entorno mediante libc.
+    return setenv(name, value, 1)

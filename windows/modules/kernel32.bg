@@ -70,6 +70,37 @@ public FILE_TYPE_DISK: const uint32 = 1
 public FILE_TYPE_CHAR: const uint32 = 2
 public FILE_TYPE_PIPE: const uint32 = 3
 
+; EN: File metadata and directory-entry structures used by the portable OS layer.
+;
+; ES: Estructuras de metadatos y entradas de directorio usadas por la capa OS portátil.
+@align(8)
+public struct WIN32_FILE_ATTRIBUTE_DATA:
+    attributes: uint32
+    creation_time_low: uint32
+    creation_time_high: uint32
+    access_time_low: uint32
+    access_time_high: uint32
+    write_time_low: uint32
+    write_time_high: uint32
+    size_high: uint32
+    size_low: uint32
+
+@align(8)
+public struct WIN32_FIND_DATAA:
+    attributes: uint32
+    creation_time_low: uint32
+    creation_time_high: uint32
+    access_time_low: uint32
+    access_time_high: uint32
+    write_time_low: uint32
+    write_time_high: uint32
+    size_high: uint32
+    size_low: uint32
+    reserved0: uint32
+    reserved1: uint32
+    file_name: char[260]
+    alternate_name: char[14]
+
 ; EN: Standard console handles and the invalid-handle sentinel.
 ;
 ; ES: Handles de consola estándar y el sentinel de handle inválido.
@@ -187,6 +218,11 @@ extern windows "kernel32":
     ; ES: Vacía los datos asociados a un handle de archivo.
     FlushFileBuffers(handle: HANDLE) int32
 
+    ; EN: Truncates or extends an open file at the current file pointer.
+    ;
+    ; ES: Trunca o amplía un archivo abierto en la posición actual.
+    SetEndOfFile(handle: HANDLE) int32
+
     ; EN: Returns the native type of a handle resource.
     ;
     ; ES: Devuelve el tipo nativo del recurso representado por un handle.
@@ -201,6 +237,15 @@ extern windows "kernel32":
     ;
     ; ES: Consulta atributos de una ruta UTF-16; INVALID_FILE_ATTRIBUTES indica fallo.
     GetFileAttributesW(file_name *: const uint16) uint32
+
+    ; EN: Reads attributes, size and timestamps for an ANSI path.
+    ;
+    ; ES: Lee atributos, tamaño y marcas de tiempo de una ruta ANSI.
+    GetFileAttributesExA(
+        file_name *: const char,
+        info_level: uint32,
+        data *: void
+    ) int32
 
     ; EN: Deletes an ANSI path.
     ;
@@ -232,6 +277,11 @@ extern windows "kernel32":
     ; ES: Mueve una ruta UTF-16 con opciones MOVEFILE_* explícitas.
     MoveFileExW(source *: const uint16, target *: const uint16, move_flags: uint32) int32
 
+    ; EN: Copies an ANSI file path, optionally refusing an existing target.
+    ;
+    ; ES: Copia una ruta ANSI y opcionalmente rechaza un destino existente.
+    CopyFileA(source *: const char, target *: const char, fail_if_exists: int32) int32
+
     ; EN: Creates a directory at an ANSI path.
     ;
     ; ES: Crea un directorio en una ruta ANSI.
@@ -251,6 +301,22 @@ extern windows "kernel32":
     ;
     ; ES: Elimina un directorio en una ruta UTF-16.
     RemoveDirectoryW(path *: const uint16) int32
+
+    ; EN: Starts, advances and closes an ANSI directory search.
+    ;
+    ; ES: Inicia, avanza y cierra una búsqueda de directorio ANSI.
+    FindFirstFileA(pattern *: const char, data *: void) HANDLE
+    FindNextFileA(search: HANDLE, data *: void) int32
+    FindClose(search: HANDLE) int32
+
+    ; EN: Changes process-directory and environment state using Kernel32.
+    ;
+    ; ES: Cambia el directorio del proceso y su entorno mediante Kernel32.
+    GetCurrentDirectoryA(length: uint32, buffer *: char) uint32
+    SetCurrentDirectoryA(path *: const char) int32
+    GetTempPathA(length: uint32, buffer *: char) uint32
+    GetEnvironmentVariableA(name *: const char, buffer *: char, length: uint32) uint32
+    SetEnvironmentVariableA(name *: const char, value *: const char) int32
 
     ; EN: Retrieves a standard input, output or error handle.
     ;

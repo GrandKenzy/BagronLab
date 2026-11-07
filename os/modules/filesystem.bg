@@ -1,0 +1,203 @@
+; Portable file metadata and directory enumeration.
+; Metadatos portátiles de archivos y enumeración de directorios.
+
+public FileKindUnknown: const uint32 = 0
+public FileKindFile: const uint32 = 1
+public FileKindDirectory: const uint32 = 2
+public FileKindLink: const uint32 = 3
+public FileKindOther: const uint32 = 4
+
+public struct FileInfo:
+    kind: uint32
+    size: int64
+    access_seconds: int64
+    modify_seconds: int64
+    change_seconds: int64
+    creation_seconds: int64
+
+private func empty_file_info() FileInfo:
+    ; EN: Returns metadata representing a failed lookup.
+    ;
+    ; ES: Devuelve metadatos que representan una consulta fallida.
+    result: FileInfo
+    result.kind = FileKindUnknown
+    result.size = -1
+    result.access_seconds = 0
+    result.modify_seconds = 0
+    result.change_seconds = 0
+    result.creation_seconds = 0
+    return result
+
+#if OS, "windows"
+
+@unsafe
+public func stat(path: char[], length: Len_t, size: Size_t) FileInfo:
+    ; EN: Reads portable metadata through the Windows backend.
+    ;
+    ; ES: Lee metadatos portátiles mediante el backend Windows.
+    if size != 1 || length < 2:
+        return empty_file_info()
+    result: FileInfo = empty_file_info()
+    kind: uint32 = 0
+    byte_size: int64 = -1
+    access_seconds: int64 = 0
+    modify_seconds: int64 = 0
+    creation_seconds: int64 = 0
+    change_seconds: int64 = 0
+    if not Win.file_info(
+        path,
+        $kind,
+        $byte_size,
+        $access_seconds,
+        $modify_seconds,
+        $creation_seconds,
+        $change_seconds
+    ):
+        return empty_file_info()
+    result.kind = kind
+    result.size = byte_size
+    result.access_seconds = access_seconds
+    result.modify_seconds = modify_seconds
+    result.creation_seconds = creation_seconds
+    result.change_seconds = change_seconds
+    return result
+
+@unsafe
+public func directory_entry(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    entry_index: usize,
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    actual *: usize
+) FileInfo:
+    ; EN: Returns one directory entry through the Windows backend.
+    ;
+    ; ES: Devuelve una entrada mediante el backend Windows.
+    (actual) = 0
+    if path_size != 1 || name_size != 1 || path_length < 2 || name_length < 2:
+        return empty_file_info()
+    result: FileInfo = empty_file_info()
+    kind: uint32 = 0
+    byte_size: int64 = -1
+    access_seconds: int64 = 0
+    modify_seconds: int64 = 0
+    creation_seconds: int64 = 0
+    native_actual: usize = 0
+    if not Win.directory_entry(
+        path,
+        entry_index,
+        name,
+        $native_actual,
+        $kind,
+        $byte_size,
+        $access_seconds,
+        $modify_seconds,
+        $creation_seconds
+    ):
+        return empty_file_info()
+    (actual) = native_actual
+    result.kind = kind
+    result.size = byte_size
+    result.access_seconds = access_seconds
+    result.modify_seconds = modify_seconds
+    result.creation_seconds = creation_seconds
+    return result
+
+#elif OS, "linux"
+
+@unsafe
+public func stat(path: char[], length: Len_t, size: Size_t) FileInfo:
+    ; EN: Reads portable metadata through the Linux backend.
+    ;
+    ; ES: Lee metadatos portátiles mediante el backend Linux.
+    if size != 1 || length < 2:
+        return empty_file_info()
+    result: FileInfo = empty_file_info()
+    kind: uint32 = 0
+    byte_size: int64 = -1
+    access_seconds: int64 = 0
+    modify_seconds: int64 = 0
+    creation_seconds: int64 = 0
+    change_seconds: int64 = 0
+    if not Gnu.file_info(
+        $path[0],
+        $kind,
+        $byte_size,
+        $access_seconds,
+        $modify_seconds,
+        $creation_seconds,
+        $change_seconds
+    ):
+        return empty_file_info()
+    result.kind = kind
+    result.size = byte_size
+    result.access_seconds = access_seconds
+    result.modify_seconds = modify_seconds
+    result.creation_seconds = creation_seconds
+    result.change_seconds = change_seconds
+    return result
+
+@unsafe
+public func directory_entry(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    entry_index: usize,
+    name: char[],
+    name_length: Len_t,
+    name_size: Size_t,
+    actual *: usize
+) FileInfo:
+    ; EN: Returns one directory entry through the Linux backend.
+    ;
+    ; ES: Devuelve una entrada mediante el backend Linux.
+    (actual) = 0
+    if path_size != 1 || name_size != 1 || path_length < 2 || name_length < 2:
+        return empty_file_info()
+    result: FileInfo = empty_file_info()
+    kind: uint32 = 0
+    byte_size: int64 = -1
+    access_seconds: int64 = 0
+    modify_seconds: int64 = 0
+    creation_seconds: int64 = 0
+    native_actual: usize = 0
+    if not Gnu.directory_entry(
+        $path[0],
+        entry_index,
+        name,
+        $native_actual,
+        $kind,
+        $byte_size,
+        $access_seconds,
+        $modify_seconds,
+        $creation_seconds
+    ):
+        return empty_file_info()
+    (actual) = native_actual
+    result.kind = kind
+    result.size = byte_size
+    result.access_seconds = access_seconds
+    result.modify_seconds = modify_seconds
+    result.creation_seconds = creation_seconds
+    return result
+
+#else
+
+public func stat(path: char[], length: Len_t, size: Size_t) FileInfo:
+    ; EN: Returns unknown metadata without a filesystem backend.
+    ;
+    ; ES: Devuelve metadatos desconocidos sin backend de filesystem.
+    return empty_file_info()
+
+@unsafe
+public func directory_entry(path: char[], path_length: Len_t, path_size: Size_t, entry_index: usize, name: char[], name_length: Len_t, name_size: Size_t, actual *: usize) FileInfo:
+    ; EN: Reports enumeration failure without a filesystem backend.
+    ;
+    ; ES: Reporta fallo de enumeración sin backend de filesystem.
+    (actual) = 0
+    return empty_file_info()
+
+#end
