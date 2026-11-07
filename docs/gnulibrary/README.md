@@ -60,3 +60,19 @@ wrappers públicos de TCP usan `MSG_NOSIGNAL` al enviar datos para evitar
 C `fopen`/`fclose` usadas por HTTPS. Esta frontera **sí** utiliza libc y
 requiere `libcurl.so.4` en Linux. No sustituye a los syscalls raw.
 Los descriptores de archivo se cierran con `close`; los sockets usan `Close`.
+
+## Seguridad de rutas en Net
+
+`files.bg` expone `open_read_beneath(root, relative)`, una operación de
+solo lectura basada en la syscall Linux x86_64 `openat2` (Linux 5.6+).
+Usa `RESOLVE_BENEATH | RESOLVE_NO_SYMLINKS`; rechaza enlaces que salgan de
+la raíz, enlaces mágicos y enlaces simbólicos en cualquier componente.
+Devuelve un descriptor no negativo o `-errno`, sin abrir fuera del root.
+**No** se debe reemplazar por `openat` simple como fallback: en kernels
+antiguos el servidor debe fallar de forma segura.
+
+`sockets.bg` ofrece `OpenTcpHost` con iteración por las direcciones que
+proporciona `getaddrinfo`, liberación de cada socket fallido y de la lista
+DNS, y `ReuseAddress` para listeners que deban reiniciarse rápidamente.
+`set_timeout` configura E/S pero **no** garantiza un timeout para un
+`connect` bloqueante; queda pendiente implementar nonblocking connect.
