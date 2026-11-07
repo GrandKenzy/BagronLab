@@ -11,6 +11,18 @@ import {
     SwitchToThread
 } from kernel32
 
+; EN: Terminates the current process through the native Windows ABI.
+; STATUS_ILLEGAL_INSTRUCTION preserves the historical trap exit status.
+;
+; ES: Termina el proceso actual mediante la ABI nativa de Windows.
+; STATUS_ILLEGAL_INSTRUCTION conserva el estado de salida histórico de trap.
+@unsafe
+public func trap() void:
+    ; EN: Uses Kernel32 directly; no C or assembler compatibility layer is needed.
+    ; ES: Usa Kernel32 directamente; no necesita una capa de compatibilidad C o ASM.
+    ExitProcess(3221225501)
+    return
+
 ; EN: Returns the identifier of the current Windows process.
 ;
 ; ES: Devuelve el identificador del proceso actual de Windows.

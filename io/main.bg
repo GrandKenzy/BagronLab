@@ -3,10 +3,12 @@
 clause System "windows"
 clause Arch "amd"
 library windows as Win
+library string as String
 #elif OS, "linux"
 clause System "linux"
 clause Arch "amd"
 library gnulibrary as Gnu
+library string as String
 #else
 clause System "auto"
 clause Arch "auto"

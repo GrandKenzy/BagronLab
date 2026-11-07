@@ -2,7 +2,8 @@
 
 `standard` conserva la API de alto nivel y compatibilidad histórica de Bagron,
 pero sus componentes se organizan ahora como librerías independientes. Cada
-librería tiene su propio `main.bg` y su carpeta `modules/`:
+librería tiene su propio `main.bg`; los módulos internos solo se mantienen
+cuando la separación aporta una responsabilidad real:
 
 ```text
 BagronLab/
@@ -11,7 +12,7 @@ BagronLab/
 ├── mmap/main.bg     └── mmap/modules/mmap.bg
 ├── mem/main.bg      └── mem/modules/mem.bg
 ├── os/main.bg       └── os/modules/os.bg
-└── string/main.bg   └── string/modules/{string,alphabet}.bg
+└── string/main.bg   (API completa: texto, alfabetos y hexadecimal)
 ```
 
 Las cláusulas `System` y `Arch` se declaran únicamente en el `main.bg` de cada

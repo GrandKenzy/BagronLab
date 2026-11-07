@@ -5,25 +5,31 @@ terminados en `NUL`. Sus funciones públicas son `@unsafe` porque reciben
 memoria del llamador; el compilador proporciona automáticamente los metadatos
 `Len_t` y `Size_t` cuando se pasa un array.
 
-## Módulos
+## Entry module
 
-La librería contiene dos módulos:
+La librería expone toda su API desde `main.bg`. El punto de entrada reúne la
+inspección, comparación, búsqueda, copia, concatenación, clasificación ASCII,
+transformaciones, trim, inversión, parseo decimal, alfabetos constantes y
+codificación hexadecimal.
 
-- `string`: inspección, comparación, búsqueda, copia, concatenación,
-  clasificación ASCII, transformaciones, trim, inversión y parseo decimal.
-- `alphabet`: alfabetos constantes para validación, escaneo y serialización.
-- `hex`: codificación, decodificación y formato hexadecimal que reutiliza los
-  alfabetos hexadecimales de `alphabet`.
-
-Los módulos se consumen por separado:
+Los símbolos se consumen mediante el namespace de la librería:
 
 ```bg
-import { len, equals_chain, to_upper } from string
-import { NumericString, AlphabetString } from alphabet
+library string as String
+
+func example() int32:
+    value: char[16] = "bagron"
+    String.to_upper(value)
+    if not String.equals_chain(value, "BAGRON"):
+        return 1
+    digits: chain = String.NumericString
+    if digits[0] != "0":
+        return 2
+    return 0
 ```
 
-`alphabet` forma parte de la misma librería y se incluye al empaquetar el
-directorio `string/`. Sus constantes públicas principales son:
+Los alfabetos forman parte de la misma API. Sus constantes públicas
+principales son:
 
 | Grupo | Constantes |
 | --- | --- |
@@ -46,15 +52,18 @@ iniciales y se detienen ante el primer carácter que no sea parte del número.
 ## Ejemplo
 
 ```bg
+library string as String
+
 @unsafe
 func example() int32:
     value: char[16] = "  bagron  "
-    to_upper(value)
-    trim_whitespace(value)
-    if not equals_chain(value, "BAGRON"):
+    String.to_upper(value)
+    String.trim_whitespace(value)
+    if not String.equals_chain(value, "BAGRON"):
         return 1
     zero: char = "0"
-    if NumericString[0] != zero:
+    digits: chain = String.NumericString
+    if digits[0] != zero:
         return 2
     return 0
 ```

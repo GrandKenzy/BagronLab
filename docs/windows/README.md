@@ -38,8 +38,9 @@ layout de Windows x64. `release` requiere la dirección base retornada por
 tener éxito.
 
 Los módulos `windows/modules/process.bg` y `windows/modules/time.bg` son la
-primera capa de utilidades propias de Bagron sobre `kernel32.bg`. No declaran
-una nueva ABI ni dependen de la CRT.
+primera capa de utilidades propias de Bagron sobre `kernel32.bg`. `process.trap`
+termina el proceso mediante `ExitProcess`; no declara una nueva ABI ni depende
+de la CRT.
 
 ## Winsock
 
