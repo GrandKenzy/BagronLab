@@ -1,0 +1,91 @@
+; IEEE-754 classification and sign manipulation.
+
+#if ARCHB, "64"
+private mold FPBits:
+    numeric: double
+    bits: uint64
+
+private EXP_MASK: const uint64 = 0x7FF0000000000000
+private SIGN_MASK: const uint64 = 0x8000000000000000
+
+; EN: True for NaN (quiet or signalling).
+; ES: Comprueba NaN.
+public func isnan(value: double) bool:
+    return value != value
+
+; EN: True for positive or negative infinity.
+; ES: Comprueba infinito positivo o negativo.
+public func isinf(value: double) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & EXP_MASK) == EXP_MASK && value == value
+
+; EN: True for finite IEEE-754 values, including subnormals.
+; ES: Comprueba valores finitos, incluidos subnormales.
+public func isfinite(value: double) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & EXP_MASK) != EXP_MASK
+
+; EN: Returns true when the sign bit is set, including negative zero.
+; ES: Consulta el bit de signo, incluyendo -0.0.
+public func signbit(value: double) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & SIGN_MASK) != 0
+
+; EN: Magnitude of x with the sign bit copied from sign.
+; ES: Copia el bit de signo de sign sobre la magnitud de x.
+public func copysign(value: double, sign: double) double:
+    a: FPBits
+    b: FPBits
+    a.numeric = value
+    b.numeric = sign
+    a.bits = (a.bits ^ (a.bits & SIGN_MASK)) | (b.bits & SIGN_MASK)
+    return a.numeric
+
+#elif ARCHB, "32"
+private mold FPBits:
+    numeric: float
+    bits: uint32
+
+private EXP_MASK: const uint32 = 0x7F800000
+private SIGN_MASK: const uint32 = 0x80000000
+
+; EN: True for NaN (quiet or signalling).
+; ES: Comprueba NaN.
+public func isnan(value: float) bool:
+    return value != value
+
+; EN: True for positive or negative infinity.
+; ES: Comprueba infinito positivo o negativo.
+public func isinf(value: float) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & EXP_MASK) == EXP_MASK && value == value
+
+; EN: True for finite IEEE-754 values, including subnormals.
+; ES: Comprueba valores finitos, incluidos subnormales.
+public func isfinite(value: float) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & EXP_MASK) != EXP_MASK
+
+; EN: Returns true when the sign bit is set, including negative zero.
+; ES: Consulta el bit de signo, incluyendo -0.0.
+public func signbit(value: float) bool:
+    repr: FPBits
+    repr.numeric = value
+    return (repr.bits & SIGN_MASK) != 0
+
+; EN: Magnitude of x with the sign bit copied from sign.
+; ES: Copia el bit de signo de sign sobre la magnitud de x.
+public func copysign(value: float, sign: float) float:
+    a: FPBits
+    b: FPBits
+    a.numeric = value
+    b.numeric = sign
+    a.bits = (a.bits ^ (a.bits & SIGN_MASK)) | (b.bits & SIGN_MASK)
+    return a.numeric
+
+#end
