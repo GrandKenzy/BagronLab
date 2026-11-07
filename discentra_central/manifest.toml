@@ -1,0 +1,53 @@
+# Manifiesto de integridad criptográfica y firmas de autor para Central
+[manifest]
+format = "bagron-manifest@1"
+hash_algorithm = "sha256"
+author = "Discentra Community"
+
+# Verificación para: gnulibrary
+[[packages]]
+name = "gnulibrary"
+file = "gnulibrary.lib"
+sha256 = "7a2fa468ffd51ebb239c3e5b4ecbcf2db60068bb0e7e59d7a1e9b3bbc928fdf4"
+size_bytes = 38038
+signature = "sha256:a3d13359126530f61e06ceccfcb2ffbcf8d7cc2d8e5de333729a926884d6ff5b"
+
+# Verificación para: windows
+[[packages]]
+name = "windows"
+file = "windows.lib"
+sha256 = "df61ebe19fea63e1ca9abc1b217d38c6e4c73561fb9e3a3ec216ef438e188a2c"
+size_bytes = 22167
+signature = "sha256:8e42c4c8fc94755d775c48be45eeeeaa69b5a226f5d75c1d2fc6b347e7994401"
+
+# Verificación para: io
+[[packages]]
+name = "io"
+file = "io.lib"
+sha256 = "19189d8001add179ed629635043a4ceaaca35d32959031bb2ab7ed8207b5881d"
+size_bytes = 17293
+signature = "sha256:3bbb7b0070981b398b564210c76ac0e44352fcc7317ac18754bc139214dd883e"
+
+# Verificación para: hashlib
+[[packages]]
+name = "hashlib"
+file = "hashlib.lib"
+sha256 = "ccaa59bc2554d7cae7f2148802db7669e8a8c90c48d88b3a6fa51359a9c71d74"
+size_bytes = 30362
+signature = "sha256:7908fb12b38a092d2fefbf2f5ce602de6996a0063298bf0a9d791593929c2174"
+
+# Verificación para: math
+[[packages]]
+name = "math"
+file = "math.lib"
+sha256 = "d66b716288b54d2436012ae754f426991b29e57cbef129dbcbe85d07fca498b5"
+size_bytes = 22838
+signature = "sha256:37bcc5770ea400db63c23dfbeea099b77f88c913f0455255f39f6a173f71227b"
+
+# Verificación para: string
+[[packages]]
+name = "string"
+file = "string.lib"
+sha256 = "87254cca8fe99aa9e368a550a1dfe458413d1eb4b5624a6d388fa5f654f15cfa"
+size_bytes = 30922
+signature = "sha256:a9105082f8ee03e12951d0d1006f34c3f4fe8ed072d3ce5b1043d850f4ff0d3b"

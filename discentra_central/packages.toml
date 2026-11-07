@@ -1,0 +1,59 @@
+# Configuración de integración de BagronLab con Central
+[repository]
+name = "bagronlab"
+description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
+author = "Discentra Community"
+
+# Paquete: gnulibrary
+[[packages]]
+name = "gnulibrary"
+version = "1.1.4"
+kind = "librería"
+file = "gnulibrary.lib"
+description = "Linux x86_64 raw syscalls and shared Linux constants"
+license = "MIT"
+
+# Paquete: windows
+[[packages]]
+name = "windows"
+version = "1.1.4"
+kind = "librería"
+file = "windows.lib"
+description = "Native Microsoft Windows x64 ABI declarations"
+license = "MIT"
+
+# Paquete: io
+[[packages]]
+name = "io"
+version = "1.1.4"
+kind = "librería"
+file = "io.lib"
+description = "Standard text and byte input/output helpers for Bagron"
+license = "MIT"
+
+# Paquete: hashlib
+[[packages]]
+name = "hashlib"
+version = "1.1.4"
+kind = "librería"
+file = "hashlib.lib"
+description = "Hashing algorithms implemented natively in Bagron"
+license = "MIT"
+
+# Paquete: math
+[[packages]]
+name = "math"
+version = "1.1.4"
+kind = "librería"
+file = "math.lib"
+description = "Mathematical algorithms and constants for Bagron"
+license = "MIT"
+
+# Paquete: string
+[[packages]]
+name = "string"
+version = "1.1.4"
+kind = "librería"
+file = "string.lib"
+description = "String and character-array helpers, including alphabet"
+license = "MIT"

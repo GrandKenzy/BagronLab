@@ -1,0 +1,19 @@
+[package]
+name = "bagronlab"
+version = "1.1.4"
+kind = "librería"
+description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:bagronlab-suite"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"
+modules = "modules"
