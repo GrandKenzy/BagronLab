@@ -1,0 +1,103 @@
+; mmap 0.1.0 regression suite. Returns 0 on success.
+clause System "auto"
+clause Arch "amd"
+library mmap as MM
+import { Mapping } from MM
+
+@unsafe
+func main() int32:
+    mapping: Mapping = Mapping()
+    if mapping.is_open():
+        return 1
+    if mapping.open(0):
+        return 2
+    if not mapping.open(4096):
+        return 3
+    if mapping.size() != 4096:
+        return 4
+    if mapping.open(4096):
+        return 5
+    if not mapping.set(0, 65):
+        return 6
+    if not mapping.set(4095, 90):
+        return 7
+    if mapping.set(4096, 10):
+        return 8
+    result: byte = 0
+    if not mapping.get(0, $result) || result != 65:
+        return 9
+    if not mapping.get(4095, $result) || result != 90:
+        return 10
+    if mapping.get(4096, $result):
+        return 11
+    source: byte[4]
+    source[0] = 1
+    source[1] = 2
+    source[2] = 3
+    source[3] = 4
+    target: byte[4]
+    if not mapping.write(source, 100, 4):
+        return 12
+    if not mapping.read(target, 100, 4):
+        return 13
+    if target[0] != 1 || target[3] != 4:
+        return 14
+    if mapping.write(source, 4094, 4):
+        return 15
+    if not mapping.fill(200, 8, 23):
+        return 16
+    if not mapping.get(207, $result) || result != 23:
+        return 17
+    if not mapping.readonly():
+        return 18
+    if mapping.set(0, 11):
+        return 19
+    if not mapping.get(0, $result) || result != 65:
+        return 20
+    if not mapping.readwrite():
+        return 21
+    if not mapping.set(0, 22):
+        return 22
+    borrowed: usize = mapping.raw_address()
+    if borrowed == 0:
+        return 29
+    buffer_input: buffer[6] = 0
+    buffer_input[0] = 10
+    buffer_input[5] = 60
+    buffer_output: buffer[6] = 0
+    buffer_failure: int32 = 0
+    if not mapping.write_buffer(buffer_input, 400, 6):
+        buffer_failure = 30
+    elif not mapping.read_buffer(buffer_output, 400, 6):
+        buffer_failure = 31
+    elif buffer_output[0] != 10 || buffer_output[5] != 60:
+        buffer_failure = 32
+    elif not mapping.move_within(401, 400, 5):
+        buffer_failure = 33
+    elif not mapping.get(401, $result) || result != 10:
+        buffer_failure = 34
+    elif not mapping.zero(400, 6):
+        buffer_failure = 35
+    elif not mapping.get(405, $result) || result != 0:
+        buffer_failure = 36
+    elif mapping.read_buffer(buffer_output, 4094, 6):
+        buffer_failure = 37
+    elif mapping.write_buffer(buffer_input, 4094, 6):
+        buffer_failure = 38
+    Del buffer_input
+    Del buffer_output
+    if buffer_failure != 0:
+        return buffer_failure
+    if not mapping.close():
+        return 23
+    if mapping.is_open() || mapping.raw_address() != 0:
+        return 24
+    if not mapping.close():
+        return 25
+    if mapping.get(0, $result):
+        return 26
+    if not mapping.open(4096):
+        return 27
+    if not mapping.close():
+        return 28
+    return 0
