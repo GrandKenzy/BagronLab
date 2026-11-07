@@ -1,0 +1,13 @@
+; Xlib has no built-in pushbutton widgets; use rectangles and pointer hit-tests.
+; EN: Tests whether a pointer is inside a positive-sized control rectangle.
+; ES: Comprueba si un punto cae dentro del rectángulo de un control.
+public func hit_test(x: int32, y: int32, left: int32, top: int32, width: int32, height: int32) bool:
+    if width <= 0 || height <= 0 || x < left || y < top:
+        return false
+    dx: int64 = x
+    dy: int64 = y
+    lx: int64 = left
+    ty: int64 = top
+    w: int64 = width
+    h: int64 = height
+    return dx - lx < w && dy - ty < h
