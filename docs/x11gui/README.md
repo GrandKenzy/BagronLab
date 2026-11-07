@@ -22,6 +22,7 @@ BagronLab/
     └── modules/
         ├── window.bg       # Window: display, ventana, GC y cierre
         ├── events.bg       # Tipo de evento y solicitudes de repintado
+        ├── keyboard.bg     # KeySym, teclas especiales y modificadores
         ├── drawing.bg      # Dibujo inmediato
         └── controls.bg     # Botón dibujado y hit-testing
 ```
@@ -43,6 +44,11 @@ el protocolo Wayland nativo.
 | `poll()` | Un evento sin bloqueo; 0 si no hay |
 | `wait()` | Bloquea eficientemente hasta un evento |
 | `pointer_x`, `pointer_y` | Últimas coordenadas de `ButtonPress` |
+| `last_keycode` | Código físico X11 de la última tecla recibida |
+| `last_keysym` | Símbolo lógico (según el layout y modificadores) |
+| `last_modifiers` | Bits de Shift/Ctrl/Mod1/Lock |
+| `last_character` | Primer byte traducido de `XLookupString` como `uint8`; 0 si no hay |
+
 | `black_pixel`, `white_pixel` | Pixeles nativos de pantalla |
 | `display_id`, `window_id`, `gc_id` | Handles prestados para dibujar |
 | `close()` | Libera GC, ventana y conexión; cierre repetido permitido |
@@ -114,7 +120,54 @@ compilador.
 - El servidor X puede informar errores de forma asíncrona: una llamada de
   dibujo que devuelve `true` solo confirma que se enviaron comandos.
 - La implementación recibe eventos de una ventana principal por instancia.
-  El transporte de eventos multi-ventana, teclas Unicode y drag-and-drop
+  El transporte de eventos multi-ventana, entrada Unicode y drag-and-drop
   queda para versiones futuras.
 - Accesibilidad, fuentes Unicode, scaling DPI, compositor Wayland nativo,
   controles complejos y respaldo Wayland quedan pendientes.
+
+## Teclado: versión 0.1.1 (fuentes)
+
+`X11PollInput` y `X11WaitInput` son nuevas operaciones de
+`gnulibrary/modules/x11_events.bg`. Mantienen las operaciones anteriores
+`X11PollEvent` y `X11WaitEvent` para compatibilidad. El backend selecciona
+ambas máscaras `KeyPressMask` y `KeyReleaseMask` al abrir la ventana.
+
+Después de `kind = app.wait()` o `app.poll()`, comprobar:
+
+```bg
+if is_key_press(kind):
+    if app.last_keysym == KEY_ESCAPE:
+        break
+    if has_shift(app.last_modifiers):
+        ; Se pulsó una tecla manteniendo Shift.
+        pass
+elif is_key_release(kind):
+    ; Se liberó una tecla.
+    pass
+```
+
+`pass` en el bloque anterior indica pseudocódigo explicativo; para un
+ejemplo completo compilable consulta
+[`examples/x11gui/keyboard.bg`](../../examples/x11gui/keyboard.bg).
+
+- `last_keycode`: código físico del servidor X11 (`unsigned int`).
+- `last_keysym`: símbolo lógico (`unsigned long`): `KEY_ESCAPE`,
+  `KEY_RETURN`, `KEY_LEFT`, `KEY_RIGHT`, etc.
+- `last_modifiers`: máscara numérica al ocurrir el evento. Helpers
+  `has_shift`, `has_control`, `has_alt` (Mod1, generalmente Alt).
+- `last_character`: primer byte devuelto por `XLookupString` como
+  `uint8` (por ejemplo 97 para `a`, 65 para `A`); 0 si no hay byte.
+  No representa texto UTF-8 de varios bytes.
+
+La interpretación sigue el mapa de teclado del servidor X11. No hay soporte
+completo de métodos de entrada, texto Unicode/UTF-8, composición, XIM ni IME.
+Un `KeySym` puede existir aunque no produzca carácter. Los eventos
+`KeyRelease` pueden ocurrir durante autorepetición según la configuración
+X11. Los campos `last_*` se conservan hasta otro evento de teclado y se
+limpian al cerrar/abrir una ventana.
+
+Probado en Linux x86_64 con Xvfb: pulsación de `a`, liberación,
+`Shift+A`, `Escape` y `b` mediante `poll()`. También se ejecutaron las
+pruebas anteriores de ventana, clic y cierre, sin regresiones. Se utilizó el
+ajuste PIC local conocido de Bagron 1.1.4. Los `.lib` compilados de GitHub
+no se reemplazaron en esta entrega.
