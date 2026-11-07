@@ -22,12 +22,12 @@ WM_QUIT: const uint32 = 18
 MB_OK: const uint32 = 0
 MB_ICONINFORMATION: const uint32 = 64
 
-@align(8)
+@align(4)
 struct WIN32_POINT:
     x: int32
     y: int32
 
-@align(8)
+@align(4)
 struct WIN32_RECT:
     left: int32
     top: int32
