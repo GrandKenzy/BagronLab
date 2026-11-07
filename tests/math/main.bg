@@ -1,0 +1,107 @@
+; Math 1.2.0 smoke suite. Returns 0 only when all checks pass.
+; Use a freshly built and installed math.lib from these sources.
+clause System "auto"
+clause Arch "amd"
+library math as Math
+import { gcd, lcm_checked, is_prime, pow_mod, next_power_of_two_checked, factorial_checked } from Math
+import { lerp, remap, smootherstep, stats_mean, stats_variance, stats_sample_variance, stats_minmax } from Math
+import { atan, atan2, asin_checked, acos_checked, PI } from Math
+import { log_base_checked, log1p_checked, expm1, tanh } from Math
+import { hypot3, distance2, distance3, dot2, cross2, pow_real_checked } from Math
+import { sqrt_checked, ln_checked, abs, isfinite, isinf, isnan, signbit, copysign, usqrt, ucbrt } from Math
+
+@unsafe
+func near(a: double, b: double, tolerance: double) bool:
+    return abs(a - b) <= tolerance
+
+@unsafe
+func main() int32:
+    if gcd(48, 18) != 6 || gcd(0, 0) != 0:
+        return 1
+    if not is_prime(97) || not is_prime(2305843009213693951) || is_prime(561):
+        return 2
+    if is_prime(341550071728321):
+        return 3
+    if pow_mod(2, 10, 1000) != 24:
+        return 4
+    value: uint64 = 0
+    if not lcm_checked(21, 6, $value) || value != 42:
+        return 5
+    if lcm_checked(18446744073709551615, 2, $value):
+        return 6
+    if not next_power_of_two_checked(33, $value) || value != 64:
+        return 7
+    if next_power_of_two_checked(18446744073709551615, $value):
+        return 8
+    expected20: uint64 = 2432902008176640000
+    if not factorial_checked(20, $value) || value != expected20:
+        return 9
+    if factorial_checked(21, $value):
+        return 10
+    if not near(lerp(10.0, 20.0, 0.25), 12.5, 0.000001):
+        return 11
+    if not near(smootherstep(0.0, 1.0, 0.5), 0.5, 0.000001):
+        return 12
+    result: double = 0.0
+    if not remap(5.0, 0.0, 10.0, 0.0, 100.0, $result) || result != 50.0:
+        return 13
+    values: double[4]
+    values[0] = 1.0
+    values[1] = 2.0
+    values[2] = 3.0
+    values[3] = 4.0
+    if not stats_mean(values, $result) || result != 2.5:
+        return 14
+    if not stats_variance(values, $result) || result != 1.25:
+        return 15
+    if not stats_sample_variance(values, $result) || not near(result, 1.6666666666666667, 0.000001):
+        return 16
+    low: double = 0.0
+    high: double = 0.0
+    if not stats_minmax(values, $low, $high) || low != 1.0 || high != 4.0:
+        return 17
+    if not near(atan(1.0), PI / 4.0, 0.00000001):
+        return 18
+    if not near(atan2(-1.0, -1.0), -3.0 * PI / 4.0, 0.00000001):
+        return 19
+    if not asin_checked(0.5, $result) || not near(result, PI / 6.0, 0.00000001):
+        return 20
+    if not acos_checked(0.5, $result) || not near(result, PI / 3.0, 0.00000001):
+        return 21
+    if asin_checked(2.0, $result):
+        return 22
+    if not near(hypot3(2.0, 3.0, 6.0), 7.0, 0.00000001):
+        return 23
+    if not near(distance2(1.0, 1.0, 4.0, 5.0), 5.0, 0.00000001):
+        return 24
+    if not near(distance3(1.0, 2.0, 3.0, 4.0, 6.0, 15.0), 13.0, 0.00000001):
+        return 25
+    if dot2(2.0, 3.0, 4.0, 5.0) != 23.0 || cross2(1.0, 0.0, 0.0, 1.0) != 1.0:
+        return 26
+    if not pow_real_checked(2.0, 3.5, $result) || not near(result, 11.313708498984761, 0.000001):
+        return 27
+    if pow_real_checked(-2.0, 0.5, $result):
+        return 28
+    if not log_base_checked(125.0, 5.0, $result) || not near(result, 3.0, 0.000001):
+        return 29
+    if not log1p_checked(0.00000001, $result) || not near(result, 0.00000000999999995, 0.0000000000000001):
+        return 30
+    if not near(expm1(0.00000001), 0.00000001000000005, 0.0000000000000001):
+        return 31
+    if not near(tanh(1.0), 0.7615941559557649, 0.000001):
+        return 32
+    if sqrt_checked(-1.0, $result) || ln_checked(0.0, $result):
+        return 33
+    if not sqrt_checked(81.0, $result) || result != 9.0:
+        return 34
+    zero: double = 0.0
+    infinity: double = 1.0 / zero
+    nan_value: double = zero / zero
+    if not isinf(infinity) || isfinite(infinity) || not isnan(nan_value):
+        return 35
+    if not signbit(copysign(0.0, -1.0)):
+        return 36
+    maximum: uint64 = 18446744073709551615
+    if usqrt(maximum) != 4294967295 || ucbrt(maximum) != 2642245:
+        return 37
+    return 0
