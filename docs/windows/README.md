@@ -63,3 +63,15 @@ supuesta exportación de WinHTTP. Los helpers públicos de `sockets.bg` incluyen
 La nueva API debe compilarse y probarse en Windows x64. **No** se debe
 publicar como `windows.lib` un paquete compilado en Linux si el empaquetador
 produce una tabla de símbolos vacía para el target Windows.
+
+## Extensiones de sockets para Net
+
+`OpenTcpHost` recorre los candidatos de `getaddrinfo` en vez de usar
+solo el primero, y libera los sockets fallidos. `ReuseAddress` configura
+`SO_REUSEADDR` para listeners. El helper actual sigue utilizando
+`connect` bloqueante: un timeout de recepción no basta para limitar el
+tiempo de conexión.
+
+La validación nativa de Windows x64 y la seguridad frente a reparse points
+intermedios en rutas HTTP siguen pendientes; los checks de fuentes ejecutados
+en Windows no equivalen a pruebas de ejecución.
