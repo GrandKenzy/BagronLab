@@ -1,0 +1,183 @@
+; Byte-array primitives for the portable mem library.
+; No allocation: the caller retains ownership of every array.
+
+private mold MemOctetView:
+    raw: byte
+    number: uint8
+
+; EN: Fills a bounded byte-array range with value.
+; ES: Rellena un rango de byte[] con value.
+;
+@unsafe
+public func fill_bytes(data: byte[], length: Len_t, size: Size_t, start: usize, count: usize, value: byte) bool:
+    if size != 1 || start > length || count > length - start:
+        return false
+    i: usize = 0
+    while i < count:
+        data[start + i] = value
+        i += 1
+    return true
+
+; EN: Writes zero in a bounded byte-array range; not a secure wipe.
+; ES: Escribe cero en un rango; no es un borrado seguro.
+;
+@unsafe
+public func zero_bytes(data: byte[], length: Len_t, size: Size_t, start: usize, count: usize) bool:
+    if size != 1 || start > length || count > length - start:
+        return false
+    i: usize = 0
+    while i < count:
+        data[start + i] = 0
+        i += 1
+    return true
+
+; EN: Copies from a non-overlapping byte array into another.
+; ES: Copia entre byte[] que no se solapan.
+;
+@unsafe
+public func copy_bytes(destination: byte[], destination_length: Len_t, destination_size: Size_t, source: byte[], source_length: Len_t, source_size: Size_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if destination_size != 1 || source_size != 1:
+        return false
+    if destination_start > destination_length || count > destination_length - destination_start:
+        return false
+    if source_start > source_length || count > source_length - source_start:
+        return false
+    i: usize = 0
+    while i < count:
+        destination[destination_start + i] = source[source_start + i]
+        i += 1
+    return true
+
+; EN: Moves bytes in a single array, including overlap.
+; ES: Mueve un segmento de byte[] incluso con solapamiento.
+;
+@unsafe
+public func move_bytes(data: byte[], length: Len_t, size: Size_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if size != 1 || destination_start > length || count > length - destination_start:
+        return false
+    if source_start > length || count > length - source_start:
+        return false
+    if count == 0 || destination_start == source_start:
+        return true
+    i: usize = 0
+    if destination_start > source_start:
+        i = count
+        while i > 0:
+            i -= 1
+            data[destination_start + i] = data[source_start + i]
+    else:
+        while i < count:
+            data[destination_start + i] = data[source_start + i]
+            i += 1
+    return true
+
+; EN: Compares two bounded byte-array ranges for equality.
+; ES: Comprueba la igualdad entre dos rangos de bytes.
+;
+@unsafe
+public func equal_bytes(left: byte[], left_length: Len_t, left_size: Size_t, right: byte[], right_length: Len_t, right_size: Size_t, left_start: usize, right_start: usize, count: usize) bool:
+    if left_size != 1 || right_size != 1:
+        return false
+    if left_start > left_length || count > left_length - left_start:
+        return false
+    if right_start > right_length || count > right_length - right_start:
+        return false
+    i: usize = 0
+    while i < count:
+        if left[left_start + i] != right[right_start + i]:
+            return false
+        i += 1
+    return true
+
+; EN: Unsigned lexicographic byte comparison: -1, 0, 1; -2 invalid.
+; ES: Compara octetos sin signo: -1, 0, 1; -2 si el rango es invalido.
+;
+@unsafe
+public func compare_bytes(left: byte[], left_length: Len_t, left_size: Size_t, right: byte[], right_length: Len_t, right_size: Size_t, left_start: usize, right_start: usize, count: usize) int32:
+    if left_size != 1 || right_size != 1:
+        return -2
+    if left_start > left_length || count > left_length - left_start:
+        return -2
+    if right_start > right_length || count > right_length - right_start:
+        return -2
+    i: usize = 0
+    while i < count:
+        left_view: MemOctetView
+        right_view: MemOctetView
+        left_view.raw = left[left_start + i]
+        right_view.raw = right[right_start + i]
+        a: uint8 = left_view.number
+        b: uint8 = right_view.number
+        if a < b:
+            return -1
+        if a > b:
+            return 1
+        i += 1
+    return 0
+
+; EN: Finds a byte from start; returns length if absent.
+; ES: Busca un byte desde start; devuelve length si no aparece.
+;
+@unsafe
+public func index_of_bytes(data: byte[], length: Len_t, size: Size_t, start: usize, value: byte) usize:
+    if size != 1 || start > length:
+        return length
+    i: usize = start
+    while i < length:
+        if data[i] == value:
+            return i
+        i += 1
+    return length
+
+; EN: Reverses a bounded byte array range in place.
+; ES: Invierte un rango de byte[] en el mismo arreglo.
+;
+@unsafe
+public func reverse_bytes(data: byte[], length: Len_t, size: Size_t, start: usize, count: usize) bool:
+    if size != 1 || start > length || count > length - start:
+        return false
+    left: usize = 0
+    right: usize = count
+    while left < right:
+        right -= 1
+        if left >= right:
+            break
+        temporary: byte = data[start + left]
+        data[start + left] = data[start + right]
+        data[start + right] = temporary
+        left += 1
+    return true
+
+; EN: Copies a byte[] range into buffer[] without transferring ownership.
+; ES: Copia desde byte[] hacia buffer[] sin transferir su propiedad.
+;
+@unsafe
+public func into_buffer(destination: buffer[], destination_length: Len_t, source: byte[], source_length: Len_t, source_size: Size_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if source_size != 1:
+        return false
+    if destination_start > destination_length || count > destination_length - destination_start:
+        return false
+    if source_start > source_length || count > source_length - source_start:
+        return false
+    i: usize = 0
+    while i < count:
+        destination[destination_start + i] = source[source_start + i]
+        i += 1
+    return true
+
+; EN: Copies a buffer[] range into byte[] without transferring ownership.
+; ES: Copia desde buffer[] hacia byte[] sin transferir su propiedad.
+;
+@unsafe
+public func from_buffer(destination: byte[], destination_length: Len_t, destination_size: Size_t, source: buffer[], source_length: Len_t, destination_start: usize, source_start: usize, count: usize) bool:
+    if destination_size != 1:
+        return false
+    if destination_start > destination_length || count > destination_length - destination_start:
+        return false
+    if source_start > source_length || count > source_length - source_start:
+        return false
+    i: usize = 0
+    while i < count:
+        destination[destination_start + i] = source[source_start + i]
+        i += 1
+    return true
