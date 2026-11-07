@@ -52,3 +52,14 @@ gestionarse o reintentarse sin perder el handle.
 
 No incluye syscalls internas de Windows, NT Native API, GUI, COM, registro ni
 wrappers C.
+
+## Integración de Net y WinHTTP
+
+`windows/modules/winhttp.bg` declara la ABI pública de WinHTTP. Su conversión
+de texto UTF-8 a UTF-16 usa `MultiByteToWideChar` de `kernel32.bg`, no una
+supuesta exportación de WinHTTP. Los helpers públicos de `sockets.bg` incluyen
+`OpenTcpHost`, que usa Winsock para resolver y conectar por TCP.
+
+La nueva API debe compilarse y probarse en Windows x64. **No** se debe
+publicar como `windows.lib` un paquete compilado en Linux si el empaquetador
+produce una tabla de símbolos vacía para el target Windows.
