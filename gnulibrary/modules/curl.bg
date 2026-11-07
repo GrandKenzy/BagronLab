@@ -1,0 +1,25 @@
+clause Privacy "public"
+
+; Native libcurl and libc boundaries for Linux HTTPS users.
+; The library is loaded from libcurl.so.4; TLS verification is not disabled.
+extern c ":libcurl.so.4":
+    ; curl_easy_setopt es variadica en C; la firma fija conserva el ABI del
+    ; tercer argumento, que aquí siempre es un puntero.
+    curl_easy_init() usize
+    curl_easy_setopt(
+        handle: usize,
+        option: int32,
+        value *: const char
+    ) int32
+    curl_easy_perform(handle: usize) int32
+    curl_easy_getinfo(
+        handle: usize,
+        info: int32,
+        value *: int64
+    ) int32
+    curl_easy_cleanup(handle: usize) void
+
+extern c "c":
+    fopen(file_name *: const char, mode *: const char) usize
+    fclose(file: usize) int32
+
