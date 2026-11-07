@@ -70,37 +70,6 @@ public FILE_TYPE_DISK: const uint32 = 1
 public FILE_TYPE_CHAR: const uint32 = 2
 public FILE_TYPE_PIPE: const uint32 = 3
 
-; EN: File metadata and directory-entry structures used by the portable OS layer.
-;
-; ES: Estructuras de metadatos y entradas de directorio usadas por la capa OS portátil.
-@align(8)
-public struct WIN32_FILE_ATTRIBUTE_DATA:
-    attributes: uint32
-    creation_time_low: uint32
-    creation_time_high: uint32
-    access_time_low: uint32
-    access_time_high: uint32
-    write_time_low: uint32
-    write_time_high: uint32
-    size_high: uint32
-    size_low: uint32
-
-@align(8)
-public struct WIN32_FIND_DATAA:
-    attributes: uint32
-    creation_time_low: uint32
-    creation_time_high: uint32
-    access_time_low: uint32
-    access_time_high: uint32
-    write_time_low: uint32
-    write_time_high: uint32
-    size_high: uint32
-    size_low: uint32
-    reserved0: uint32
-    reserved1: uint32
-    file_name: char[260]
-    alternate_name: char[14]
-
 ; EN: Standard console handles and the invalid-handle sentinel.
 ;
 ; ES: Handles de consola estándar y el sentinel de handle inválido.
