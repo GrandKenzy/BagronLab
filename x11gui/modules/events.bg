@@ -1,0 +1,15 @@
+; X11 event-kind helpers for single-window applications.
+; EN: True for a WM_DELETE_WINDOW event.
+; ES: Indica una solicitud de cierre del gestor de ventanas.
+public func is_close_request(event_kind: int32) bool:
+    return event_kind == XNative.X11_CLOSE_REQUEST
+
+; EN: True for an expose/redraw request.
+; ES: Indica que debe repintarse la ventana.
+public func should_repaint(event_kind: int32) bool:
+    return event_kind == XNative.X11_EXPOSE
+
+; EN: True for a mouse button press.
+; ES: Indica que se presionó un botón del ratón.
+public func is_click(event_kind: int32) bool:
+    return event_kind == XNative.X11_BUTTON_PRESS
