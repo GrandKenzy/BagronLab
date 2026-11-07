@@ -113,6 +113,16 @@ public PAGE_NOCACHE: const uint32 = 512
 public PAGE_WRITECOMBINE: const uint32 = 1024
 
 extern windows "kernel32":
+    ; Convert UTF-8 text to UTF-16 for native Windows consumers.
+    MultiByteToWideChar(
+        code_page: uint32,
+        flags_: uint32,
+        source *: const char,
+        source_length: int32,
+        destination *: uint16,
+        destination_capacity: int32
+    ) int32
+
 
     ; EN: Creates or opens an ANSI path using the native file-handle ABI.
     ;
