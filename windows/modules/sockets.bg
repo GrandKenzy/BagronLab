@@ -69,7 +69,13 @@ extern windows "ws2_32":
         sock: usize,
         data *: void,
         length: int32
-    )
+    ) int32
+
+    connect(
+        sock: usize,
+        data *: const char,
+        length: int32
+    ) int32
 
     accept(
         sock: usize,
@@ -83,7 +89,7 @@ extern windows "ws2_32":
         option: int32,
         value *: void,
         value_length: int32
-    )
+    ) int32
 
     send(
         sock: usize,
@@ -112,29 +118,54 @@ extern windows "ws2_32":
 ; ES: Adaptadores compartidos por el cliente HTTP y futuros protocolos
 @unsafe
 inline func Open(family: int32, kind: int32, protocol: int32) usize:
+    ; EN : Creates a native socket descriptor using Winsock.
+    ; Returns INVALID_SOCKET on failure.
+    ;
+    ; ES : Crea un descriptor de socket nativo mediante Winsock.
+    ; Devuelve INVALID_SOCKET en caso de error.
     return socket(family, kind, protocol)
 
 @unsafe
 inline func Connect(handle: usize, address *: const char, length: int32) int32:
+    ; EN : Establishes a connection to a specified socket address.
+    ; Returns 0 on success, or SOCKET_ERROR on failure.
+    ;
+    ; ES : Establece una conexión a una dirección de socket especificada.
+    ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
     return connect(handle, address, length)
 
 @unsafe
 inline func Bind(handle: usize, address *: void, length: int32) int32:
+    ; EN : Associates a local address with a socket descriptor.
+    ; Returns 0 on success, or SOCKET_ERROR on failure.
+    ;
+    ; ES : Asocia una dirección local a un descriptor de socket.
+    ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
     return bind(handle, address, length)
 
 @unsafe
-inline func Listen(handle, backlog: int32) int32:
+inline func Listen(handle: usize, backlog: int32) int32:
+    ; EN : Places a socket in a state listening for incoming connections.
+    ; Returns 0 on success, or SOCKET_ERROR on failure.
+    ;
+    ; ES : Coloca un socket en estado de escucha para conexiones entrantes.
+    ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
     return listen(handle, backlog)
 
 @unsafe
 func set_timeout(handle: usize, timeout_ms: int32) int32:
-    if timeout < 1:
+    ; EN : Configures send and receive timeouts on a socket in milliseconds.
+    ; Returns 0 on success, or -1 on invalid parameter or socket error.
+    ;
+    ; ES : Configura tiempos de espera de envío y recepción en milisegundos.
+    ; Devuelve 0 en caso de éxito, o -1 en caso de parámetro inválido o error.
+    if timeout_ms < 1:
         return -1
     
     receive_option: int32 = 4102
     send_option: int32 = 4101
     socket_level: int32 = 65535
-    receive_result int32 = setsockopt(handle, socket_level, receive_option, $timeout_ms, 4)
+    receive_result: int32 = setsockopt(handle, socket_level, receive_option, $timeout_ms, 4)
     send_result: int32 = setsockopt(handle, socket_level, send_option, $timeout_ms, 4)
     if receive_result != 0 || send_result != 0:
         return -1
@@ -142,14 +173,29 @@ func set_timeout(handle: usize, timeout_ms: int32) int32:
 
 @unsafe
 inline func Send(handle: usize, buffer *: const char, length: int32) int32:
+    ; EN : Sends data on a connected socket descriptor.
+    ; Returns the number of bytes sent, or SOCKET_ERROR on failure.
+    ;
+    ; ES : Envía datos a través de un descriptor de socket conectado.
+    ; Devuelve el número de bytes enviados, o SOCKET_ERROR en caso de error.
     return send(handle, buffer, length, 0)
 
 @unsafe
 inline func Recv(handle: usize, buffer *: char, length: int32) int32:
+    ; EN : Receives data from a connected socket descriptor into a buffer.
+    ; Returns the number of bytes received, 0 on disconnect, or SOCKET_ERROR.
+    ;
+    ; ES : Recibe datos desde un socket conectado en un buffer.
+    ; Devuelve el número de bytes recibidos, 0 al desconectar, o SOCKET_ERROR.
     return recv(handle, buffer, length, 0)
 
 @unsafe
 inline func Close(handle: usize) int32:
+    ; EN : Closes an open socket descriptor.
+    ; Returns 0 on success, or SOCKET_ERROR on failure.
+    ;
+    ; ES : Cierra un descriptor de socket abierto.
+    ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
     return closesocket(handle)
 
 @unsafe
@@ -159,15 +205,26 @@ inline func GetAddrInfo(
     hints *: ADDRINFO,
     result **: ADDRINFO
 ) int32:
+    ; EN : Resolves hostnames and service port names into address structures.
+    ;
+    ; ES : Resuelve nombres de host y servicio a estructuras de direcciones.
     return getaddrinfo(node, service, hints, result)
 
 @unsafe
 inline func ReleaseAddrInfo(result *: ADDRINFO) void:
+    ; EN : Frees address structures allocated dynamically by GetAddrInfo.
+    ;
+    ; ES : Libera estructuras de direcciones asignadas dinámicamente por GetAddrInfo.
     freeaddrinfo(result)
 
 @unsafe
 func Startup() int32:
-    data: WSADATA = {}
+    ; EN : Initializes the Winsock 2.2 subsystem for the process.
+    ; Returns 0 on success, or non-zero error code on failure.
+    ;
+    ; ES : Inicializa el subsistema Winsock 2.2 para el proceso.
+    ; Devuelve 0 en caso de éxito, o código de error distinto de cero.
+    data: WSADATA
     result: int32 = WSAStartup(WINSOCK_VERSION, $data)
 
     if result != 0:
@@ -181,10 +238,16 @@ func Startup() int32:
 
 @unsafe
 inline func Cleanup() int32:
+    ; EN : Terminates use of the Winsock 2 subsystem.
+    ;
+    ; ES : Finaliza el uso del subsistema Winsock 2.
     return WSACleanup()
 
 @unsafe
 inline func NetworkPort(port: int32) uint16:
+    ; EN : Converts a port number from host byte order to network byte order.
+    ;
+    ; ES : Convierte un número de puerto de orden de host a orden de red.
     return htons(port)
 
 
@@ -195,13 +258,19 @@ class Socket:
         addr *: const char,
         addrlen: int32
     ) void:
+        ; EN : Initializes a Socket wrapper around an operating-system handle.
+        ;
+        ; ES : Inicializa un envoltorio Socket alrededor de un handle del sistema.
         self._sock = sock
         self._addr = addr
         self._addrlen = addrlen
         self._closed = false
 
     @unsafe
-    func connect(): int32:
+    func connect() int32:
+        ; EN : Connects the owned socket to its target address.
+        ;
+        ; ES : Conecta el socket propio a su dirección de destino.
         if self._closed:
             return SOCKET_ERROR
         
@@ -213,6 +282,9 @@ class Socket:
 
     @unsafe
     func send(buf *: const char, len: int32) int32:
+        ; EN : Sends data through the owned socket.
+        ;
+        ; ES : Envía datos a través del socket propio.
         if self._closed:
             return SOCKET_ERROR
         
@@ -225,6 +297,9 @@ class Socket:
 
     @unsafe
     func recv(buf *: char, len: int32) int32:
+        ; EN : Receives data from the owned socket into a buffer.
+        ;
+        ; ES : Recibe datos desde el socket propio en un buffer.
         if self._closed:
             return SOCKET_ERROR
         
@@ -236,6 +311,9 @@ class Socket:
 
     @unsafe
     func close() int32:
+        ; EN : Closes the owned socket descriptor.
+        ;
+        ; ES : Cierra el descriptor de socket propio.
         if self._closed:
             return 0
 
@@ -243,13 +321,15 @@ class Socket:
             self._closed = true
             return SOCKET_ERROR
         
-        result: int32 = Close(self.sock)
+        result: int32 = Close(self._sock)
         self._closed = true
         self._sock = 0
-        return 0
+        return result
 
-    @before
     @unsafe
     func __deletion__() void:
+        ; EN : Closes the owned socket when the object is deleted.
+        ;
+        ; ES : Cierra el socket propio cuando se destruye el objeto.
         self.close()
         return

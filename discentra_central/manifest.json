@@ -1,0 +1,39 @@
+{
+  "repository": {
+    "name": "bagronlab",
+    "description": "Monorepo con la suite oficial de librerías y utilidades para Bagron",
+    "author": "Discentra Community"
+  },
+  "packages": {
+    "gnulibrary": {
+      "description": "Linux x86_64 raw syscalls and shared Linux constants",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "windows": {
+      "description": "Native Microsoft Windows x64 ABI declarations and WinSock sockets",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "io": {
+      "description": "Standard text and byte input/output helpers for Bagron",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "hashlib": {
+      "description": "Hashing algorithms implemented natively in Bagron",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "math": {
+      "description": "Mathematical primitives and functions",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "string": {
+      "description": "String manipulation utilities",
+      "license": "MIT",
+      "kind": "librería"
+    }
+  }
+}
