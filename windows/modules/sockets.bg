@@ -1,0 +1,255 @@
+clause System "windows"
+clause Arch "amd"
+clause Privacy "public"
+
+SOCKET_ERROR: const int32 = -1
+INVALID_SOCKET: const usize = 18446744073709551615
+WINSOCK_VERSION: const uint16 = 514
+
+AF_INET: const int32 = 2
+AF_INET6: const int32 = 23
+SOCK_STREAM: const int32 = 1
+IPPROTO_TCP: const int32 = 6
+
+
+@align(8)
+struct ADDRINFO:
+    ; EN: ADDRINFO view from network consumers.
+    ; Windows places ai_canname before ai_addr in the native structure 
+    ;
+    ; ES: Vista de ADDRINFO para consumidores de red.
+    ; Windows coloca ai_canonname antes de ai_addr en la estructura nativa
+
+    ai_flags: int32
+    ai_family: int32
+    ai_socktype: int32
+    ai_protocol: int32
+    ai_addrlen: int32
+    ai_canoname *: const char
+    ai_addr *: const char
+    ai_next *: ADDRINFO
+
+@align(8)
+struct WSADATA:
+    ; EN: WSADATA structure from windows AMD64
+    ; ABI size expected: 408 bytes, 8 align
+    ; 
+    ; ES: Estructura WSADATA para Windows AMD64
+    ; Tamaño ABI esperado: 408 bytes, alineación 8.
+    wVersion: uint16
+    wHighVersion: uint16
+    iMaxSockets: uint16
+    iMaxUdpDg: uint16
+    lpVendorInfo *: char
+    szDescription: char[257]
+    szSystemStatus: char[129]
+
+extern windows "ws2_32":
+    
+
+    WSACleanup() int32
+    WSAGetLastError() int32
+    listen(sock: usize, backlog: int32) int32
+    closesocket(sock: usize) int32
+    freeaddrinfo(result *: ADDRINFO) void
+    htons(port: int32) uint16
+
+    WSAStartup(
+        wVersionRequired: uint16,
+        lpWSAData *: WSADATA
+    ) int32
+    
+    socket(
+        af: int32,
+        kind: int32,
+        protocol: int32
+    ) usize
+
+    bind(
+        sock: usize,
+        data *: void,
+        length: int32
+    )
+
+    accept(
+        sock: usize,
+        data *: char,
+        length *: int32
+    ) usize
+
+    setsockopt(
+        sock: usize,
+        level: int32,
+        option: int32,
+        value *: void,
+        value_length: int32
+    )
+
+    send(
+        sock: usize,
+        buf *: const char,
+        len: int32,
+        flags_: int32
+    ) int32
+
+    recv(
+        sock: usize,
+        buf *: char,
+        len: int32,
+        flags_: int32
+    ) int32
+
+    getaddrinfo(
+        node *: const char,
+        service *: const char,
+        hints *: ADDRINFO,
+        result **: ADDRINFO
+    ) int32
+
+
+; EN: Adapters shared by the HTTP client and future protocols
+;
+; ES: Adaptadores compartidos por el cliente HTTP y futuros protocolos
+@unsafe
+inline func Open(family: int32, kind: int32, protocol: int32) usize:
+    return socket(family, kind, protocol)
+
+@unsafe
+inline func Connect(handle: usize, address *: const char, length: int32) int32:
+    return connect(handle, address, length)
+
+@unsafe
+inline func Bind(handle: usize, address *: void, length: int32) int32:
+    return bind(handle, address, length)
+
+@unsafe
+inline func Listen(handle, backlog: int32) int32:
+    return listen(handle, backlog)
+
+@unsafe
+func set_timeout(handle: usize, timeout_ms: int32) int32:
+    if timeout < 1:
+        return -1
+    
+    receive_option: int32 = 4102
+    send_option: int32 = 4101
+    socket_level: int32 = 65535
+    receive_result int32 = setsockopt(handle, socket_level, receive_option, $timeout_ms, 4)
+    send_result: int32 = setsockopt(handle, socket_level, send_option, $timeout_ms, 4)
+    if receive_result != 0 || send_result != 0:
+        return -1
+    return 0
+
+@unsafe
+inline func Send(handle: usize, buffer *: const char, length: int32) int32:
+    return send(handle, buffer, length, 0)
+
+@unsafe
+inline func Recv(handle: usize, buffer *: char, length: int32) int32:
+    return recv(handle, buffer, length, 0)
+
+@unsafe
+inline func Close(handle: usize) int32:
+    return closesocket(handle)
+
+@unsafe
+inline func GetAddrInfo(
+    node *: const char,
+    service *: const char,
+    hints *: ADDRINFO,
+    result **: ADDRINFO
+) int32:
+    return getaddrinfo(node, service, hints, result)
+
+@unsafe
+inline func ReleaseAddrInfo(result *: ADDRINFO) void:
+    freeaddrinfo(result)
+
+@unsafe
+func Startup() int32:
+    data: WSADATA = {}
+    result: int32 = WSAStartup(WINSOCK_VERSION, $data)
+
+    if result != 0:
+        return result
+
+    if data.wVersion != WINSOCK_VERSION:
+        WSACleanup()
+        return SOCKET_ERROR
+    return 0
+
+
+@unsafe
+inline func Cleanup() int32:
+    return WSACleanup()
+
+@unsafe
+inline func NetworkPort(port: int32) uint16:
+    return htons(port)
+
+
+
+class Socket:
+    func __init__(
+        sock: usize,
+        addr *: const char,
+        addrlen: int32
+    ) void:
+        self._sock = sock
+        self._addr = addr
+        self._addrlen = addrlen
+        self._closed = false
+
+    @unsafe
+    func connect(): int32:
+        if self._closed:
+            return SOCKET_ERROR
+        
+        if self._sock == INVALID_SOCKET:
+            return SOCKET_ERROR
+        
+        result: int32 = Connect(self._sock, self._addr, self._addrlen)
+        return result
+
+    @unsafe
+    func send(buf *: const char, len: int32) int32:
+        if self._closed:
+            return SOCKET_ERROR
+        
+        if self._sock == INVALID_SOCKET:
+            return SOCKET_ERROR
+
+        result: int32 = Send(self._sock, buf, len)
+
+        return result
+
+    @unsafe
+    func recv(buf *: char, len: int32) int32:
+        if self._closed:
+            return SOCKET_ERROR
+        
+        if self._sock == INVALID_SOCKET:
+            return SOCKET_ERROR
+
+        result: int32 = Recv(self._sock, buf, len)
+        return result
+
+    @unsafe
+    func close() int32:
+        if self._closed:
+            return 0
+
+        if self._sock == INVALID_SOCKET:
+            self._closed = true
+            return SOCKET_ERROR
+        
+        result: int32 = Close(self.sock)
+        self._closed = true
+        self._sock = 0
+        return 0
+
+    @before
+    @unsafe
+    func __deletion__() void:
+        self.close()
+        return

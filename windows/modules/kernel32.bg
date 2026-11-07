@@ -1,10 +1,9 @@
 ; EN: Native Kernel32 ABI declarations for Bagron on Windows x64.
+; This module declares Windows DLL symbols; it does not implement C wrappers.
 ;
 ; ES: Declaraciones de la ABI nativa de Kernel32 para Bagron en Windows x64.
+; Este módulo declara símbolos de DLL de Windows; no implementa wrappers C.
 
-; EN: This module declares Windows DLL symbols; it does not implement C wrappers.
-;
-; ES: Este módulo declara símbolos de DLL de Windows; no implementa wrappers C.
 
 ; EN: HANDLE is an opaque pointer-sized operating-system resource.
 ;
