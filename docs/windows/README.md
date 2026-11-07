@@ -41,5 +41,13 @@ Los módulos `windows/modules/process.bg` y `windows/modules/time.bg` son la
 primera capa de utilidades propias de Bagron sobre `kernel32.bg`. No declaran
 una nueva ABI ni dependen de la CRT.
 
-No incluye syscalls internas de Windows, NT Native API, GUI, COM, sockets,
-registro ni wrappers C.
+## Winsock
+
+`windows/modules/sockets.bg` expone la ABI de `ws2_32.dll`, incluidos
+`WSAStartup`, creación y cierre de sockets, envío, recepción y resolución de
+direcciones. `WSADATA` conserva el layout de Windows x64; un `Socket` sólo se
+marca cerrado cuando `closesocket` confirma éxito, para que un error pueda
+gestionarse o reintentarse sin perder el handle.
+
+No incluye syscalls internas de Windows, NT Native API, GUI, COM, registro ni
+wrappers C.

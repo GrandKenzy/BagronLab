@@ -22,8 +22,8 @@ struct ADDRINFO:
     ai_family: int32
     ai_socktype: int32
     ai_protocol: int32
-    ai_addrlen: int32
-    ai_canoname *: const char
+    ai_addrlen: usize
+    ai_canonname *: const char
     ai_addr *: const char
     ai_next *: ADDRINFO
 
@@ -36,11 +36,11 @@ struct WSADATA:
     ; Tamaño ABI esperado: 408 bytes, alineación 8.
     wVersion: uint16
     wHighVersion: uint16
+    szDescription: char[257]
+    szSystemStatus: char[129]
     iMaxSockets: uint16
     iMaxUdpDg: uint16
     lpVendorInfo *: char
-    szDescription: char[257]
-    szSystemStatus: char[129]
 
 extern windows "ws2_32":
     
@@ -320,8 +320,9 @@ class Socket:
             return SOCKET_ERROR
         
         result: int32 = Close(self._sock)
-        self._closed = true
-        self._sock = 0
+        if result == 0:
+            self._closed = true
+            self._sock = INVALID_SOCKET
         return result
 
     @unsafe

@@ -25,6 +25,19 @@ func lseek(fd: int64, offset: int64, whence: int32) int64:
     return asm
 
 @assembler
+func fstat(fd: int64, stat_buffer *: void) int64:
+    ; EN: Reads metadata for an already open file descriptor into a native stat buffer.
+    ; The caller owns the buffer and must provide the layout for Linux x86_64.
+    ;
+    ; ES: Lee los metadatos de un descriptor de archivo abierto en un buffer stat nativo.
+    ; El llamador posee el buffer y debe proporcionar el layout de Linux x86_64.
+    #assembler "att"
+        movq $5, %rax
+        syscall
+    #end
+    return asm
+
+@assembler
 func dup3(oldfd: int32, newfd: int32, dup_flags: uint32) int64:
     ; EN: Duplicates a file descriptor with explicit close-on-exec flags.
     ; ES: Duplica un descriptor con flags explícitos de close-on-exec.

@@ -5,6 +5,11 @@ clause Privacy "public"
 SOCKET_ERROR: const int32 = -1
 INVALID_SOCKET: const usize = 18446744073709551615
 
+; Reinterprets a non-negative raw Linux descriptor as the public handle type.
+private mold SocketResult:
+    raw: int64
+    handle: usize
+
 ; EN: Address families (domain).
 ; ES: Familias de direcciones (dominio).
 AF_UNSPEC: const int32 = 0
@@ -95,30 +100,13 @@ struct TIMEVAL:
     tv_usec: int64
 
 
-@align(8)
-struct ADDRINFO:
-    ; EN: POSIX/Linux addrinfo structure for network consumers.
-    ; Linux/POSIX places ai_addr before ai_canonname in the native structure.
-    ;
-    ; ES: Estructura addrinfo para POSIX/Linux en consumidores de red.
-    ; Linux/POSIX coloca ai_addr antes de ai_canonname en la estructura nativa.
-    ai_flags: int32
-    ai_family: int32
-    ai_socktype: int32
-    ai_protocol: int32
-    ai_addrlen: int32
-    ai_addr *: const char
-    ai_canonname *: const char
-    ai_next *: ADDRINFO
-
-
 @assembler
-func socket(domain: int32, kind: int32, protocol: int32) usize:
-    ; EN: Creates an endpoint for communication and returns a socket handle.
-    ; Syscall 41 (sys_socket).
+func socket(domain: int32, kind: int32, protocol: int32) int64:
+    ; EN: Creates an endpoint for communication and returns the raw kernel result.
+    ; Syscall 41 (sys_socket); negative values are -errno.
     ;
-    ; ES: Crea un endpoint de comunicación y retorna un handle de socket.
-    ; Syscall 41 (sys_socket).
+    ; ES: Crea un endpoint de comunicación y retorna el resultado crudo del kernel.
+    ; Syscall 41 (sys_socket); los valores negativos son -errno.
     #assembler "att"
         movq $41, %rax
         syscall
@@ -141,12 +129,12 @@ func connect(sock: usize, addr *: const void, addrlen: int32) int32:
 
 
 @assembler
-func accept(sock: usize, addr *: void, addrlen *: int32) usize:
-    ; EN: Accepts a connection on a listening socket descriptor.
-    ; Syscall 43 (sys_accept).
+func accept(sock: usize, addr *: void, addrlen *: int32) int64:
+    ; EN: Accepts a connection and returns the raw kernel result.
+    ; Syscall 43 (sys_accept); negative values are -errno.
     ;
-    ; ES: Acepta una conexión en un descriptor de socket en escucha.
-    ; Syscall 43 (sys_accept).
+    ; ES: Acepta una conexión y retorna el resultado crudo del kernel.
+    ; Syscall 43 (sys_accept); los valores negativos son -errno.
     #assembler "att"
         movq $43, %rax
         syscall
@@ -384,11 +372,6 @@ func ntohs(port: uint16) int32:
     return asm
 
 
-extern c "c":
-    getaddrinfo(node *: const char, service *: const char, hints *: ADDRINFO, result **: ADDRINFO) int32
-    freeaddrinfo(result *: ADDRINFO) void
-
-
 @unsafe
 inline func Open(family: int32, kind: int32, protocol: int32) usize:
     ; EN : Creates a native socket descriptor using Linux kernel syscalls.
@@ -396,7 +379,12 @@ inline func Open(family: int32, kind: int32, protocol: int32) usize:
     ;
     ; ES : Crea un descriptor de socket nativo mediante llamadas al kernel de Linux.
     ; Devuelve INVALID_SOCKET en caso de error.
-    return socket(family, kind, protocol)
+    result: int64 = socket(family, kind, protocol)
+    if result < 0:
+        return INVALID_SOCKET
+    handle: SocketResult
+    handle.raw = result
+    return handle.handle
 
 
 @unsafe
@@ -406,7 +394,9 @@ inline func Connect(handle: usize, address *: const char, length: int32) int32:
     ;
     ; ES : Establece una conexión a una dirección de socket especificada.
     ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
-    return connect(handle, address, length)
+    if connect(handle, address, length) != 0:
+        return SOCKET_ERROR
+    return 0
 
 
 @unsafe
@@ -416,7 +406,9 @@ inline func Bind(handle: usize, address *: void, length: int32) int32:
     ;
     ; ES : Asocia una dirección local a un descriptor de socket.
     ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
-    return bind(handle, address, length)
+    if bind(handle, address, length) != 0:
+        return SOCKET_ERROR
+    return 0
 
 
 @unsafe
@@ -426,7 +418,9 @@ inline func Listen(handle: usize, backlog: int32) int32:
     ;
     ; ES : Coloca un socket en estado de escucha para conexiones entrantes.
     ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
-    return listen(handle, backlog)
+    if listen(handle, backlog) != 0:
+        return SOCKET_ERROR
+    return 0
 
 
 @unsafe
@@ -436,7 +430,12 @@ inline func Accept(handle: usize, address *: void, length *: int32) usize:
     ;
     ; ES : Acepta una solicitud de conexión entrante en un socket en escucha.
     ; Retorna el nuevo descriptor de socket o INVALID_SOCKET en caso de error.
-    return accept(handle, address, length)
+    result: int64 = accept(handle, address, length)
+    if result < 0:
+        return INVALID_SOCKET
+    accepted: SocketResult
+    accepted.raw = result
+    return accepted.handle
 
 
 @unsafe
@@ -469,7 +468,10 @@ inline func Send(handle: usize, buffer *: const char, length: int32) int32:
     ;
     ; ES : Envía datos a través de un descriptor de socket conectado con MSG_NOSIGNAL.
     ; Devuelve el número de bytes enviados, o SOCKET_ERROR en caso de error.
-    return send(handle, buffer, length, MSG_NOSIGNAL)
+    result: int32 = send(handle, buffer, length, MSG_NOSIGNAL)
+    if result < 0:
+        return SOCKET_ERROR
+    return result
 
 
 @unsafe
@@ -479,7 +481,10 @@ inline func Recv(handle: usize, buffer *: char, length: int32) int32:
     ;
     ; ES : Recibe datos desde un socket conectado en un buffer.
     ; Devuelve el número de bytes recibidos, 0 al desconectar, o SOCKET_ERROR.
-    return recv(handle, buffer, length, 0)
+    result: int32 = recv(handle, buffer, length, 0)
+    if result < 0:
+        return SOCKET_ERROR
+    return result
 
 
 @unsafe
@@ -489,23 +494,9 @@ inline func Close(handle: usize) int32:
     ;
     ; ES : Cierra un descriptor de socket abierto mediante sys_close.
     ; Devuelve 0 en caso de éxito, o SOCKET_ERROR en caso de error.
-    return close_socket(handle)
-
-
-@unsafe
-inline func GetAddrInfo(node *: const char, service *: const char, hints *: ADDRINFO, result **: ADDRINFO) int32:
-    ; EN : Resolves hostnames and service port names into address structures via POSIX resolver.
-    ;
-    ; ES : Resuelve nombres de host y servicio a estructuras de direcciones mediante el resolver POSIX.
-    return getaddrinfo(node, service, hints, result)
-
-
-@unsafe
-inline func ReleaseAddrInfo(result *: ADDRINFO) void:
-    ; EN : Frees address structures allocated dynamically by GetAddrInfo.
-    ;
-    ; ES : Libera estructuras de direcciones asignadas dinámicamente por GetAddrInfo.
-    freeaddrinfo(result)
+    if close_socket(handle) != 0:
+        return SOCKET_ERROR
+    return 0
 
 
 @unsafe

@@ -310,6 +310,28 @@ public SeekSet: const int32 = Gnu.SEEK_SET
 public SeekCur: const int32 = Gnu.SEEK_CUR
 public SeekEnd: const int32 = Gnu.SEEK_END
 
+; Linux x86_64 struct stat layout used only with the raw fstat syscall.
+@align(8)
+private struct LinuxStat:
+    device: uint64
+    inode: uint64
+    link_count: uint64
+    mode: uint32
+    user_id: uint32
+    group_id: uint32
+    padding: uint32
+    device_type: uint64
+    byte_size: int64
+    block_size: int64
+    block_count: int64
+    access_seconds: int64
+    access_nanoseconds: int64
+    modify_seconds: int64
+    modify_nanoseconds: int64
+    change_seconds: int64
+    change_nanoseconds: int64
+    reserved: uint64[3]
+
 private linux_last_error: int64 = 0
 
 ; EN: Stores a negative Linux syscall error as a positive errno value.
@@ -501,23 +523,21 @@ public class File:
             return -1
         return remember_error(Gnu.lseek(self.resource, offset, origin))
 
-    ; EN: Returns the size in bytes while restoring the current offset.
-    ; ES: Devuelve el tamaño en bytes y restaura el offset actual.
+    ; EN: Returns the size in bytes without changing the descriptor offset.
+    ; Uses the Linux x86_64 fstat layout owned by this module.
+    ;
+    ; ES: Devuelve el tamaño en bytes sin cambiar el offset del descriptor.
+    ; Usa el layout fstat de Linux x86_64 que posee este módulo.
     ;
     @unsafe
     func size() int64:
         if not self.is_open():
             return -1
 
-        current: int64 = remember_error(Gnu.lseek(self.resource, 0, SeekCur))
-        if current < 0:
+        metadata: LinuxStat
+        if remember_error(Gnu.fstat(self.resource, $metadata)) != 0:
             return -1
-        result: int64 = remember_error(Gnu.lseek(self.resource, 0, SeekEnd))
-        if result < 0:
-            return -1
-        if remember_error(Gnu.lseek(self.resource, current, SeekSet)) < 0:
-            return -1
-        return result
+        return metadata.byte_size
 
     ; EN: Flushes file data and metadata through fsync.
     ; ES: Sincroniza datos y metadatos mediante fsync.

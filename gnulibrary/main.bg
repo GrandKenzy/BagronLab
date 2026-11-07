@@ -1,2 +1,2 @@
 clause System "linux"
-clause Arch "auto"
+clause Arch "amd"
