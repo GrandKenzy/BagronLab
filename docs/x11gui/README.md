@@ -1,12 +1,12 @@
-# x11gui 0.1.0 — Interfaz gráfica para GNU/Linux con Xlib
+# x11gui 0.1.1 — Interfaz gráfica para GNU/Linux con Xlib
 
 `x11gui` es el backend de interfaz gráfica **X11** para Bagron. Está separado
 de `win32gui`, su equivalente Windows. El nombre `guilib` continúa
 reservado para una futura fachada multiplataforma.
 
-Estado: **prototipo funcional en Linux x86_64**. Se han compilado y ejecutado
-las pruebas de dibujo, botones y cierre en Xvfb. Aún no se ha publicado un
-paquete binario integral junto a `gnulibrary.lib` en `build/`.
+Estado: **paquete validado en Linux x86_64**. Se han compilado y ejecutado
+las pruebas de dibujo, botones y cierre en Xvfb. `gnulibrary.lib` y
+`x11gui.lib` están disponibles en `build/`.
 
 ## Arquitectura
 
@@ -88,13 +88,13 @@ python3 scripts/build_x11gui.py
 bagron verify build/x11gui.lib
 
 # Instalar x11gui.lib para la prueba de un consumidor externo.
-bagron tests/x11gui/smoke.bg -o build/x11gui-smoke
-xvfb-run -a ./build/x11gui-smoke
+bagron tests/x11gui/smoke.bg -o build/x11gui-check
+xvfb-run -a ./build/x11gui-check
 ```
 
-La versión `1.1.10` de `gnulibrary` es un ejemplo de versión de desarrollo:
-ajústala a la versión que decidas publicar. **No reemplaces una biblioteca
-instalada con un paquete incompleto**. En las pruebas se reconstruyó primero el subconjunto X11 y después el paquete completo a partir de los módulos existentes en el paquete local instalado más los tres módulos X11 nuevos, conservando respaldo de la biblioteca original. Esta prueba no sustituye la reconstrucción con todas las fuentes más recientes de GitHub.
+La versión `1.1.10` de `gnulibrary` es la que corresponde al paquete validado
+en `build/`. Instala primero esa biblioteca y después `x11gui.lib` para probar
+un consumidor externo.
 
 El enlace en Bagron 1.1.4 para ELF Linux requiere actualmente el ajuste PIC
 local conocido del backend LLVM. Este repositorio no aplica ese parche al
@@ -163,6 +163,4 @@ limpian al cerrar/abrir una ventana.
 
 Probado en Linux x86_64 con Xvfb: pulsación de `a`, liberación,
 `Shift+A`, `Escape` y `b` mediante `poll()`. También se ejecutaron las
-pruebas anteriores de ventana, clic y cierre, sin regresiones. Se utilizó el
-ajuste PIC local conocido de Bagron 1.1.4. Los `.lib` compilados de GitHub
-no se reemplazaron en esta entrega.
+pruebas anteriores de ventana, clic y cierre, sin regresiones.

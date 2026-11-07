@@ -18,13 +18,13 @@ solo para enviar mensajes sintéticos a Xvfb.
 
 ```sh
 # Primero instalar desde las fuentes las versiones actuales de gnulibrary y x11gui.
-bagron tests/x11gui/smoke.bg -o build/x11-smoke
+bagron tests/x11gui/smoke.bg -o build/x11-check
 bagron tests/x11gui/click.bg -o build/x11-click
 bagron tests/x11gui/close.bg -o build/x11-close
 bagron tests/x11gui/keyboard.bg -o build/x11-keyboard
 bagron tests/x11gui/keyboard_poll.bg -o build/x11-keyboard-poll
 
-xvfb-run -a ./build/x11-smoke
+xvfb-run -a ./build/x11-check
 
 # El script corre dentro de la misma sesión Xvfb que el ejecutable.
 xvfb-run -a sh -c './build/x11-click & pid=$!; python3 tests/x11gui/send_event.py --event click; wait $pid'
@@ -37,12 +37,8 @@ Todas las pruebas deben terminar con código **0**. La primera prueba de
 dibujo usa un plazo de sondeo acotado. Las otras envían un evento desde un
 segundo proceso para comprobar las interfaces reales de Xlib.
 
-Se han ejecutado con Bagron 1.1.4 en Linux x86_64. También se probó
-`gnulibrary` reconstruida a partir de todos los módulos del paquete local
-previamente instalado, más los tres módulos X11 nuevos; todas las pruebas
-continuaron pasando. Queda pendiente reconstruir desde las fuentes completas
-más recientes de GitHub antes de publicar una release oficial.
-El compilador necesitó el ajuste PIC local conocido.
+Se han ejecutado con Bagron 1.1.4 en Linux x86_64 usando las bibliotecas
+publicadas en `build/`. El compilador necesitó el ajuste PIC local conocido.
 
 ## Teclado
 

@@ -44,6 +44,21 @@
       "description": "Portable monotonic clocks, durations, UTC date-time, and formatting",
       "license": "MIT",
       "kind": "librería"
+    },
+    "androidlib": {
+      "description": "Native Android AArch64 syscall and runtime declarations",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "mem": {
+      "description": "Checked byte-array and buffer operations",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "x11gui": {
+      "description": "Linux X11 window, event, drawing, and control helpers",
+      "license": "MIT",
+      "kind": "librería"
     }
   }
 }

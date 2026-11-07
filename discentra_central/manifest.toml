@@ -4,74 +4,101 @@ format = "bagron-manifest@1"
 hash_algorithm = "sha256"
 author = "Discentra Community"
 
+# Verificación para: androidlib
+[[packages]]
+name = "androidlib"
+file = "androidlib.lib"
+format = "lib1"
+sha256 = "ebf338dc338e7d6b0ec7fa3403bdf7f5247a1a4f55c92f8e2323bb7b60c1e696"
+size_bytes = 7537
+signature = "sha256:1fafc60fd14cdc53c56223528467b43ab863b3e3215b17f072c677556b25de03"
+
 # Verificación para: gnulibrary
 [[packages]]
 name = "gnulibrary"
 file = "gnulibrary.lib"
 format = "lib1"
-sha256 = "b6a4ed5feb2a6b0d9e2510db9577dc7f3c904a9322ddc547dca614fd10664198"
-size_bytes = 53810
-signature = "sha256:973e875dc041fdd5a9523ae9bc99c99dddc12bb2e46e2be0b08a5b11da386805"
+sha256 = "89c41b74c9fe8548bc47e4166977aa2b086808883075274a6bae1b2dac906791"
+size_bytes = 73910
+signature = "sha256:17a09963352254d7a06ff10b724e759542c555fb58d1140a83ada36f3fe758ff"
 
 # Verificación para: hashlib
 [[packages]]
 name = "hashlib"
 file = "hashlib.lib"
 format = "lib1"
-sha256 = "69a100881fcc746927664d53da8315858bfe738fba599b09203625000b973d72"
+sha256 = "64d5879fee6b2298136da1bf97c3cf724f3f8737833a3373cdd5853d4a0488ba"
 size_bytes = 30360
-signature = "sha256:661dab48bbc12551d876a65a27fe80ddfdb6b08bbd4153d79eeec96b4c7a6559"
+signature = "sha256:97eeac8e06b270dab784ef79365aea9947e63d60620d562b506e9cd30089206d"
 
 # Verificación para: io
 [[packages]]
 name = "io"
 file = "io.lib"
 format = "lib1"
-sha256 = "1090ebea5df3d8ad557483b32c5d8f0c047f3264e900949a3f37d080e562dfa5"
-size_bytes = 17806
-signature = "sha256:5c6ed15c8f133cd112ac2d46f819a8cf9c7019e1c742d07c2e2c7da1b92e1e9c"
+sha256 = "b8b437bba8e82af9cc727a621d723db4fbc07a1c3378f2a433a4f328c4a7ea17"
+size_bytes = 18087
+signature = "sha256:a6afb12277c7dcd20e3ececc773a2407ce1fdc7f17f3b7d4d344e87ef2421539"
 
 # Verificación para: math
 [[packages]]
 name = "math"
 file = "math.lib"
 format = "lib1"
-sha256 = "ba4b4682a85775c660bd6570d0001ca5552b53ab678ffcb8d7a81440cdaf6c9e"
-size_bytes = 22840
-signature = "sha256:eb9534eb2da8225a51b94afc368ebb7838e15a0b7ff8b7e49ab1fce3f0dee0d1"
+sha256 = "0dbca446e14f6e25ab43b1b9c6234337e8bde0d9948c160505cbad0f66c088cf"
+size_bytes = 56697
+signature = "sha256:ea6cd071cd41631126478a376f0a7746b836d11ed956ae5014fc3d39b5476ecc"
+
+# Verificación para: mem
+[[packages]]
+name = "mem"
+file = "mem.lib"
+format = "lib1"
+sha256 = "372a00f69625554e78a2a88dfb9995e2c8cfc528c2c743f774e70e2c6d513c12"
+size_bytes = 16956
+signature = "sha256:10fa162ad463ab283d90ef9ac5b691f96819dd246175a69c8a95c8f53cdd6b0c"
 
 # Verificación para: os
 [[packages]]
 name = "os"
 file = "os.lib"
 format = "lib1"
-sha256 = "62977e8278f53bcab9cfb8e87f7491bb3c8fc5c8b9be38f7cfe490e0882e159f"
+sha256 = "3588bc9f17fc7f416d1a0ec03b7c2135460e136df2f70170c9e9c049e0a6f239"
 size_bytes = 41721
-signature = "sha256:367baca162da38edae4b3df194ce4638670845a7abd3ee74e45f696398296a71"
+signature = "sha256:bb3f6c4cde05db10167bd274408ec7ecaf90d265b54b15331a042ea886d1bf0c"
 
 # Verificación para: string
 [[packages]]
 name = "string"
 file = "string.lib"
 format = "lib1"
-sha256 = "a5ebf6663bea985d310f8da0624f6a50ae17a5e795de474a5cd6c94e6d6dfa48"
-size_bytes = 41000
-signature = "sha256:da49030f7162e80c99a3d7b78acdebaa774ffea471044ad2775cd122ac52b331"
+sha256 = "49bf593a18b3034a4817b0f57262d3386eafad3a6d96480e18f68c4c1473dc93"
+size_bytes = 40996
+signature = "sha256:fe70c62aacee00ae70cb833a01febc32956966ba7a8f16084b6edeb361c8f9d9"
 
 # Verificación para: time
 [[packages]]
 name = "time"
 file = "time.lib"
 format = "lib1"
-sha256 = "b132afc55eb5042b131e05450721e5e7c26c2734dd5c98a249f13274eaddc1cd"
+sha256 = "69ff62533703c9777a6d2a8e6fa6935c601a6d18c0ad47ecd0cb796cfa4bbce0"
 size_bytes = 39119
-signature = "sha256:69e8b010ea0866e36da9880d3a315f0112109b4533eee6d21d87ff89db7843a8"
+signature = "sha256:8a3b86bf12a0c65510ecc068652736e8b8130c5ebc6c0caeb4d0209b7045f316"
 
 # Verificación para: windows
 [[packages]]
 name = "windows"
 file = "windows.lib"
 format = "lib1"
-sha256 = "a354f4767979627a3ce63ea3bbafc3b91ee3ad07477f0dd93ff4a8862f02264c"
-size_bytes = 49088
-signature = "sha256:bb59bcb07192224070724fde69ec4728053fb45ea2490d8dca3d45c0df0cb84d"
+sha256 = "9730db14b2410756c4d594e478bd884d5c9cb7dbcc5fe95f5254bde7e324610c"
+size_bytes = 70853
+signature = "sha256:6dfe42bf53805f56598f5291103c73c216db0f1c98da639a475a4e36ff197c7d"
+
+# Verificación para: x11gui
+[[packages]]
+name = "x11gui"
+file = "x11gui.lib"
+format = "lib1"
+sha256 = "e76ca9ce29adb4307f8a5b41c097db48f2beb336284aae7c344cc1a341ed3117"
+size_bytes = 17417
+signature = "sha256:c6b1c3ccb74eb81982bd4855157bd659dd1e4d137b1d09f28506413caa185d17"

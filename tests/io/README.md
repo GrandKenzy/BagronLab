@@ -1,6 +1,6 @@
 # Prueba de io en Android
 
-Smoke test ARM64/API 35 para el backend Android de `io`. Requiere instalar
+Prueba ARM64/API 35 para el backend Android de `io`. Requiere instalar
 `androidlib.lib` e `io.lib` en la raíz de bibliotecas de Bagron y tener un NDK
 configurado. Alimenta una línea por stdin y debe imprimir `Hola`, seguida de
 la línea recibida, y terminar con código 0 en el dispositivo:

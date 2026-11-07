@@ -1,11 +1,15 @@
 ; Library entry for OS-managed anonymous virtual-memory regions.
-; AMD64 currently supported via gnulibrary and Windows ABI.
-clause System "auto"
-clause Arch "amd"
 clause Privacy "public"
 
 #if OS, "linux"
+clause System "linux"
+clause Arch "amd"
 library gnulibrary as Platform
 #elif OS, "windows"
+clause System "windows"
+clause Arch "amd"
 library windows as Platform
+#else
+clause System "auto"
+clause Arch "auto"
 #end

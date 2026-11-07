@@ -110,19 +110,25 @@ extern windows "user32":
 ; IMPORTANT: callback must use the Microsoft x64 WNDPROC ABI and remain valid.
 @unsafe
 public func RegisterWindowClass(class_name *: const uint16, callback *: void, instance: usize) bool:
-    details: WIN32_WNDCLASSEXW
-    details.size = 80
-    details.style = 0
-    details.window_proc = callback
-    details.class_extra = 0
-    details.window_extra = 0
-    details.instance = instance
-    details.icon = 0
-    details.cursor = 0
-    details.background = 0
-    details.menu_name = Null
-    details.class_name = class_name
-    details.small_icon = 0
+    ; EN : Registers a UTF-16 window class for the supplied WNDPROC callback.
+    ; The callback and class-name storage must remain valid while the class is registered.
+    ;
+    ; ES : Registra una clase de ventana UTF-16 con el callback WNDPROC indicado.
+    ; El callback y el almacenamiento del nombre deben permanecer válidos mientras la clase esté registrada.
+    details: WIN32_WNDCLASSEXW = WIN32_WNDCLASSEXW{
+        .size = 80,
+        .style = 0,
+        .window_proc = callback,
+        .class_extra = 0,
+        .window_extra = 0,
+        .instance = instance,
+        .icon = 0,
+        .cursor = 0,
+        .background = 0,
+        .menu_name = Null,
+        .class_name = class_name,
+        .small_icon = 0
+    }
     return RegisterClassExW($details) != 0
 
 ; EN: Dispatches Win32 messages until WM_QUIT or an API error.
@@ -130,6 +136,11 @@ public func RegisterWindowClass(class_name *: const uint16, callback *: void, in
 ; ES: Despacha mensajes hasta WM_QUIT o error de Win32.
 @unsafe
 public func RunMessageLoop() int32:
+    ; EN : Dispatches queued Win32 messages until WM_QUIT or a queue error.
+    ; Returns the loop result supplied by GetMessageW or zero after WM_QUIT.
+    ;
+    ; ES : Distribuye mensajes Win32 hasta WM_QUIT o un error de la cola.
+    ; Devuelve el resultado de GetMessageW o cero después de WM_QUIT.
     message: WIN32_MSG
     while true:
         status: int32 = GetMessageW($message, 0, 0, 0)
@@ -139,3 +150,4 @@ public func RunMessageLoop() int32:
             return 0
         TranslateMessage($message)
         DispatchMessageW($message)
+    return 0

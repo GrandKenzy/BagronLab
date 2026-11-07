@@ -9,8 +9,8 @@ python3 scripts/build_math.py
 bagron verify build/math.lib
 
 # Instalar math.lib en las libs del compilador.
-bagron tests/math/main.bg -o build/math-smoke
-./build/math-smoke
+bagron tests/math/main.bg -o build/math-check
+./build/math-check
 echo $?
 
 bagron tests/math/numeric.bg -o build/math-numeric

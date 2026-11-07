@@ -4,10 +4,20 @@ name = "bagronlab"
 description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
 author = "Discentra Community"
 
+# Paquete: androidlib
+[[packages]]
+name = "androidlib"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "androidlib.lib"
+description = "Native Android AArch64 syscall and runtime declarations"
+license = "MIT"
+
 # Paquete: gnulibrary
 [[packages]]
 name = "gnulibrary"
-version = "1.1.9"
+version = "1.1.10"
 kind = "librería"
 format = "lib1"
 file = "gnulibrary.lib"
@@ -17,7 +27,7 @@ license = "MIT"
 # Paquete: hashlib
 [[packages]]
 name = "hashlib"
-version = "1.1.5"
+version = "1.1.6"
 kind = "librería"
 format = "lib1"
 file = "hashlib.lib"
@@ -27,7 +37,7 @@ license = "MIT"
 # Paquete: io
 [[packages]]
 name = "io"
-version = "1.1.8"
+version = "1.1.9"
 kind = "librería"
 format = "lib1"
 file = "io.lib"
@@ -37,17 +47,27 @@ license = "MIT"
 # Paquete: math
 [[packages]]
 name = "math"
-version = "1.1.5"
+version = "1.2.0"
 kind = "librería"
 format = "lib1"
 file = "math.lib"
 description = "Mathematical primitives and functions"
 license = "MIT"
 
+# Paquete: mem
+[[packages]]
+name = "mem"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "mem.lib"
+description = "Checked byte-array and buffer operations"
+license = "MIT"
+
 # Paquete: os
 [[packages]]
 name = "os"
-version = "1.0.2"
+version = "1.0.3"
 kind = "librería"
 format = "lib1"
 file = "os.lib"
@@ -57,7 +77,7 @@ license = "MIT"
 # Paquete: string
 [[packages]]
 name = "string"
-version = "1.1.7"
+version = "1.1.8"
 kind = "librería"
 format = "lib1"
 file = "string.lib"
@@ -67,7 +87,7 @@ license = "MIT"
 # Paquete: time
 [[packages]]
 name = "time"
-version = "1.0.5"
+version = "1.0.6"
 kind = "librería"
 format = "lib1"
 file = "time.lib"
@@ -77,9 +97,19 @@ license = "MIT"
 # Paquete: windows
 [[packages]]
 name = "windows"
-version = "1.1.7"
+version = "1.1.8"
 kind = "librería"
 format = "lib1"
 file = "windows.lib"
 description = "Native Microsoft Windows x64 ABI declarations and WinSock sockets"
+license = "MIT"
+
+# Paquete: x11gui
+[[packages]]
+name = "x11gui"
+version = "0.1.1"
+kind = "librería"
+format = "lib1"
+file = "x11gui.lib"
+description = "Linux X11 window, event, drawing, and control helpers"
 license = "MIT"

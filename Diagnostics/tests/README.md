@@ -1,4 +1,4 @@
-# Diagnostics smoke test
+# Diagnostics test
 
 This test validates the standalone library on Windows AMD64. It covers:
 

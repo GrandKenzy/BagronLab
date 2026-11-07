@@ -1,6 +1,6 @@
 # Prueba de androidlib
 
-Smoke test ARM64/API 35 para `androidlib`. Requiere publicar o instalar
+Prueba ARM64/API 35 para `androidlib`. Requiere instalar
 `androidlib.lib` y tener un NDK configurado:
 
 ```powershell

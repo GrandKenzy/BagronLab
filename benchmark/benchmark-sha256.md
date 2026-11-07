@@ -92,7 +92,7 @@ block entry point is intentionally separate because Bagron's safe array model
 must not reinterpret a runtime-sized array as `byte[64]` without a compile-time
 bound.
 
-The existing SHA-256 smoke suite, including the fixed-block digest vector,
+The existing SHA-256 regression suite, including the fixed-block digest vector,
 returns exit code `0`.
 
 ## Specialized fixed-block follow-up

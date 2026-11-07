@@ -5,8 +5,9 @@ estadística, aritmética entera, teoría de números, trigonometría inversa,
 interpolación, geometría 3D, funciones hiperbólicas, exponenciales y
 clasificación de valores IEEE-754.
 
-**Estado:** fuentes 1.2.0 en desarrollo. No es una release binaria publicada.
-Se mantienen los nombres y firmas públicos existentes de `math 1.1.5`.
+**Estado:** `math 1.2.0` está disponible como paquete binario validado en
+`build/math.lib`. Se mantienen los nombres y firmas públicos existentes de
+`math 1.1.5`.
 No se depende de libc, libm ni funciones nativas duplicadas: los algoritmos
 nuevos están escritos en Bagron.
 
@@ -132,8 +133,8 @@ python3 scripts/build_math.py
 bagron verify build/math.lib
 
 # Después de instalar math.lib actualizado en las libs del compilador:
-bagron tests/math/main.bg -o build/math-smoke
-./build/math-smoke
+bagron tests/math/main.bg -o build/math-check
+./build/math-check
 
 bagron tests/math/numeric.bg -o build/math-numeric
 ./build/math-numeric
@@ -148,6 +149,5 @@ La compilación `lib1` se comprobó para rutas de fuente 64 y 32 bits.
 La ejecución Windows y 32-bit nativa está pendiente, así como benchmarks
 comparativos y pruebas amplias con sanitizadores.
 
-**No publicar `math 1.2.0` como release binaria** hasta ejecutar pruebas
-sobre el artefacto empaquetado desde el estado final del repositorio y
-actualizar los hashes del manifiesto Central junto al binario.
+El hash del artefacto y su versión publicada se mantienen en
+`discentra_central/manifest.toml` junto al binario de `build/`.
