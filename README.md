@@ -29,7 +29,7 @@ remain outside it.
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
-| `mmap/` | Memory-mapping library area. |
+| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
 | `math/` | Mathematical algorithms and constants. |
@@ -96,7 +96,7 @@ The validated packages currently exposed by this lab are:
 - `build/hashlib.lib` and `build/math.lib` — portable Bagron libraries.
 - `build/string.lib` — precompiled string package whose API is exported from  `source/main.bg`.
 
-`mmap`, `time`, `types`, and the historical `standard` tree are not
+`time`, `types`, and the historical `standard` tree are not
 published until their completeness and targets are confirmed. `net/` and `Brixel/`
 remain explicitly omitted from this cleanup; `string/` is now maintained as asingle entry module while `gnulibrary/` and `windows/` own native operations.
 
@@ -155,3 +155,21 @@ Use `python3 scripts/build_mem.py` to produce and verify `build/mem.lib`.
 The published binary and Central integrity manifests must be updated together
 when releasing: this source change does not itself publish a new binary.
 See `docs/mem/README.md` and `tests/mem/README.md` for contracts and tests.
+
+## mmap library (0.1.0)
+
+`mmap/` now contains a portable `Mapping` class for anonymous private
+virtual-memory pages with checked byte/buffer access, read-only protection,
+read/write restoration, and explicit release.
+
+Linux uses `gnulibrary` (`mmap`/`munmap`/`mprotect`); Windows uses
+`VirtualAlloc`/`VirtualFree`/`VirtualProtect` through `windows`.
+The native helpers live in the respective platform libraries, not in `mmap`.
+The Linux AMD64 runtime passed the regression suite; Windows source was added
+but native Windows tests are still outstanding.
+
+Run `python3 scripts/build_mmap.py` to generate and verify the local
+`build/mmap.lib`. A prebuilt binary has **not** yet been published in
+the repository, so do not add a Central distribution manifest entry until
+the actual package and its integrity digest are uploaded.
+See `docs/mmap/README.md` and `tests/mmap/README.md`.
