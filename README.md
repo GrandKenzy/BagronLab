@@ -34,7 +34,7 @@ remain outside it.
 | `win32gui/` | Windows-only GUI backend with separate modules for windows, events, controls, drawing and dialogs. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
-| `math/` | Mathematical algorithms and constants. |
+| `math/` | Numerical algorithms: roots, trig, statistics, number theory, interpolation and geometry (1.2.0 source). |
 | `types/` | Reusable type experiments and integer helpers. |
 | `standard/` | Historical compatibility project and dependency artifacts. |
 | `build/` | Precompiled, validated `lib1` packages ready for consumers. |
@@ -221,3 +221,16 @@ with Bagron 1.1.4 on Linux AMD64 under Xvfb (two keyboard integration
 tests plus previous graphical regressions); native Wayland and Unicode
 text input remain future work. Source changes do not publish an updated
 `gnulibrary.lib` or `x11gui.lib` binary on GitHub.
+
+## math 1.2.0 source expansion
+
+The existing `math` library now includes checked integer arithmetic,
+deterministic uint64 primality, modular arithmetic, statistics, inverse
+trigonometry, geometry, hyperbolic functions, IEEE-754 classification and
+domain-checked wrappers for legacy functions. The existing API was
+preserved; `usqrt` now handles the maximum uint64 boundary safely.
+
+Build with `python3 scripts/build_math.py`, and run the Bagron tests in
+`tests/math/`. See `docs/math/README.md` for API details, limitations and
+compatibility. The sources are updated but the published `build/math.lib`
+binary and Central integrity manifests have **not** been replaced.
