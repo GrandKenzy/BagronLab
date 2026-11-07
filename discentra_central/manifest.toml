@@ -9,69 +9,69 @@ author = "Discentra Community"
 name = "gnulibrary"
 file = "gnulibrary.lib"
 format = "lib1"
-sha256 = "1c69533c2710ebe46b3c91c1ad2f0a77e5c84ee001ced44017b83614ddb6fd09"
+sha256 = "b6a4ed5feb2a6b0d9e2510db9577dc7f3c904a9322ddc547dca614fd10664198"
 size_bytes = 53810
-signature = "sha256:a71abb494e6b6692430d1f8a733af74f0370e934e9d33cfa8987115effe08c62"
+signature = "sha256:973e875dc041fdd5a9523ae9bc99c99dddc12bb2e46e2be0b08a5b11da386805"
 
 # Verificación para: hashlib
 [[packages]]
 name = "hashlib"
 file = "hashlib.lib"
 format = "lib1"
-sha256 = "ccaa59bc2554d7cae7f2148802db7669e8a8c90c48d88b3a6fa51359a9c71d74"
-size_bytes = 30362
-signature = "sha256:7908fb12b38a092d2fefbf2f5ce602de6996a0063298bf0a9d791593929c2174"
+sha256 = "69a100881fcc746927664d53da8315858bfe738fba599b09203625000b973d72"
+size_bytes = 30360
+signature = "sha256:661dab48bbc12551d876a65a27fe80ddfdb6b08bbd4153d79eeec96b4c7a6559"
 
 # Verificación para: io
 [[packages]]
 name = "io"
 file = "io.lib"
 format = "lib1"
-sha256 = "674c8d0477b390f05f7220f7b9bfd3b70d4c9ea5e83994ecc372ffefdebd7ece"
+sha256 = "ffd229d3ba13fc899846028c5683485ca178fe3ede57e43c0c7b682f57b86b0e"
 size_bytes = 16854
-signature = "sha256:b951cdcab70d1c1841da0c659531588c82987292e256e8edcbd746e8bbfa2e7f"
+signature = "sha256:ed2c88208cdf57664a0bc1bcfe0e9bcc5c71c0f5433e9308319da79aa73f8e1c"
 
 # Verificación para: math
 [[packages]]
 name = "math"
 file = "math.lib"
 format = "lib1"
-sha256 = "d66b716288b54d2436012ae754f426991b29e57cbef129dbcbe85d07fca498b5"
-size_bytes = 22838
-signature = "sha256:37bcc5770ea400db63c23dfbeea099b77f88c913f0455255f39f6a173f71227b"
+sha256 = "ba4b4682a85775c660bd6570d0001ca5552b53ab678ffcb8d7a81440cdaf6c9e"
+size_bytes = 22840
+signature = "sha256:eb9534eb2da8225a51b94afc368ebb7838e15a0b7ff8b7e49ab1fce3f0dee0d1"
 
 # Verificación para: os
 [[packages]]
 name = "os"
 file = "os.lib"
 format = "lib1"
-sha256 = "7ba5b794f77c04f557e540f49c3fef28d5ad4683890f45f4ebce15ffccef6e94"
-size_bytes = 41723
-signature = "sha256:2768c9c8fc1823bb27818789150f7db86e87bb6372d1c785d157efd970850479"
+sha256 = "62977e8278f53bcab9cfb8e87f7491bb3c8fc5c8b9be38f7cfe490e0882e159f"
+size_bytes = 41721
+signature = "sha256:367baca162da38edae4b3df194ce4638670845a7abd3ee74e45f696398296a71"
 
 # Verificación para: string
 [[packages]]
 name = "string"
 file = "string.lib"
 format = "lib1"
-sha256 = "0fe4f72aa563f84edefb3b9a79cbd9f90c673037438f433712c54d0f005be080"
-size_bytes = 40939
-signature = "sha256:7468d02d759a4e8b1dacce73e907950db6d4d5a7d812eb8b9af4193d33e2991e"
+sha256 = "fa2c76e6e77d60fb9d9c24f3780a510489717e63f97f2752e26d0dc8592cc1f3"
+size_bytes = 40941
+signature = "sha256:0d2022d692de56edfe9a750269db6ffbf341c19df1c1e1824f0537d240ae0647"
 
 # Verificación para: time
 [[packages]]
 name = "time"
 file = "time.lib"
 format = "lib1"
-sha256 = "c172cf0c034daf6e1e38d64f6d7354333fce89aeaa651cdcabb235283fa2b2d5"
-size_bytes = 39127
-signature = "sha256:9bb24ba010853fe1a13e1536e2ae32a33c2c6cc117b42a83c6f12a9bb24d8051"
+sha256 = "b132afc55eb5042b131e05450721e5e7c26c2734dd5c98a249f13274eaddc1cd"
+size_bytes = 39119
+signature = "sha256:69e8b010ea0866e36da9880d3a315f0112109b4533eee6d21d87ff89db7843a8"
 
 # Verificación para: windows
 [[packages]]
 name = "windows"
 file = "windows.lib"
 format = "lib1"
-sha256 = "d7cc1d928de7be36da34ec1c767eba642dcc6af5308e916ca658ee063f75651f"
-size_bytes = 49093
-signature = "sha256:dd760404fbf4fcd6029ce28adcd0137182345c11168f48398d2dc775de6b82ec"
+sha256 = "a354f4767979627a3ce63ea3bbafc3b91ee3ad07477f0dd93ff4a8862f02264c"
+size_bytes = 49088
+signature = "sha256:bb59bcb07192224070724fde69ec4728053fb45ea2490d8dca3d45c0df0cb84d"
