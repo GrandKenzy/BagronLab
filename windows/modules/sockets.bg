@@ -115,7 +115,7 @@ extern windows "ws2_32":
 ;
 ; ES: Adaptadores compartidos por el cliente HTTP y futuros protocolos
 @unsafe
-inline func Open(family: int32, kind: int32, protocol: int32) usize:
+public inline func Open(family: int32, kind: int32, protocol: int32) usize:
     ; EN : Creates a native socket descriptor using Winsock.
     ; Returns INVALID_SOCKET on failure.
     ;
@@ -124,7 +124,7 @@ inline func Open(family: int32, kind: int32, protocol: int32) usize:
     return socket(family, kind, protocol)
 
 @unsafe
-inline func Connect(handle: usize, address *: const char, length: int32) int32:
+public inline func Connect(handle: usize, address *: const char, length: int32) int32:
     ; EN : Establishes a connection to a specified socket address.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -133,7 +133,7 @@ inline func Connect(handle: usize, address *: const char, length: int32) int32:
     return connect(handle, address, length)
 
 @unsafe
-inline func Bind(handle: usize, address *: void, length: int32) int32:
+public inline func Bind(handle: usize, address *: void, length: int32) int32:
     ; EN : Associates a local address with a socket descriptor.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -142,7 +142,7 @@ inline func Bind(handle: usize, address *: void, length: int32) int32:
     return bind(handle, address, length)
 
 @unsafe
-inline func Listen(handle: usize, backlog: int32) int32:
+public inline func Listen(handle: usize, backlog: int32) int32:
     ; EN : Places a socket in a state listening for incoming connections.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -151,7 +151,7 @@ inline func Listen(handle: usize, backlog: int32) int32:
     return listen(handle, backlog)
 
 @unsafe
-inline func Accept(handle: usize, address *: void, length *: int32) usize:
+public inline func Accept(handle: usize, address *: void, length *: int32) usize:
     ; EN : Accepts an incoming connection request on a listening socket.
     ; Returns the new socket descriptor or INVALID_SOCKET on error.
     ;
@@ -160,7 +160,7 @@ inline func Accept(handle: usize, address *: void, length *: int32) usize:
     return accept(handle, address, length)
 
 @unsafe
-func set_timeout(handle: usize, timeout_ms: int32) int32:
+public func set_timeout(handle: usize, timeout_ms: int32) int32:
     ; EN : Configures send and receive timeouts on a socket in milliseconds.
     ; Returns 0 on success, or -1 on invalid parameter or socket error.
     ;
@@ -179,7 +179,7 @@ func set_timeout(handle: usize, timeout_ms: int32) int32:
     return 0
 
 @unsafe
-inline func Send(handle: usize, buffer *: const char, length: int32) int32:
+public inline func Send(handle: usize, buffer *: const char, length: int32) int32:
     ; EN : Sends data on a connected socket descriptor.
     ; Returns the number of bytes sent, or SOCKET_ERROR on failure.
     ;
@@ -188,7 +188,7 @@ inline func Send(handle: usize, buffer *: const char, length: int32) int32:
     return send(handle, buffer, length, 0)
 
 @unsafe
-inline func Recv(handle: usize, buffer *: char, length: int32) int32:
+public inline func Recv(handle: usize, buffer *: char, length: int32) int32:
     ; EN : Receives data from a connected socket descriptor into a buffer.
     ; Returns the number of bytes received, 0 on disconnect, or SOCKET_ERROR.
     ;
@@ -197,7 +197,7 @@ inline func Recv(handle: usize, buffer *: char, length: int32) int32:
     return recv(handle, buffer, length, 0)
 
 @unsafe
-inline func Close(handle: usize) int32:
+public inline func Close(handle: usize) int32:
     ; EN : Closes an open socket descriptor.
     ; Returns 0 on success, or SOCKET_ERROR on failure.
     ;
@@ -206,7 +206,7 @@ inline func Close(handle: usize) int32:
     return closesocket(handle)
 
 @unsafe
-inline func GetAddrInfo(
+public inline func GetAddrInfo(
     node *: const char,
     service *: const char,
     hints *: ADDRINFO,
@@ -218,14 +218,14 @@ inline func GetAddrInfo(
     return getaddrinfo(node, service, hints, result)
 
 @unsafe
-inline func ReleaseAddrInfo(result *: ADDRINFO) void:
+public inline func ReleaseAddrInfo(result *: ADDRINFO) void:
     ; EN : Frees address structures allocated dynamically by GetAddrInfo.
     ;
     ; ES : Libera estructuras de direcciones asignadas dinámicamente por GetAddrInfo.
     freeaddrinfo(result)
 
 @unsafe
-func Startup() int32:
+public func Startup() int32:
     ; EN : Initializes the Winsock 2.2 subsystem for the process.
     ; Returns 0 on success, or non-zero error code on failure.
     ;
@@ -244,14 +244,14 @@ func Startup() int32:
 
 
 @unsafe
-inline func Cleanup() int32:
+public inline func Cleanup() int32:
     ; EN : Terminates use of the Winsock 2 subsystem.
     ;
     ; ES : Finaliza el uso del subsistema Winsock 2.
     return WSACleanup()
 
 @unsafe
-inline func NetworkPort(port: int32) uint16:
+public inline func NetworkPort(port: int32) uint16:
     ; EN : Converts a port number from host byte order to network byte order.
     ;
     ; ES : Convierte un número de puerto de orden de host a orden de red.
@@ -341,3 +341,32 @@ class Socket:
         ; ES : Cierra el socket propio cuando se destruye el objeto.
         self.close()
         return
+
+
+; EN: Resolve a hostname and open a connected TCP socket using the native API.
+; ES: Resuelve un host y abre un socket TCP conectado con la ABI nativa.
+@unsafe
+public func OpenTcpHost(node *: const char, service *: const char, timeout_ms: int32) usize:
+    hints: ADDRINFO
+    hints.ai_flags = 0
+    hints.ai_family = AF_UNSPEC
+    hints.ai_socktype = SOCK_STREAM
+    hints.ai_protocol = IPPROTO_TCP
+    hints.ai_addrlen = 0
+    address *: ADDRINFO = Null
+    if GetAddrInfo(node, service, $hints, $address) != 0:
+        return INVALID_SOCKET
+    handle: usize = Open((address).ai_family, (address).ai_socktype, (address).ai_protocol)
+    if handle == INVALID_SOCKET:
+        ReleaseAddrInfo(address)
+        return INVALID_SOCKET
+    if set_timeout(handle, timeout_ms) != 0:
+        Close(handle)
+        ReleaseAddrInfo(address)
+        return INVALID_SOCKET
+    if Connect(handle, (address).ai_addr, (address).ai_addrlen) != 0:
+        Close(handle)
+        ReleaseAddrInfo(address)
+        return INVALID_SOCKET
+    ReleaseAddrInfo(address)
+    return handle
