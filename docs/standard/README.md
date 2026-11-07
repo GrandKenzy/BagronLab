@@ -68,3 +68,33 @@ archivos o directorios.
 Los paquetes `windows.lib` y `gnulibrary.lib` se mantienen como dependencias
 de `standard/libs/` y se regeneran desde `BagronLab/windows` y
 `BagronLab/gnulibrary` cuando cambian sus fuentes.
+
+## Empaquetado portable de `io` y `string` (lib1)
+
+El codigo fuente de ambas bibliotecas selecciona `windows` o `gnulibrary`
+en tiempo de compilacion mediante `#if OS`, pero el paquete `lib1` debe
+declarar `System "auto"` **fuera** de esos condicionales. De lo contrario,
+el generador conserva el target del sistema donde se empaqueto la biblioteca
+(por ejemplo, `windows`) y rechaza su importacion desde Linux, aun cuando
+el codigo fuente tenga un backend Linux.
+
+`io/main.bg` mantiene `Arch "amd"`, ya que sus backends nativos actuales
+cubren AMD64. `string/main.bg` mantiene `Arch "auto"`.
+
+Para regenerar los artefactos despues de un cambio de fuentes, empaquetar
+`string` primero y actualizar su copia instalada antes de empaquetar `io`,
+porque `io` depende de `string`:
+
+```sh
+bagron library --v1 string -o build/string.lib --name string --version 1.1.6
+bagron install --library --v1 string --name string --version 1.1.6
+bagron library --v1 io -o build/io.lib --name io --version 1.1.6
+bagron verify build/string.lib
+bagron verify build/io.lib
+bagron inspect build/io.lib
+```
+
+Los manifiestos de ambos paquetes deben declarar `targets.System = "auto"`.
+Reemplazar tambien los binarios publicados e instalar los paquetes regenerados
+antes de probarlos: editar solamente `main.bg` no cambia un `io.lib` anterior
+que tenga `System = "windows"` en el manifiesto.
