@@ -138,15 +138,10 @@ Después de `kind = app.wait()` o `app.poll()`, comprobar:
 if is_key_press(kind):
     if app.last_keysym == KEY_ESCAPE:
         break
-    if has_shift(app.last_modifiers):
-        ; Se pulsó una tecla manteniendo Shift.
-        pass
-elif is_key_release(kind):
-    ; Se liberó una tecla.
-    pass
 ```
 
-`pass` en el bloque anterior indica pseudocódigo explicativo; para un
+Para procesar liberaciones se puede utilizar `is_key_release(kind)`, y
+para modificadores `has_shift(app.last_modifiers)`. Para un
 ejemplo completo compilable consulta
 [`examples/x11gui/keyboard.bg`](../../examples/x11gui/keyboard.bg).
 
