@@ -89,3 +89,22 @@ Se usan únicamente en Linux AMD64 y no requieren libc.
 La biblioteca `mmap` administra el ownership; **no** llames estos helpers
 sobre una región administrada por un objeto `Mapping` sin transferir la
 propiedad de forma segura.
+
+## X11: backend gráfico opcional
+
+Los módulos `x11_display.bg`, `x11_events.bg` y `x11_draw.bg`
+encapsulan la ABI de `libX11.so.6` para el proyecto `x11gui`.
+
+- `x11_display.bg`: display, ventanas, protocolo de cierre y máscara de eventos.
+- `x11_events.bg`: estructura `XEvent` de 192 bytes en AMD64,
+  `XPending`, `XNextEvent` y extracción de clic/cierre.
+- `x11_draw.bg`: GC, líneas, rectángulos, texto y colores de píxel.
+
+Se mantienen **separados de las syscalls** de Linux: Xlib requiere un
+servidor X11 (o XWayland) y es una biblioteca de X.Org, no del kernel.
+Los usuarios de funciones raw sin interfaz gráfica no necesitan abrir un
+display; `x11gui` exige que `libX11.so.6` esté presente.
+
+Se verificó localmente el layout de `XEvent` contra las cabeceras Xlib de
+Linux x86_64. No usar ese layout para otras arquitecturas sin revalidación.
+Pruebas de Xvfb y API pública en `docs/x11gui/README.md`.
