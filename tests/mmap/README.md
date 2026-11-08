@@ -26,6 +26,6 @@ echo $?
 El test termina en 0 cuando todas las comprobaciones pasan. Otros códigos
 corresponden al identificador de una condición fallida en `main.bg`.
 
-**Verificado:** Linux x86_64, Bagron 1.1.4, exit code 0.
-**Pendiente:** ejecución nativa Windows x64, sanitizadores de ownership y
-mapeos respaldados por archivos.
+**Verificado:** Linux x86_64 y Windows x64, Bagron 1.1.4, exit code 0.
+Quedan pendientes los sanitizadores de ownership y los mapeos respaldados por
+archivos.

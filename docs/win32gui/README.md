@@ -1,8 +1,9 @@
 # win32gui — Base modular para interfaces Windows
 
-Estado: **prototipo de fuentes**. No constituye todavía una biblioteca GUI estable.
-Los cambios residen en las fuentes de BagronLab, pero **no hay prueba nativa
-de ejecución en Windows x64** ni paquete `win32gui.lib` publicado.
+Estado: **paquete lib1 validado para Windows x64**. `build/win32gui.lib` se
+genera y verifica correctamente, y el ejemplo de `MessageBoxW` compila. La
+ejecución interactiva y los callbacks `WNDPROC` todavía requieren validación
+manual.
 
 `guilib` queda reservado para la futura biblioteca multiplataforma.
 `win32gui` es un backend de Windows que depende de `windows`. No declara
@@ -35,7 +36,7 @@ exportadas por el namespace `Win`. Las nuevas declaraciones nativas
 incluyen `GetModuleHandleW`, `RegisterClassExW`, `CreateWindowExW`,
 `GetMessageW`, `TextOutW`, `InitCommonControlsEx` y más.
 
-## Uso preliminar
+## Uso
 
 Se empieza por diálogos, que no necesitan implementar `WNDPROC`:
 
@@ -95,15 +96,26 @@ Tamaños nativos esperados en Windows x64:
 desaparecerán en un repintado. El renderizado persistente deberá hacerse
 en `WM_PAINT` con `BeginPaint`/`EndPaint`, tras validar callbacks.
 
+## Construcción y validación
+
+Requiere Bagron 1.1.4 o posterior en Windows x64:
+
+```powershell
+python scripts/build_win32gui.py --bagron bagron --version 0.0.1
+bagron verify build/win32gui.lib
+bagron examples/win32gui/message_box.bg -o build/win32gui-message-box.exe
+```
+
+La compilación del ejemplo valida la resolución de la API y el enlace de las
+declaraciones nativas. Ejecútalo manualmente si quieres comprobar el diálogo.
+
 ## Próximos pasos
 
-1. Regenerar `windows.lib` desde Windows x64 con las nuevas DLL exportadas.
-2. Probar `MessageBoxW`, conversiones UTF-16 y compilación de `win32gui.lib`.
-3. Definir y validar el callback `WNDPROC` entrante desde Bagron.
-4. Probar un ciclo completo de ventana y `WM_DESTROY` → `PostQuitMessage`.
-5. Comprobar eventos de botones `WM_COMMAND` y dibujo mediante `WM_PAINT`.
-6. Extender con `uxtheme`, `dwmapi`, DPI, layout y accesibilidad.
-7. Agregar backend Linux independiente y una API pública común en `guilib`.
+1. Definir y validar el callback `WNDPROC` entrante desde Bagron.
+2. Probar un ciclo completo de ventana y `WM_DESTROY` → `PostQuitMessage`.
+3. Comprobar eventos de botones `WM_COMMAND` y dibujo mediante `WM_PAINT`.
+4. Extender con `uxtheme`, `dwmapi`, DPI, layout y accesibilidad.
+5. Agregar backend Linux independiente y una API pública común en `guilib`.
 
-**No marcar compatibilidad Windows como comprobada** hasta ejecutar
-estas pruebas en Windows x64.
+La compatibilidad de compilación Windows x64 está comprobada. La compatibilidad
+de ejecución de ventanas personalizadas queda pendiente hasta validar `WNDPROC`.

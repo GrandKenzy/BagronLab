@@ -55,8 +55,18 @@
       "license": "MIT",
       "kind": "librería"
     },
+    "mmap": {
+      "description": "Anonymous virtual-memory mappings with protection controls",
+      "license": "MIT",
+      "kind": "librería"
+    },
     "x11gui": {
       "description": "Linux X11 window, event, drawing, and control helpers",
+      "license": "MIT",
+      "kind": "librería"
+    },
+    "win32gui": {
+      "description": "Windows GUI controls, dialogs, drawing, and text helpers",
       "license": "MIT",
       "kind": "librería"
     }

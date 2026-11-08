@@ -1,6 +1,14 @@
 ; Minimal anonymous virtual-memory example; exit 0 indicates success.
+#if OS, "windows"
+clause System "windows"
+clause Arch "amd"
+#elif OS, "linux"
+clause System "linux"
+clause Arch "amd"
+#else
 clause System "auto"
 clause Arch "amd"
+#end
 library mmap as MM
 import { Mapping } from MM
 

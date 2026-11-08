@@ -29,12 +29,12 @@ remain outside it.
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
-| `mmap/` | Native anonymous virtual-memory mapping and page protection (0.1.0 source). |
+| `mmap/` | Native anonymous virtual-memory mapping and page protection (`mmap 0.1.0`). |
 | `x11gui/` | Linux AMD64 X11 graphical backend (Xlib): windows, events, drawing and button hit-testing. |
-| `win32gui/` | Windows-only GUI backend with separate modules for windows, events, controls, drawing and dialogs. |
+| `win32gui/` | Windows-only GUI backend with a validated `win32gui 0.0.1` package. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
-| `math/` | Numerical algorithms: roots, trig, statistics, number theory, interpolation and geometry (1.2.0 source). |
+| `math/` | Numerical algorithms: roots, trig, statistics, number theory, interpolation and geometry (`math 1.2.0`). |
 | `types/` | Reusable type experiments and integer helpers. |
 | `standard/` | Historical compatibility project and dependency artifacts. |
 | `build/` | Precompiled, validated `lib1` packages ready for consumers. |
@@ -174,17 +174,14 @@ read/write restoration, and explicit release.
 Linux uses `gnulibrary` (`mmap`/`munmap`/`mprotect`); Windows uses
 `VirtualAlloc`/`VirtualFree`/`VirtualProtect` through `windows`.
 The native helpers live in the respective platform libraries, not in `mmap`.
-The Linux AMD64 runtime passed the regression suite; Windows source was added
-but native Windows tests are still outstanding.
-
-Run `python3 scripts/build_mmap.py` to generate and verify the local
-`build/mmap.lib`. A prebuilt binary has **not** yet been published in
-the repository, so do not add a Central distribution manifest entry until
-the actual package and its integrity digest are uploaded.
+The Linux AMD64 runtime passed the regression suite, and the Windows x64
+package and regression executable now pass on the native host.
+Run `python3 scripts/build_mmap.py` to generate and verify the target-specific
+`build/mmap.lib`. The published package and its integrity digest are recorded
+in the Central manifests.
 See `docs/mmap/README.md` and `tests/mmap/README.md`.
 
-## win32gui source prototype
-
+## win32gui backend (0.0.1)
 `win32gui/` is a **Windows x64-only** graphical backend. It keeps the high-level
 window, event-loop, controls, drawing, dialog and text modules separate. Native
 DLL declarations belong only in `windows/modules/user32.bg`,
@@ -194,9 +191,9 @@ DLL declarations belong only in `windows/modules/user32.bg`,
 The name `guilib` is reserved for the future cross-platform facade, not the
 Windows backend. See `docs/win32gui/README.md`. A native Windows test exists
 at `examples/win32gui/message_box.bg`. Build on Windows with
-`python scripts/build_win32gui.py`. **This is not a validated Windows
-release yet**; the WNDPROC callback ABI needs a native test.
-
+`python scripts/build_win32gui.py`. The package and the `MessageBoxW` consumer
+compile on native Windows x64; the `WNDPROC` callback ABI still needs a runtime
+test.
 ## x11gui backend
 
 `x11gui/` implements an Xlib-based GUI backend on Linux AMD64 and corresponds

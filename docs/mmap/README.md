@@ -4,9 +4,9 @@
 el sistema operativo. Complementa a `mem`: `mem` manipula buffers que ya
 existen; `mmap` reserva, protege y libera páginas nativas.
 
-Esta primera versión cubre **Linux x86_64** y expone un backend fuente para
-**Windows x64**. La ejecución se ha verificado solamente en Linux. No usa
-`malloc` ni declara `extern` propias: consume `gnulibrary` en Linux
+La versión `0.1.0` cubre **Linux x86_64** y **Windows x64**. El paquete
+`build/mmap.lib` se genera para el target del compilador que lo construye y
+no usa `malloc` ni declara `extern` propias: consume `gnulibrary` en Linux
 y `windows` en Windows.
 
 ## API pública
@@ -124,10 +124,9 @@ bagron tests/mmap/main.bg -o build/test-mmap
 echo $?
 ```
 
-El resultado esperado del test es el código de salida **0**, sin errores
-ni advertencias. En Linux x86_64 ya se validó con Bagron 1.1.4.
-En Windows las nuevas fuentes deben recompilarse y probarse localmente;
-no se ha declarado el binario Windows como validado.
+El resultado esperado del test es el código de salida **0**. La suite pasó en
+Windows x64 con Bagron 1.1.4 después de reconstruir `windows.lib` y `mmap.lib`;
+la validación Linux conserva el mismo backend basado en syscalls.
 
 ## Próxima etapa
 

@@ -58,6 +58,15 @@ sha256 = "372a00f69625554e78a2a88dfb9995e2c8cfc528c2c743f774e70e2c6d513c12"
 size_bytes = 16956
 signature = "sha256:10fa162ad463ab283d90ef9ac5b691f96819dd246175a69c8a95c8f53cdd6b0c"
 
+# Verificación para: mmap
+[[packages]]
+name = "mmap"
+file = "mmap.lib"
+format = "lib1"
+sha256 = "2666dcdfe5984c5786c599abf97fede02a65477f5f5d9bbf76cd46c6fb9af740"
+size_bytes = 11808
+signature = "sha256:b1358a91b84c3e6d5d85dd168fd013bda07b90620a4f1bb5b359c007e8b40d2e"
+
 # Verificación para: os
 [[packages]]
 name = "os"
@@ -85,6 +94,15 @@ sha256 = "69ff62533703c9777a6d2a8e6fa6935c601a6d18c0ad47ecd0cb796cfa4bbce0"
 size_bytes = 39119
 signature = "sha256:8a3b86bf12a0c65510ecc068652736e8b8130c5ebc6c0caeb4d0209b7045f316"
 
+# Verificación para: win32gui
+[[packages]]
+name = "win32gui"
+file = "win32gui.lib"
+format = "lib1"
+sha256 = "012b6a3c06079691d3f2b00b7769b6c66722c2446a283dd35af018c53f3c0939"
+size_bytes = 14920
+signature = "sha256:7610fe5683b0a9035647092495f972ecd8c7910e6d7845f3c540bc3cd4401222"
+
 # Verificación para: windows
 [[packages]]
 name = "windows"

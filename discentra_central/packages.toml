@@ -64,6 +64,16 @@ file = "mem.lib"
 description = "Checked byte-array and buffer operations"
 license = "MIT"
 
+# Paquete: mmap
+[[packages]]
+name = "mmap"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "mmap.lib"
+description = "Anonymous virtual-memory mappings with protection controls"
+license = "MIT"
+
 # Paquete: os
 [[packages]]
 name = "os"
@@ -94,6 +104,16 @@ file = "time.lib"
 description = "Portable monotonic clocks, durations, UTC date-time, and formatting"
 license = "MIT"
 
+# Paquete: win32gui
+[[packages]]
+name = "win32gui"
+version = "0.0.1"
+kind = "librería"
+format = "lib1"
+file = "win32gui.lib"
+description = "Windows GUI controls, dialogs, drawing, and text helpers"
+license = "MIT"
+
 # Paquete: windows
 [[packages]]
 name = "windows"
