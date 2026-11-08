@@ -27,18 +27,18 @@ signature = "sha256:17a09963352254d7a06ff10b724e759542c555fb58d1140a83ada36f3fe7
 name = "hashlib"
 file = "hashlib.lib"
 format = "lib1"
-sha256 = "64d5879fee6b2298136da1bf97c3cf724f3f8737833a3373cdd5853d4a0488ba"
-size_bytes = 30360
-signature = "sha256:97eeac8e06b270dab784ef79365aea9947e63d60620d562b506e9cd30089206d"
+sha256 = "4d5f25768836442f8b0e156024d71fef7b7cb162994cc670e85d9895161c4b67"
+size_bytes = 30375
+signature = "sha256:1f361cf3d775f00ab277ba2a2db2a230b52aba525acb380f030691cd44a9f800"
 
 # Verificación para: io
 [[packages]]
 name = "io"
 file = "io.lib"
 format = "lib1"
-sha256 = "b8b437bba8e82af9cc727a621d723db4fbc07a1c3378f2a433a4f328c4a7ea17"
-size_bytes = 18087
-signature = "sha256:a6afb12277c7dcd20e3ececc773a2407ce1fdc7f17f3b7d4d344e87ef2421539"
+sha256 = "da096478a09c0429e7804e0b8d3cecde29d104d6a0892410cdc787f51faadbe6"
+size_bytes = 18110
+signature = "sha256:faf79ea0d595268995d2fc6ce3bcf66d46e1d086f9d3a9266c9ebf083451639f"
 
 # Verificación para: math
 [[packages]]
@@ -72,27 +72,27 @@ signature = "sha256:b1358a91b84c3e6d5d85dd168fd013bda07b90620a4f1bb5b359c007e8b4
 name = "os"
 file = "os.lib"
 format = "lib1"
-sha256 = "3588bc9f17fc7f416d1a0ec03b7c2135460e136df2f70170c9e9c049e0a6f239"
-size_bytes = 41721
-signature = "sha256:bb3f6c4cde05db10167bd274408ec7ecaf90d265b54b15331a042ea886d1bf0c"
+sha256 = "7e0bf5f5e2285e121e109ce6c5f7495ffa060e18b8db503b5d1b0a9b9a29347c"
+size_bytes = 41731
+signature = "sha256:8105c4a0da15d32a71480afff9e466a71cbda8c0ea944f0f63f2375a71a52802"
 
 # Verificación para: string
 [[packages]]
 name = "string"
 file = "string.lib"
 format = "lib1"
-sha256 = "49bf593a18b3034a4817b0f57262d3386eafad3a6d96480e18f68c4c1473dc93"
-size_bytes = 40996
-signature = "sha256:fe70c62aacee00ae70cb833a01febc32956966ba7a8f16084b6edeb361c8f9d9"
+sha256 = "9959db858b5b702055ec5f2a29a2d449cc0537b13d4865f590f26ac42dccb5ef"
+size_bytes = 41024
+signature = "sha256:d026ab2d25d3ea4aadd5bcd3641fed466f41da28456ec0c8d55a7b070173b6a1"
 
 # Verificación para: time
 [[packages]]
 name = "time"
 file = "time.lib"
 format = "lib1"
-sha256 = "69ff62533703c9777a6d2a8e6fa6935c601a6d18c0ad47ecd0cb796cfa4bbce0"
-size_bytes = 39119
-signature = "sha256:8a3b86bf12a0c65510ecc068652736e8b8130c5ebc6c0caeb4d0209b7045f316"
+sha256 = "ed3482dbeb49693f3425b56cf68844e4fafe43cc656931083e494b2f2aec85ff"
+size_bytes = 39133
+signature = "sha256:64b31dae17a6a8fe9e44ab9b3433f23eb9b0c896c536b5070a534eac2cfe707f"
 
 # Verificación para: win32gui
 [[packages]]

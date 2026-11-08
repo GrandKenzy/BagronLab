@@ -27,7 +27,7 @@ license = "MIT"
 # Paquete: hashlib
 [[packages]]
 name = "hashlib"
-version = "1.1.6"
+version = "1.1.7"
 kind = "librería"
 format = "lib1"
 file = "hashlib.lib"
@@ -37,7 +37,7 @@ license = "MIT"
 # Paquete: io
 [[packages]]
 name = "io"
-version = "1.1.9"
+version = "1.1.10"
 kind = "librería"
 format = "lib1"
 file = "io.lib"
@@ -77,7 +77,7 @@ license = "MIT"
 # Paquete: os
 [[packages]]
 name = "os"
-version = "1.0.3"
+version = "1.0.4"
 kind = "librería"
 format = "lib1"
 file = "os.lib"
@@ -87,7 +87,7 @@ license = "MIT"
 # Paquete: string
 [[packages]]
 name = "string"
-version = "1.1.8"
+version = "1.1.9"
 kind = "librería"
 format = "lib1"
 file = "string.lib"
@@ -97,7 +97,7 @@ license = "MIT"
 # Paquete: time
 [[packages]]
 name = "time"
-version = "1.0.6"
+version = "1.0.7"
 kind = "librería"
 format = "lib1"
 file = "time.lib"
