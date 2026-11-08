@@ -1,0 +1,14 @@
+; High-level Windows modal dialog helpers.
+
+import {
+    MB_ICONINFORMATION,
+    MB_OK,
+    MessageBoxW
+} from user32
+
+@unsafe
+public func message_box(owner: usize, title *: const uint16, message *: const uint16) int32:
+    ; EN: Shows a UTF-16 informational message box and returns its native result.
+    ;
+    ; ES: Muestra un cuadro informativo UTF-16 y devuelve su resultado nativo.
+    return MessageBoxW(owner, message, title, MB_OK | MB_ICONINFORMATION)

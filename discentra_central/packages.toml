@@ -104,26 +104,16 @@ file = "time.lib"
 description = "Portable monotonic clocks, durations, UTC date-time, and formatting"
 license = "MIT"
 
-# Paquete: win32gui
+# Paquete: windows
 [[packages]]
-name = "win32gui"
-version = "0.0.1"
+name = "windows"
+version = "1.2.0"
 kind = "librería"
 format = "lib1"
-file = "win32gui.lib"
-description = "Windows GUI controls, dialogs, drawing, and text helpers"
+file = "windows.lib"
+description = "Native Microsoft Windows x64 ABI declarations, GUI helpers, and WinSock sockets"
 license = "MIT"
 
-# Paquete: windows
-[[packages]]
-name = "windows"
-version = "1.1.8"
-kind = "librería"
-format = "lib1"
-file = "windows.lib"
-description = "Native Microsoft Windows x64 ABI declarations and WinSock sockets"
-license = "MIT"
-
 # Paquete: x11gui
 [[packages]]
 name = "x11gui"

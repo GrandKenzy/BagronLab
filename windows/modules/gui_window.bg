@@ -1,0 +1,80 @@
+; High-level Windows window helpers built on the native user32 module.
+
+import {
+    CW_USEDEFAULT,
+    CreateWindowExW,
+    DestroyWindow,
+    InvalidateRect,
+    RegisterWindowClass,
+    SetWindowTextW,
+    ShowWindow,
+    SW_SHOW,
+    UpdateWindow,
+    WS_OVERLAPPEDWINDOW
+} from user32
+import { GetModuleHandleW } from kernel32
+
+@unsafe
+public func register_class(class_name *: const uint16, callback *: void) bool:
+    ; EN: Registers a UTF-16 window class for a Microsoft x64 WNDPROC callback.
+    ; The callback and class-name storage must remain valid while the class is registered.
+    ;
+    ; ES: Registra una clase UTF-16 para un callback WNDPROC Microsoft x64.
+    ; El callback y el nombre deben conservarse mientras la clase esté registrada.
+    instance: usize = GetModuleHandleW(Null)
+    return RegisterWindowClass(class_name, callback, instance)
+
+@unsafe
+public func create_window(class_name *: const uint16, title *: const uint16, width: int32, height: int32) usize:
+    ; EN: Creates an overlapped top-level window and returns zero on failure.
+    ; Width and height must be positive.
+    ;
+    ; ES: Crea una ventana principal overlapped y devuelve cero si falla.
+    ; El ancho y el alto deben ser positivos.
+    if width <= 0 || height <= 0:
+        return 0
+    instance: usize = GetModuleHandleW(Null)
+    return CreateWindowExW(
+        0, class_name, title, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, width, height,
+        0, 0, instance, Null
+    )
+
+@unsafe
+public func show_window(hwnd: usize) bool:
+    ; EN: Shows a window and requests its initial repaint.
+    ; The caller must provide a valid window handle.
+    ;
+    ; ES: Muestra una ventana y solicita su repintado inicial.
+    ; El llamador debe proporcionar un handle válido.
+    if hwnd == 0:
+        return false
+    ShowWindow(hwnd, SW_SHOW)
+    return UpdateWindow(hwnd) != 0
+
+@unsafe
+public func destroy_window(hwnd: usize) bool:
+    ; EN: Destroys a window; other resources remain owned by the caller.
+    ;
+    ; ES: Destruye una ventana; los demás recursos siguen bajo propiedad del llamador.
+    if hwnd == 0:
+        return false
+    return DestroyWindow(hwnd) != 0
+
+@unsafe
+public func set_title(hwnd: usize, title *: const uint16) bool:
+    ; EN: Replaces a window title with a NUL-terminated UTF-16 string.
+    ;
+    ; ES: Reemplaza el título con una cadena UTF-16 terminada en NUL.
+    if hwnd == 0:
+        return false
+    return SetWindowTextW(hwnd, title) != 0
+
+@unsafe
+public func invalidate(hwnd: usize) bool:
+    ; EN: Requests a repaint of the entire client area.
+    ;
+    ; ES: Solicita el repintado de toda el área cliente.
+    if hwnd == 0:
+        return false
+    return InvalidateRect(hwnd, Null, 1) != 0

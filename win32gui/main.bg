@@ -1,6 +1,0 @@
-; Native Windows GUI convenience library.
-; A future cross-platform guilib will depend on this package on Windows.
-clause System "windows"
-clause Arch "amd"
-clause Privacy "public"
-library windows as Win

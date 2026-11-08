@@ -1,11 +1,14 @@
 ; First Win32 GUI smoke test (requires native Windows x64).
 clause System "windows"
 clause Arch "amd"
-library win32gui as GUI
+library windows as GUI
 import { message_box } from GUI
 
 @unsafe
 func main() int32:
+    ; EN: Displays a native Windows message box and returns its success status.
+    ;
+    ; ES: Muestra un cuadro de diálogo nativo de Windows y devuelve su estado.
     title: uint16[7]
     title[0] = 66
     title[1] = 97

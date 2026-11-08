@@ -12,8 +12,10 @@ extern windows "kernel32":
 ```
 
 Esto usa directamente la ABI Microsoft x64 de Windows. No es una libc, no
-declara `extern c` y no implementa wrappers C. Las funciones de alto nivel de
-Bagron se construirán en módulos posteriores sobre estas declaraciones ABI.
+declara `extern c` y no implementa wrappers C. Los helpers de alto nivel de
+Bagron se implementan en `gui_window.bg`, `gui_events.bg`, `gui_controls.bg`,
+`gui_drawing.bg`, `gui_dialogs.bg` y `gui_text.bg` sobre estas declaraciones
+ABI.
 
 ## Variantes de texto
 
@@ -105,9 +107,10 @@ Los tamaños esperados en x64 son `MSG=48`, `PAINTSTRUCT=72` y
 `WNDCLASSEXW=80`. Validar el layout con un ejecutable Windows antes de
 declarar el soporte estable.
 
-La biblioteca `win32gui` separa `window`, `events`, `controls`,
-`drawing`, `dialogs` y `text` sin crear externs propias. `guilib`
-queda reservada como futura API multiplataforma.
+La biblioteca `windows` exporta los helpers `gui_window`, `gui_events`,
+`gui_controls`, `gui_drawing`, `gui_dialogs` y `gui_text` sin crear una
+segunda biblioteca GUI ni duplicar declaraciones `extern`. `guilib` queda
+reservada como futura API multiplataforma.
 
 El punto crítico pendiente es la entrada desde callbacks Win32 `WNDPROC`:
 no basta con declarar `RegisterClassExW`; hay que validar la convención

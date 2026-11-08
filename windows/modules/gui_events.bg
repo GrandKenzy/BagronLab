@@ -1,0 +1,33 @@
+; High-level Windows message-loop helpers.
+
+import {
+    PostQuitMessage,
+    RunMessageLoop
+} from user32
+
+@unsafe
+public func run_loop() int32:
+    ; EN: Runs the blocking message loop until WM_QUIT or a native error.
+    ;
+    ; ES: Ejecuta el ciclo bloqueante hasta WM_QUIT o un error nativo.
+    return RunMessageLoop()
+
+@unsafe
+public func quit(code: int32) void:
+    ; EN: Posts WM_QUIT with the supplied process result.
+    ;
+    ; ES: Publica WM_QUIT con el resultado de proceso indicado.
+    PostQuitMessage(code)
+    return
+
+public func command_id(wparam: usize) usize:
+    ; EN: Extracts the low word control identifier from WM_COMMAND wParam.
+    ;
+    ; ES: Extrae el identificador del control desde la palabra baja de WM_COMMAND.
+    return wparam & 65535
+
+public func command_notification(wparam: usize) usize:
+    ; EN: Extracts the high word notification code from WM_COMMAND wParam.
+    ;
+    ; ES: Extrae el código de notificación desde la palabra alta de WM_COMMAND.
+    return (wparam >> 16) & 65535

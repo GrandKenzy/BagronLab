@@ -24,14 +24,14 @@ remain outside it.
 | Directory | Responsibility |
 | --- | --- |
 | `gnulibrary/` | Linux x86_64 raw syscalls and shared Linux constants. It is not libc and does not expose C wrappers. |
-| `windows/` | Native Microsoft x64 ABI modules: `kernel32`, `user32`, `gdi32`, `comctl32`, sockets, and more. || `androidlib/` | Native Android ABI layer reserved for Android-specific runtime operations. |
+| `windows/` | Native Microsoft x64 ABI modules plus Windows GUI helpers: `kernel32`, `user32`, `gdi32`, `comctl32`, sockets, and more. |
+| `androidlib/` | Native Android ABI layer reserved for Android-specific runtime operations. |
 | `os/` | Cross-platform file and path operations built on `gnulibrary` and `windows`. |
 | `io/` | Standard text and byte input/output helpers. |
 | `time/` | Standard time and clock helpers. |
 | `mem/` | Portable, checked byte-array and buffer operations (`mem 0.1.0` source). |
 | `mmap/` | Native anonymous virtual-memory mapping and page protection (`mmap 0.1.0`). |
 | `x11gui/` | Linux AMD64 X11 graphical backend (Xlib): windows, events, drawing and button hit-testing. |
-| `win32gui/` | Windows-only GUI backend with a validated `win32gui 0.0.1` package. |
 | `string/` | String and character-array helpers, including `alphabet`. |
 | `hashlib/` | Hashing algorithms implemented in Bagron. |
 | `math/` | Numerical algorithms: roots, trig, statistics, number theory, interpolation and geometry (`math 1.2.0`). |
@@ -181,26 +181,24 @@ Run `python3 scripts/build_mmap.py` to generate and verify the target-specific
 in the Central manifests.
 See `docs/mmap/README.md` and `tests/mmap/README.md`.
 
-## win32gui backend (0.0.1)
-`win32gui/` is a **Windows x64-only** graphical backend. It keeps the high-level
-window, event-loop, controls, drawing, dialog and text modules separate. Native
-DLL declarations belong only in `windows/modules/user32.bg`,
-`windows/modules/gdi32.bg`, `windows/modules/comctl32.bg` and
-`windows/modules/kernel32.bg`.
+## Windows GUI helpers
 
-The name `guilib` is reserved for the future cross-platform facade, not the
-Windows backend. See `docs/win32gui/README.md`. A native Windows test exists
-at `examples/win32gui/message_box.bg`. Build on Windows with
-`python scripts/build_win32gui.py`. The package and the `MessageBoxW` consumer
-compile on native Windows x64; the `WNDPROC` callback ABI still needs a runtime
-test.
+`windows/` is the Windows x64 native layer and now also exports the high-level
+window, event-loop, controls, drawing, dialog and text helpers. Native DLL
+declarations remain in `windows/modules/user32.bg`, `windows/modules/gdi32.bg`,
+`windows/modules/comctl32.bg` and `windows/modules/kernel32.bg`; the GUI
+helpers in `gui_*.bg` consume those declarations through module imports.
+
+The name `guilib` remains reserved for a future cross-platform facade. A native
+Windows smoke test exists at `examples/windows_gui/message_box.bg`. Build and
+verify `windows.lib` on native Windows x64 before distributing it; the WNDPROC
+callback ABI still needs a runtime test.
 ## x11gui backend
 
 `x11gui/` implements an Xlib-based GUI backend on Linux AMD64 and corresponds
-to the existing `win32gui/` backend on Windows x64. It uses
+to the Windows GUI helpers exported by `windows` on Windows x64. It uses
 `gnulibrary/modules/x11_{display,events,draw}.bg` for native ABI declarations;
 `x11gui` itself declares no external functions.
-
 The backend opens X11 windows, renders basic shapes and text, handles mouse
 clicks and WM_DELETE_WINDOW, and provides blocking or non-blocking event loops.
 It was compiled and tested under Xvfb with Bagron 1.1.4 and the local PIC

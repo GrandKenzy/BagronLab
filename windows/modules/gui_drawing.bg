@@ -1,0 +1,72 @@
+; High-level immediate-mode GDI drawing helpers.
+
+import {
+    GetDC,
+    ReleaseDC
+} from user32
+import {
+    LineTo,
+    MoveToEx,
+    Rectangle,
+    SetBkMode,
+    SetTextColor,
+    TextOutW
+} from gdi32
+
+public func rgb(red: uint32, green: uint32, blue: uint32) uint32:
+    ; EN: Builds a Windows COLORREF value from RGB octets.
+    ; Windows stores COLORREF as 0x00BBGGRR.
+    ;
+    ; ES: Construye un COLORREF de Windows a partir de octetos RGB.
+    ; Windows almacena COLORREF como 0x00BBGGRR.
+    return (red & 255) | ((green & 255) << 8) | ((blue & 255) << 16)
+
+@unsafe
+public func rectangle(hwnd: usize, x: int32, y: int32, width: int32, height: int32) bool:
+    ; EN: Draws an outlined rectangle and releases the acquired device context.
+    ; The drawing is immediate and may be lost after a repaint.
+    ;
+    ; ES: Dibuja un rectángulo y libera el contexto de dispositivo adquirido.
+    ; El dibujo es inmediato y puede perderse después de un repintado.
+    if hwnd == 0 || width <= 0 || height <= 0:
+        return false
+    dc: usize = GetDC(hwnd)
+    if dc == 0:
+        return false
+    ok: bool = Rectangle(dc, x, y, x + width, y + height) != 0
+    ReleaseDC(hwnd, dc)
+    return ok
+
+@unsafe
+public func line(hwnd: usize, x1: int32, y1: int32, x2: int32, y2: int32) bool:
+    ; EN: Draws one line and releases the acquired device context.
+    ;
+    ; ES: Dibuja una línea y libera el contexto de dispositivo adquirido.
+    if hwnd == 0:
+        return false
+    dc: usize = GetDC(hwnd)
+    if dc == 0:
+        return false
+    ok: bool = MoveToEx(dc, x1, y1, Null) != 0
+    if ok:
+        ok = LineTo(dc, x2, y2) != 0
+    ReleaseDC(hwnd, dc)
+    return ok
+
+@unsafe
+public func text(hwnd: usize, x: int32, y: int32, value *: const uint16, count: int32, color: uint32) bool:
+    ; EN: Draws count UTF-16 code units using the requested text color.
+    ; The value pointer remains owned by the caller.
+    ;
+    ; ES: Dibuja count unidades UTF-16 con el color indicado.
+    ; El puntero value sigue siendo propiedad del llamador.
+    if hwnd == 0 || count < 0:
+        return false
+    dc: usize = GetDC(hwnd)
+    if dc == 0:
+        return false
+    SetTextColor(dc, color)
+    SetBkMode(dc, 1)
+    ok: bool = TextOutW(dc, x, y, value, count) != 0
+    ReleaseDC(hwnd, dc)
+    return ok

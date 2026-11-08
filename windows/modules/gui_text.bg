@@ -1,12 +1,18 @@
-; Windows UTF-8 -> UTF-16 conversion with caller-owned destination storage.
+; Windows UTF-8 to UTF-16 conversion with caller-owned destination storage.
+
+import { MultiByteToWideChar } from kernel32
+
 private mold NativeTextCount:
     full: usize
     small: int32
 
-; EN: Converts a NUL-terminated UTF-8 char[] to a NUL-terminated UTF-16 array.
-; ES: Convierte char[] UTF-8 terminado en NUL a UTF-16 en memoria del llamador.
 @unsafe
 public func utf8_to_utf16(source: char[], source_length: Len_t, source_size: Size_t, destination: uint16[], destination_length: Len_t, destination_size: Size_t) bool:
+    ; EN: Converts a NUL-terminated UTF-8 char array to UTF-16.
+    ; The destination must have room for the converted text and its NUL.
+    ;
+    ; ES: Convierte un array char UTF-8 terminado en NUL a UTF-16.
+    ; El destino debe tener espacio para el texto convertido y su NUL.
     if source_size != 1 || destination_size != 2:
         return false
     if source_length == 0 || destination_length == 0 || destination_length > 2147483647:
@@ -15,4 +21,4 @@ public func utf8_to_utf16(source: char[], source_length: Len_t, source_size: Siz
         return false
     count: NativeTextCount
     count.full = destination_length
-    return Win.MultiByteToWideChar(65001, 0, $source[0], -1, $destination[0], count.small) > 0
+    return MultiByteToWideChar(65001, 0, $source[0], -1, $destination[0], count.small) > 0

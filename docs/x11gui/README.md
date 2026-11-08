@@ -1,7 +1,7 @@
 # x11gui 0.1.1 — Interfaz gráfica para GNU/Linux con Xlib
 
 `x11gui` es el backend de interfaz gráfica **X11** para Bagron. Está separado
-de `win32gui`, su equivalente Windows. El nombre `guilib` continúa
+de los helpers GUI de `windows`, su equivalente Windows. El nombre `guilib` continúa
 reservado para una futura fachada multiplataforma.
 
 Estado: **paquete validado en Linux x86_64**. Se han compilado y ejecutado

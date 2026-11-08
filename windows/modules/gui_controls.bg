@@ -1,0 +1,73 @@
+; High-level built-in User32 child-control helpers.
+
+import {
+    CreateWindowExW,
+    ES_AUTOHSCROLL,
+    WS_BORDER,
+    WS_CHILD,
+    WS_TABSTOP,
+    WS_VISIBLE
+} from user32
+import { GetModuleHandleW } from kernel32
+
+@unsafe
+public func button(parent: usize, title *: const uint16, control_id: usize, x: int32, y: int32, width: int32, height: int32) usize:
+    ; EN: Creates a child push button owned by the supplied parent window.
+    ; The title points to caller-owned NUL-terminated UTF-16 storage.
+    ;
+    ; ES: Crea un botón hijo propiedad de la ventana padre indicada.
+    ; title apunta a memoria UTF-16 terminada en NUL propiedad del llamador.
+    class_name: uint16[7]
+    class_name[0] = 66
+    class_name[1] = 85
+    class_name[2] = 84
+    class_name[3] = 84
+    class_name[4] = 79
+    class_name[5] = 78
+    class_name[6] = 0
+    return CreateWindowExW(
+        0, $class_name[0], title,
+        WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+        x, y, width, height, parent, control_id,
+        GetModuleHandleW(Null), Null
+    )
+
+@unsafe
+public func label(parent: usize, text *: const uint16, x: int32, y: int32, width: int32, height: int32) usize:
+    ; EN: Creates a read-only static text label owned by the parent window.
+    ;
+    ; ES: Crea una etiqueta estática de solo lectura propiedad de la ventana padre.
+    class_name: uint16[7]
+    class_name[0] = 83
+    class_name[1] = 84
+    class_name[2] = 65
+    class_name[3] = 84
+    class_name[4] = 73
+    class_name[5] = 67
+    class_name[6] = 0
+    return CreateWindowExW(
+        0, $class_name[0], text,
+        WS_CHILD | WS_VISIBLE,
+        x, y, width, height, parent, 0,
+        GetModuleHandleW(Null), Null
+    )
+
+@unsafe
+public func text_entry(parent: usize, title *: const uint16, control_id: usize, x: int32, y: int32, width: int32, height: int32) usize:
+    ; EN: Creates a single-line editable child control.
+    ; The title points to caller-owned NUL-terminated UTF-16 storage.
+    ;
+    ; ES: Crea un control hijo editable de una línea.
+    ; title apunta a memoria UTF-16 terminada en NUL propiedad del llamador.
+    class_name: uint16[5]
+    class_name[0] = 69
+    class_name[1] = 68
+    class_name[2] = 73
+    class_name[3] = 84
+    class_name[4] = 0
+    return CreateWindowExW(
+        0, $class_name[0], title,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+        x, y, width, height, parent, control_id,
+        GetModuleHandleW(Null), Null
+    )

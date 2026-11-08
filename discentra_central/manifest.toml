@@ -94,23 +94,14 @@ sha256 = "ed3482dbeb49693f3425b56cf68844e4fafe43cc656931083e494b2f2aec85ff"
 size_bytes = 39133
 signature = "sha256:64b31dae17a6a8fe9e44ab9b3433f23eb9b0c896c536b5070a534eac2cfe707f"
 
-# Verificación para: win32gui
+# Verificación para: windows
 [[packages]]
-name = "win32gui"
-file = "win32gui.lib"
+name = "windows"
+file = "windows.lib"
 format = "lib1"
-sha256 = "012b6a3c06079691d3f2b00b7769b6c66722c2446a283dd35af018c53f3c0939"
-size_bytes = 14920
-signature = "sha256:7610fe5683b0a9035647092495f972ecd8c7910e6d7845f3c540bc3cd4401222"
-
-# Verificación para: windows
-[[packages]]
-name = "windows"
-file = "windows.lib"
-format = "lib1"
-sha256 = "9b6545db2be7e531e347d3b342252fa6e17d75eeffd278316c5a31537eb88d8d"
-size_bytes = 71448
-signature = "sha256:c9f704f92411287b1fcb2a32afc87fd54a1665d964f46ddc6516d1dc09d0eecc"
+sha256 = "985b7cf8da905c66d936126e92ad7e529f4a437c9d7f598f148ffb5e457d4d07"
+size_bytes = 84869
+signature = "sha256:399f59dacb1c5d03e211ee3449b662cf9ff19c43098d46ecf30311abfec72d72"
 
 # Verificación para: x11gui
 [[packages]]
