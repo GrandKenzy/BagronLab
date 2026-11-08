@@ -1,0 +1,58 @@
+; Process arguments exposed by the portable I/O library.
+
+private mold ArgCapacity:
+    native: int32
+    portable: usize
+
+; EN : Returns the number of arguments supplied to the current process.
+; Argument zero is the executable path; user arguments start at index one.
+;
+; ES : Devuelve el número de argumentos entregados al proceso actual.
+; El argumento cero es la ruta del ejecutable; los del usuario empiezan en uno.
+@unsafe
+public func arg_count() int32:
+    ; EN : Selects the target-native process bridge without using libc.
+    ; ES : Selecciona el puente nativo del target sin usar libc.
+#if OS, "windows"
+    return Win.process_arg_count()
+#elif OS, "linux"
+    return Gnu.process_arg_count()
+#else
+    return 0
+#end
+
+; EN : Copies one argument into a caller-owned character array.
+; The result is the number of bytes copied, excluding the terminating NUL.
+; The native bridge truncates safely to capacity - 1.
+;
+; ES : Copia un argumento en un array de caracteres propiedad del llamador.
+; El resultado es el número de bytes copiados, sin contar el NUL final.
+; El puente nativo limita la copia de forma segura a capacidad - 1.
+@unsafe
+public func arg_copy(
+    index: int32,
+    target: char[],
+    length: Len_t,
+    size: Size_t
+) int32:
+    ; EN : Uses the declared array length as the copy capacity and rejects invalid storage.
+    ; ES : Usa la longitud declarada del array como capacidad y rechaza almacenamiento inválido.
+    if (
+        size != 1
+        || length == 0
+        || length > 2147483647
+    ):
+        if length > 0:
+            target[0] = "\0"
+        return 0
+
+    native_capacity: ArgCapacity
+    native_capacity.portable = length
+#if OS, "windows"
+    return Win.process_arg_copy(index, $target[0], native_capacity.native)
+#elif OS, "linux"
+    return Gnu.process_arg_copy(index, $target[0], native_capacity.native)
+#else
+    target[0] = "\0"
+    return 0
+#end

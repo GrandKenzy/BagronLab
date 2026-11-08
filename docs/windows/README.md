@@ -44,6 +44,12 @@ primera capa de utilidades propias de Bagron sobre `kernel32.bg`. `process.trap`
 termina el proceso mediante `ExitProcess`; no declara una nueva ABI ni depende
 de la CRT.
 
+`process.process_arg_count()` y `process.process_arg_copy()` consumen el
+puente nativo de argumentos que entrega Bagron al proceso. El índice cero es
+la ruta del ejecutable; la copia siempre termina en NUL, limita el resultado a
+`capacity - 1` bytes y devuelve la cantidad copiada. Esta frontera no usa
+`GetCommandLineA`, `CommandLineToArgvW` ni la CRT.
+
 ## Winsock
 
 `windows/modules/sockets.bg` expone la ABI de `ws2_32.dll`, incluidos

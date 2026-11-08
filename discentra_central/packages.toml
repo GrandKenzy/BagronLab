@@ -1,69 +1,69 @@
-# Configuración de integración de bagronlab con Central
-[repository]
-name = "bagronlab"
-description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
-author = "Discentra Community"
-
-# Paquete: androidlib
-[[packages]]
-name = "androidlib"
-version = "0.1.0"
-kind = "librería"
-format = "lib1"
-file = "androidlib.lib"
-description = "Native Android AArch64 syscall and runtime declarations"
-license = "MIT"
-
-# Paquete: gnulibrary
-[[packages]]
-name = "gnulibrary"
-version = "1.1.10"
-kind = "librería"
-format = "lib1"
-file = "gnulibrary.lib"
-description = "Linux x86_64 raw syscalls and shared Linux constants"
-license = "MIT"
-
-# Paquete: hashlib
-[[packages]]
-name = "hashlib"
+# Configuración de integración de bagronlab con Central
+[repository]
+name = "bagronlab"
+description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
+author = "Discentra Community"
+
+# Paquete: androidlib
+[[packages]]
+name = "androidlib"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "androidlib.lib"
+description = "Native Android AArch64 syscall and runtime declarations"
+license = "MIT"
+
+# Paquete: gnulibrary
+[[packages]]
+name = "gnulibrary"
+version = "1.1.11"
+kind = "librería"
+format = "lib1"
+file = "gnulibrary.lib"
+description = "Linux x86_64 raw syscalls and shared Linux constants"
+license = "MIT"
+
+# Paquete: hashlib
+[[packages]]
+name = "hashlib"
 version = "1.1.7"
-kind = "librería"
-format = "lib1"
-file = "hashlib.lib"
-description = "Hashing algorithms implemented natively in Bagron"
-license = "MIT"
-
-# Paquete: io
-[[packages]]
-name = "io"
-version = "1.1.10"
-kind = "librería"
-format = "lib1"
-file = "io.lib"
-description = "Standard text and byte input/output helpers for Bagron"
-license = "MIT"
-
-# Paquete: math
-[[packages]]
-name = "math"
-version = "1.2.0"
-kind = "librería"
-format = "lib1"
-file = "math.lib"
-description = "Mathematical primitives and functions"
-license = "MIT"
-
-# Paquete: mem
-[[packages]]
-name = "mem"
-version = "0.1.0"
-kind = "librería"
-format = "lib1"
-file = "mem.lib"
-description = "Checked byte-array and buffer operations"
-license = "MIT"
-
+kind = "librería"
+format = "lib1"
+file = "hashlib.lib"
+description = "Hashing algorithms implemented natively in Bagron"
+license = "MIT"
+
+# Paquete: io
+[[packages]]
+name = "io"
+version = "1.1.11"
+kind = "librería"
+format = "lib1"
+file = "io.lib"
+description = "Standard text and byte input/output helpers for Bagron"
+license = "MIT"
+
+# Paquete: math
+[[packages]]
+name = "math"
+version = "1.2.0"
+kind = "librería"
+format = "lib1"
+file = "math.lib"
+description = "Mathematical primitives and functions"
+license = "MIT"
+
+# Paquete: mem
+[[packages]]
+name = "mem"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "mem.lib"
+description = "Checked byte-array and buffer operations"
+license = "MIT"
+
 # Paquete: mmap
 [[packages]]
 name = "mmap"
@@ -74,52 +74,52 @@ file = "mmap.lib"
 description = "Anonymous virtual-memory mappings with protection controls"
 license = "MIT"
 
-# Paquete: os
-[[packages]]
-name = "os"
+# Paquete: os
+[[packages]]
+name = "os"
 version = "1.0.4"
-kind = "librería"
-format = "lib1"
-file = "os.lib"
-description = "Portable operating system file, filesystem, and process APIs"
-license = "MIT"
-
-# Paquete: string
-[[packages]]
-name = "string"
+kind = "librería"
+format = "lib1"
+file = "os.lib"
+description = "Portable operating system file, filesystem, and process APIs"
+license = "MIT"
+
+# Paquete: string
+[[packages]]
+name = "string"
 version = "1.1.9"
-kind = "librería"
-format = "lib1"
-file = "string.lib"
-description = "String manipulation utilities"
-license = "MIT"
-
-# Paquete: time
-[[packages]]
-name = "time"
+kind = "librería"
+format = "lib1"
+file = "string.lib"
+description = "String manipulation utilities"
+license = "MIT"
+
+# Paquete: time
+[[packages]]
+name = "time"
 version = "1.0.7"
-kind = "librería"
-format = "lib1"
-file = "time.lib"
-description = "Portable monotonic clocks, durations, UTC date-time, and formatting"
-license = "MIT"
-
+kind = "librería"
+format = "lib1"
+file = "time.lib"
+description = "Portable monotonic clocks, durations, UTC date-time, and formatting"
+license = "MIT"
+
 # Paquete: windows
 [[packages]]
 name = "windows"
-version = "1.2.0"
+version = "1.2.1"
 kind = "librería"
 format = "lib1"
 file = "windows.lib"
 description = "Native Microsoft Windows x64 ABI declarations, GUI helpers, and WinSock sockets"
 license = "MIT"
 
-# Paquete: x11gui
-[[packages]]
-name = "x11gui"
-version = "0.1.1"
-kind = "librería"
-format = "lib1"
-file = "x11gui.lib"
-description = "Linux X11 window, event, drawing, and control helpers"
-license = "MIT"
+# Paquete: x11gui
+[[packages]]
+name = "x11gui"
+version = "0.1.1"
+kind = "librería"
+format = "lib1"
+file = "x11gui.lib"
+description = "Linux X11 window, event, drawing, and control helpers"
+license = "MIT"

@@ -1,0 +1,35 @@
+; EN : Bagron process-argument bridge for the Linux x86_64 entry wrapper.
+;
+; ES : Puente de argumentos del proceso de Bagron para el wrapper de entrada
+; Linux x86_64.
+
+extern bagron "process":
+    __bagron_argc() int32
+    __bagron_arg_copy(index: int32, buffer *: char, capacity: int32) int32
+
+; EN : Returns the number of process arguments, including the executable path.
+; The native Bagron wrapper receives argc before the language main function.
+;
+; ES : Devuelve el número de argumentos del proceso, incluida la ruta del ejecutable.
+; El wrapper nativo de Bagron recibe argc antes de la función main del lenguaje.
+@unsafe
+public func process_arg_count() int32:
+    ; EN : Reads the saved process count without linking libc.
+    ; ES : Lee el conteo guardado del proceso sin enlazar libc.
+    return __bagron_argc()
+
+; EN : Copies one process argument into caller-owned NUL-terminated storage.
+; Index zero is the executable path and invalid indexes return zero.
+;
+; ES : Copia un argumento del proceso en almacenamiento propiedad del llamador
+; terminado en NUL. El índice cero es la ruta del ejecutable y los índices
+; inválidos devuelven cero.
+@unsafe
+public func process_arg_copy(
+    index: int32,
+    buffer *: char,
+    capacity: int32
+) int32:
+    ; EN : The runtime truncates to capacity - 1 and always writes NUL.
+    ; ES : El runtime limita a capacidad - 1 y siempre escribe NUL.
+    return __bagron_arg_copy(index, buffer, capacity)

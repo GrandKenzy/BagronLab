@@ -44,6 +44,12 @@ Con `O_APPEND`, Linux puede hacer que `pwrite64` escriba al final del archivo.
 `system.trap` eleva `SIGABRT` mediante los syscalls raw de proceso y usa
 `exit_group` como respaldo, por lo que no depende de libc.
 
+`process.process_arg_count()` y `process.process_arg_copy()` exponen los
+argumentos capturados por el arranque nativo de Bagron. Linux no ofrece un
+syscall que recupere `argv` después del arranque, así que esta interfaz usa el
+ABI interno de Bagron y no introduce una dependencia de glibc. El índice cero
+es la ruta del ejecutable; la copia termina en NUL y devuelve bytes copiados.
+
 La documentación específica de `gnulibrary` pertenece a esta carpeta. La
 documentación del lenguaje y del compilador debe permanecer en el repositorio
 principal de Bagron.

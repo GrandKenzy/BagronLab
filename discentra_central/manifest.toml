@@ -1,63 +1,63 @@
-# Manifiesto de integridad criptográfica y firmas de autor para Central
-[manifest]
-format = "bagron-manifest@1"
-hash_algorithm = "sha256"
-author = "Discentra Community"
-
-# Verificación para: androidlib
-[[packages]]
-name = "androidlib"
-file = "androidlib.lib"
-format = "lib1"
-sha256 = "ebf338dc338e7d6b0ec7fa3403bdf7f5247a1a4f55c92f8e2323bb7b60c1e696"
-size_bytes = 7537
-signature = "sha256:1fafc60fd14cdc53c56223528467b43ab863b3e3215b17f072c677556b25de03"
-
-# Verificación para: gnulibrary
-[[packages]]
-name = "gnulibrary"
-file = "gnulibrary.lib"
-format = "lib1"
-sha256 = "89c41b74c9fe8548bc47e4166977aa2b086808883075274a6bae1b2dac906791"
-size_bytes = 73910
-signature = "sha256:17a09963352254d7a06ff10b724e759542c555fb58d1140a83ada36f3fe758ff"
-
-# Verificación para: hashlib
-[[packages]]
-name = "hashlib"
-file = "hashlib.lib"
-format = "lib1"
+# Manifiesto de integridad criptográfica y firmas de autor para Central
+[manifest]
+format = "bagron-manifest@1"
+hash_algorithm = "sha256"
+author = "Discentra Community"
+
+# Verificación para: androidlib
+[[packages]]
+name = "androidlib"
+file = "androidlib.lib"
+format = "lib1"
+sha256 = "ebf338dc338e7d6b0ec7fa3403bdf7f5247a1a4f55c92f8e2323bb7b60c1e696"
+size_bytes = 7537
+signature = "sha256:1fafc60fd14cdc53c56223528467b43ab863b3e3215b17f072c677556b25de03"
+
+# Verificación para: gnulibrary
+[[packages]]
+name = "gnulibrary"
+file = "gnulibrary.lib"
+format = "lib1"
+sha256 = "11b3e759ef5b04a96a8c3a0f4df669f9dd52c528bbdf6350b74f073a712ab571"
+size_bytes = 75428
+signature = "sha256:0e868844970e66e75f013e273a587b1ab85693fdac022d52c95bd80c7fee2e4f"
+
+# Verificación para: hashlib
+[[packages]]
+name = "hashlib"
+file = "hashlib.lib"
+format = "lib1"
 sha256 = "4d5f25768836442f8b0e156024d71fef7b7cb162994cc670e85d9895161c4b67"
 size_bytes = 30375
 signature = "sha256:1f361cf3d775f00ab277ba2a2db2a230b52aba525acb380f030691cd44a9f800"
-
-# Verificación para: io
-[[packages]]
-name = "io"
-file = "io.lib"
-format = "lib1"
-sha256 = "da096478a09c0429e7804e0b8d3cecde29d104d6a0892410cdc787f51faadbe6"
-size_bytes = 18110
-signature = "sha256:faf79ea0d595268995d2fc6ce3bcf66d46e1d086f9d3a9266c9ebf083451639f"
-
-# Verificación para: math
-[[packages]]
-name = "math"
-file = "math.lib"
-format = "lib1"
-sha256 = "0dbca446e14f6e25ab43b1b9c6234337e8bde0d9948c160505cbad0f66c088cf"
-size_bytes = 56697
-signature = "sha256:ea6cd071cd41631126478a376f0a7746b836d11ed956ae5014fc3d39b5476ecc"
-
-# Verificación para: mem
-[[packages]]
-name = "mem"
-file = "mem.lib"
-format = "lib1"
-sha256 = "372a00f69625554e78a2a88dfb9995e2c8cfc528c2c743f774e70e2c6d513c12"
-size_bytes = 16956
-signature = "sha256:10fa162ad463ab283d90ef9ac5b691f96819dd246175a69c8a95c8f53cdd6b0c"
-
+
+# Verificación para: io
+[[packages]]
+name = "io"
+file = "io.lib"
+format = "lib1"
+sha256 = "24dd749f98619f3337e65f396a8d615dd68667f2112061553ce0dc88bce97a90"
+size_bytes = 19908
+signature = "sha256:f6e698d0c717111283d6058937e24a6cde27d352d248554ad113dc119dec5a8f"
+
+# Verificación para: math
+[[packages]]
+name = "math"
+file = "math.lib"
+format = "lib1"
+sha256 = "0dbca446e14f6e25ab43b1b9c6234337e8bde0d9948c160505cbad0f66c088cf"
+size_bytes = 56697
+signature = "sha256:ea6cd071cd41631126478a376f0a7746b836d11ed956ae5014fc3d39b5476ecc"
+
+# Verificación para: mem
+[[packages]]
+name = "mem"
+file = "mem.lib"
+format = "lib1"
+sha256 = "372a00f69625554e78a2a88dfb9995e2c8cfc528c2c743f774e70e2c6d513c12"
+size_bytes = 16956
+signature = "sha256:10fa162ad463ab283d90ef9ac5b691f96819dd246175a69c8a95c8f53cdd6b0c"
+
 # Verificación para: mmap
 [[packages]]
 name = "mmap"
@@ -67,47 +67,47 @@ sha256 = "2666dcdfe5984c5786c599abf97fede02a65477f5f5d9bbf76cd46c6fb9af740"
 size_bytes = 11808
 signature = "sha256:b1358a91b84c3e6d5d85dd168fd013bda07b90620a4f1bb5b359c007e8b40d2e"
 
-# Verificación para: os
-[[packages]]
-name = "os"
-file = "os.lib"
-format = "lib1"
+# Verificación para: os
+[[packages]]
+name = "os"
+file = "os.lib"
+format = "lib1"
 sha256 = "7e0bf5f5e2285e121e109ce6c5f7495ffa060e18b8db503b5d1b0a9b9a29347c"
 size_bytes = 41731
 signature = "sha256:8105c4a0da15d32a71480afff9e466a71cbda8c0ea944f0f63f2375a71a52802"
-
-# Verificación para: string
-[[packages]]
-name = "string"
-file = "string.lib"
-format = "lib1"
+
+# Verificación para: string
+[[packages]]
+name = "string"
+file = "string.lib"
+format = "lib1"
 sha256 = "9959db858b5b702055ec5f2a29a2d449cc0537b13d4865f590f26ac42dccb5ef"
 size_bytes = 41024
 signature = "sha256:d026ab2d25d3ea4aadd5bcd3641fed466f41da28456ec0c8d55a7b070173b6a1"
-
-# Verificación para: time
-[[packages]]
-name = "time"
-file = "time.lib"
-format = "lib1"
+
+# Verificación para: time
+[[packages]]
+name = "time"
+file = "time.lib"
+format = "lib1"
 sha256 = "ed3482dbeb49693f3425b56cf68844e4fafe43cc656931083e494b2f2aec85ff"
 size_bytes = 39133
 signature = "sha256:64b31dae17a6a8fe9e44ab9b3433f23eb9b0c896c536b5070a534eac2cfe707f"
-
+
 # Verificación para: windows
 [[packages]]
 name = "windows"
 file = "windows.lib"
 format = "lib1"
-sha256 = "985b7cf8da905c66d936126e92ad7e529f4a437c9d7f598f148ffb5e457d4d07"
-size_bytes = 84869
-signature = "sha256:399f59dacb1c5d03e211ee3449b662cf9ff19c43098d46ecf30311abfec72d72"
+sha256 = "bf923beefd2e13820a8ee15287b6a9e6aa856c2bdf78b91afd32d6efd9a25704"
+size_bytes = 85941
+signature = "sha256:c50d1bc0d8bc78a9a7ee635f9057d6eab8ea3949647847f5665395b9088bdff2"
 
-# Verificación para: x11gui
-[[packages]]
-name = "x11gui"
-file = "x11gui.lib"
-format = "lib1"
-sha256 = "e76ca9ce29adb4307f8a5b41c097db48f2beb336284aae7c344cc1a341ed3117"
-size_bytes = 17417
-signature = "sha256:c6b1c3ccb74eb81982bd4855157bd659dd1e4d137b1d09f28506413caa185d17"
+# Verificación para: x11gui
+[[packages]]
+name = "x11gui"
+file = "x11gui.lib"
+format = "lib1"
+sha256 = "e76ca9ce29adb4307f8a5b41c097db48f2beb336284aae7c344cc1a341ed3117"
+size_bytes = 17417
+signature = "sha256:c6b1c3ccb74eb81982bd4855157bd659dd1e4d137b1d09f28506413caa185d17"

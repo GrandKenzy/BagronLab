@@ -11,7 +11,7 @@
       "kind": "librería"
     },
     "windows": {
-      "description": "Native Microsoft Windows x64 ABI declarations and WinSock sockets",
+      "description": "Native Microsoft Windows x64 ABI declarations, GUI helpers, and WinSock sockets",
       "license": "MIT",
       "kind": "librería"
     },
@@ -62,11 +62,6 @@
     },
     "x11gui": {
       "description": "Linux X11 window, event, drawing, and control helpers",
-      "license": "MIT",
-      "kind": "librería"
-    },
-    "win32gui": {
-      "description": "Windows GUI controls, dialogs, drawing, and text helpers",
       "license": "MIT",
       "kind": "librería"
     }

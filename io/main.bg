@@ -20,6 +20,7 @@ clause Arch "auto"
 #end
 
 import { clear_error as IoClearError, last_error as IoLastError } from error
+import { arg_count, arg_copy } from args
 import { input } from input
 import {
     flush,

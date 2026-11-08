@@ -59,6 +59,14 @@ No existen funciones separadas `newline` ni `println_*`.
 llamada; `count` no puede superar su longitud dinámica. `print_buffer` conserva
 la semántica de texto terminado en NUL.
 
+`io.arg_count()` devuelve el número de argumentos del proceso actual, incluida
+la ruta del ejecutable en el índice cero. `io.arg_copy(index, buffer)` copia un
+argumento en un array `char[]`, limita la escritura a la capacidad declarada
+del array, escribe el NUL final y devuelve los bytes copiados. Los argumentos
+de usuario comienzan en el índice uno. En Windows usa la ABI nativa de Bagron;
+en Linux usa el puente de arranque de Bagron sobre `gnulibrary`, sin depender
+de una CRT.
+
 `io/main.bg` selecciona `windows.lib` para Windows, `gnulibrary.lib` para Linux
 y `androidlib.lib` para Android con `#if OS`/`#elif OS`; la API de `io` no
 expone diferencias entre esos targets.
@@ -95,7 +103,7 @@ porque `io` depende de `string`:
 ```sh
 bagron library --v1 string -o build/string.lib --name string --version 1.1.7
 bagron install --library --v1 string --name string --version 1.1.7
-bagron library --v1 io -o build/io.lib --name io --version 1.1.8
+bagron library --v1 io -o build/io.lib --name io --version 1.1.11
 bagron verify build/string.lib
 bagron verify build/io.lib
 bagron inspect build/io.lib

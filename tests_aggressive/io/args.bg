@@ -1,0 +1,23 @@
+; Windows backend smoke test for process arguments exposed by io.
+clause System "windows"
+clause Arch "amd"
+library io as IO
+import { arg_count, arg_copy, flush, print_chars } from IO
+
+@unsafe
+func main() int32:
+    ; EN : Verifies that a console argument reaches Bagron and is copied safely.
+    ;
+    ; ES : Verifica que un argumento de consola llegue a Bagron y se copie de forma segura.
+    count: int32 = arg_count()
+    if count < 2:
+        return 1
+
+    argument: char[256]
+    copied: int32 = arg_copy(1, argument)
+    if copied == 0:
+        return 2
+
+    print_chars(argument, true)
+    flush()
+    return 0
