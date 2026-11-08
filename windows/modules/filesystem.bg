@@ -57,6 +57,16 @@ private mold WindowsSigned64:
     native: uint64
     portable: int64
 
+@unsafe
+@consume
+private func close_search(search: HANDLE) int32:
+    ; EN : Consumes and closes a native directory-search handle.
+    ; The wrapper gives the ownership analyzer an explicit close contract.
+    ;
+    ; ES : Consume y cierra un handle nativo de búsqueda de directorio.
+    ; El wrapper entrega al analizador un contrato explícito de cierre.
+    return FindClose(search)
+
 private func filetime_seconds(low: uint32, high: uint32) int64:
     ; EN: Converts a FILETIME pair into Unix seconds.
     ;
@@ -149,7 +159,7 @@ public func directory_entry(
     SetLastError(0)
     search: HANDLE = FindFirstFileA($pattern[0], $data)
     if GetLastError() == ERROR_FILE_NOT_FOUND || GetLastError() == ERROR_PATH_NOT_FOUND:
-        FindClose(search)
+        close_search(search)
         return false
     current: usize = 0
     dot: char = "."
@@ -163,7 +173,7 @@ public func directory_entry(
                 index: usize = 0
                 while data.file_name[index] != zero:
                     if index + 1 >= name_length:
-                        FindClose(search)
+                        close_search(search)
                         return false
                     name[index] = data.file_name[index]
                     index += 1
@@ -183,12 +193,12 @@ public func directory_entry(
                 (access_seconds) = filetime_seconds(data.access_time_low, data.access_time_high)
                 (modify_seconds) = filetime_seconds(data.write_time_low, data.write_time_high)
                 (creation_seconds) = filetime_seconds(data.creation_time_low, data.creation_time_high)
-                FindClose(search)
+                close_search(search)
                 return true
             current += 1
         if FindNextFileA(search, $data) == 0:
             break
-    FindClose(search)
+    close_search(search)
     return false
 
 @unsafe

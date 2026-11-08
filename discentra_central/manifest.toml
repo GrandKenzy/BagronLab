@@ -108,10 +108,10 @@ signature = "sha256:7610fe5683b0a9035647092495f972ecd8c7910e6d7845f3c540bc3cd440
 name = "windows"
 file = "windows.lib"
 format = "lib1"
-sha256 = "9730db14b2410756c4d594e478bd884d5c9cb7dbcc5fe95f5254bde7e324610c"
-size_bytes = 70853
-signature = "sha256:6dfe42bf53805f56598f5291103c73c216db0f1c98da639a475a4e36ff197c7d"
-
+sha256 = "9b6545db2be7e531e347d3b342252fa6e17d75eeffd278316c5a31537eb88d8d"
+size_bytes = 71448
+signature = "sha256:c9f704f92411287b1fcb2a32afc87fd54a1665d964f46ddc6516d1dc09d0eecc"
+
 # Verificación para: x11gui
 [[packages]]
 name = "x11gui"

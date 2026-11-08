@@ -67,6 +67,18 @@ private mold VirtualAddressBits:
     region: MEMORY_REGION
     wide: uint64
 
+@unsafe
+@consume
+private func address_from_region(region: MEMORY_REGION) usize:
+    ; EN : Transfers a VirtualAlloc region into the raw address ABI used by mmap.
+    ; The caller remains responsible for releasing the address with vm_unmap().
+    ;
+    ; ES : Transfiere una región de VirtualAlloc a la ABI de dirección cruda de mmap.
+    ; El llamador debe liberar la dirección mediante vm_unmap().
+    bits: VirtualAddressBits
+    bits.region = region
+    return bits.address
+
 ; EN: Reserves and commits read/write pages, returning 0 on failure.
 ; ES: Reserva y confirma paginas de lectura/escritura; 0 si falla.
 @unsafe
@@ -76,9 +88,7 @@ public func vm_map_rw(size: usize) usize:
     bits: VirtualAddressBits
     bits.address = size
     region: MEMORY_REGION = VirtualAlloc(Null, bits.wide, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
-    result: VirtualAddressBits
-    result.region = region
-    return result.address
+    return address_from_region(region)
 
 ; EN: Releases the complete VirtualAlloc region.
 ; ES: Libera toda la region reservada mediante VirtualAlloc.
