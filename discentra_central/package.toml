@@ -1,9 +1,9 @@
 [package]
-name = "bagronlab"
-version = "0.1.0"
+name = "bagron-standard-suite"
+version = "1.0.0"
 kind = "librería"
 format = "lib1"
-description = "BagronLab package hosting repository"
+description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
 license = "MIT"
 
 [author]
@@ -15,5 +15,3 @@ system = "all"
 arch = "amd"
 min_bagron = "1.1.4"
 
-[build]
-entry = "main.bg"
