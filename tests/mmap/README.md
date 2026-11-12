@@ -26,6 +26,7 @@ echo $?
 El test termina en 0 cuando todas las comprobaciones pasan. Otros códigos
 corresponden al identificador de una condición fallida en `main.bg`.
 
+`file_backed.bg` valida además una vista de archivo de solo lectura y debe
+compilarse con `--strict-ownership` para comprobar la frontera nativa.
+
 **Verificado:** Linux x86_64 y Windows x64, Bagron 1.1.4, exit code 0.
-Quedan pendientes los sanitizadores de ownership y los mapeos respaldados por
-archivos.

@@ -1,6 +1,16 @@
 clause Privacy "public"
 
-import { SIGABRT, PROT_READ, PROT_WRITE, MAP_PRIVATE, MAP_ANONYMOUS } from linuxc
+import {
+    SIGABRT,
+    PROT_READ,
+    PROT_WRITE,
+    MAP_PRIVATE,
+    MAP_ANONYMOUS,
+    AT_FDCWD,
+    O_RDONLY,
+    O_CLOEXEC
+} from linuxc
+import { openat } from files
 
 ; EN: Terminates the current process through the native Linux signal path.
 ; The raw kill syscall is kept in gnulibrary; callers do not depend on libc.
@@ -258,6 +268,10 @@ private mold VirtualMemoryBits:
     signed: int64
     pointer *: void
 
+private mold FileDescriptorBits:
+    native: int64
+    portable: usize
+
 @assembler
 func mprotect(addr *: void, length: uint64, prot: uint32) int64:
     #assembler "att"
@@ -292,6 +306,76 @@ public func vm_unmap(address: usize, size: usize) bool:
     addr.word = address
     count.word = size
     return munmap(addr.pointer, count.wide) == 0
+
+; EN: Maps an existing file read-only and returns its address and descriptor.
+; The caller supplies the file size obtained from the portable filesystem API.
+;
+; ES: Mapea un archivo existente en solo lectura y devuelve su dirección y descriptor.
+; El llamador proporciona el tamaño obtenido mediante la API portable de archivos.
+@unsafe
+public func vm_map_file(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    byte_count: usize,
+    address *: usize,
+    resource *: usize
+) bool:
+    (address) = 0
+    (resource) = 0
+    if path_size != 1 || path_length < 2 || byte_count == 0:
+        return false
+
+    descriptor: int64 = openat(
+        AT_FDCWD,
+        $path[0],
+        O_RDONLY | O_CLOEXEC,
+        0
+    )
+    if descriptor < 0:
+        return false
+
+    count: VirtualMemoryBits
+    count.word = byte_count
+    result: int64 = mmap(
+        Null,
+        count.wide,
+        PROT_READ,
+        MAP_PRIVATE,
+        descriptor,
+        0
+    )
+    if result < 0 && result >= -4095:
+        close(descriptor)
+        return false
+
+    bits: VirtualMemoryBits
+    bits.signed = result
+    if bits.word == 0:
+        close(descriptor)
+        return false
+
+    descriptor_bits: FileDescriptorBits
+    descriptor_bits.native = descriptor
+    (address) = bits.word
+    (resource) = descriptor_bits.portable
+    return true
+
+; EN: Unmaps a file view and closes its descriptor.
+; ES: Desmapea una vista de archivo y cierra su descriptor.
+@unsafe
+public func vm_unmap_file(address: usize, size: usize, resource: usize) bool:
+    if address == 0 || size == 0:
+        return false
+    address_bits: VirtualMemoryBits
+    address_bits.word = address
+    count: VirtualMemoryBits
+    count.word = size
+    if munmap(address_bits.pointer, count.wide) != 0:
+        return false
+    descriptor_bits: FileDescriptorBits
+    descriptor_bits.portable = resource
+    return close(descriptor_bits.native) == 0
 
 ; EN: Restricts pages to read-only, or restores read/write.
 ; ES: Restringe paginas a solo lectura o restaura lectura/escritura.

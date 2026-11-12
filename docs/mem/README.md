@@ -91,9 +91,10 @@ echo $?
 El test termina con código 0 si todos los casos pasan. Verificado por ahora
 en Linux x86_64, no todavía en Windows.
 
-## Futuras fases
+## Alcance
 
-- Vista de memoria sin ownership y límites estrictos.
-- API de memoria dinámica con ownership explícito usando las bibliotecas
-  nativas `gnulibrary` y `windows`, tras validar sus respectivas ABI.
-- Pruebas de alias, benchmarks y sanitizadores del backend.
+`mem` no adquiere ni libera memoria: todas sus funciones operan sobre
+almacenamiento que el llamador ya posee o presta. Para regiones nativas con
+vida propia se usa `mmap`, cuyo objeto `Mapping` documenta el cierre explícito,
+la vista prestada y sus límites. Esta separación no convierte los punteros
+crudos en seguros; las operaciones de `mem` siguen siendo `@unsafe`.

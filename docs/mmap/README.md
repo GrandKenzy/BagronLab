@@ -1,8 +1,8 @@
-# mmap 0.1.0 — Memoria virtual en Bagron
+# mmap 0.1.0 — Memoria virtual y mapeo de archivos en Bagron
 
-`mmap` administra **regiones anónimas de memoria virtual** proporcionadas por
-el sistema operativo. Complementa a `mem`: `mem` manipula buffers que ya
-existen; `mmap` reserva, protege y libera páginas nativas.
+`mmap` administra regiones anónimas y vistas de archivos de memoria virtual
+proporcionadas por el sistema operativo. Complementa a `mem`: `mem` manipula
+buffers que ya existen; `mmap` reserva, protege, mapea y libera páginas nativas.
 
 La versión `0.1.0` cubre **Linux x86_64** y **Windows x64**. El paquete
 `build/mmap.lib` se genera para el target del compilador que lo construye y
@@ -17,7 +17,9 @@ inicializa el estado; la reserva se hace con `open(size)`.
 | Método | Función |
 | --- | --- |
 | `open(bytes)` | Reserva páginas privadas anónimas en modo lectura/escritura |
+| `open_file(path, bytes)` | Mapea un archivo existente en modo solo lectura |
 | `is_open()` | Indica si la región está activa |
+| `is_file_backed()` | Indica si la región proviene de un archivo |
 | `size()` | Cantidad de bytes solicitados |
 | `get(index, $byte)` | Lee un octeto, comprobando límites |
 | `set(index, byte)` | Escribe un octeto en modo escritura |
@@ -101,8 +103,10 @@ No se generan rutas nativas duplicadas dentro de `mmap`.
 5. `readonly()` protege las páginas en el sistema operativo. La memoria
    se administra por páginas, aunque `size()` devuelve los bytes solicitados.
    La biblioteca no habilita memoria ejecutable (política RW/R).
-6. No se ofrece por ahora mapeo de archivos, sincronización `msync`,
-   memoria compartida, resize ni borrado criptográfico seguro.
+6. `open_file()` usa vistas de solo lectura. El backend libera el descriptor o
+   handle auxiliar después de crear la vista; `close()` libera la vista activa.
+   No ofrece todavía sincronización, memoria compartida, resize ni borrado
+   criptográfico seguro.
 7. No se conservan automáticamente los códigos de error `errno`/Win32:
    las operaciones fallidas devuelven `false` o `0`.
 
@@ -130,6 +134,5 @@ la validación Linux conserva el mismo backend basado en syscalls.
 
 ## Próxima etapa
 
-Agregar mapeo de archivos (`MAP_SHARED` / `MapViewOfFile`),
-sincronización, offsets alineados, vistas parciales y errores nativos
-detallados, primero con una política de ownership definida.
+La siguiente etapa puede añadir sincronización, offsets alineados, vistas
+parciales y errores nativos detallados.

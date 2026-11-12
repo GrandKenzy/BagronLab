@@ -17,7 +17,7 @@ license = "MIT"
 # Paquete: gnulibrary
 [[packages]]
 name = "gnulibrary"
-version = "1.1.11"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "gnulibrary.lib"
@@ -27,7 +27,7 @@ license = "MIT"
 # Paquete: hashlib
 [[packages]]
 name = "hashlib"
-version = "1.1.7"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "hashlib.lib"
@@ -37,7 +37,7 @@ license = "MIT"
 # Paquete: io
 [[packages]]
 name = "io"
-version = "1.1.11"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "io.lib"
@@ -47,7 +47,7 @@ license = "MIT"
 # Paquete: math
 [[packages]]
 name = "math"
-version = "1.2.0"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "math.lib"
@@ -71,13 +71,13 @@ version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "mmap.lib"
-description = "Anonymous virtual-memory mappings with protection controls"
+description = "Anonymous and read-only file-backed virtual-memory mappings"
 license = "MIT"
 
 # Paquete: os
 [[packages]]
 name = "os"
-version = "1.0.4"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "os.lib"
@@ -87,7 +87,7 @@ license = "MIT"
 # Paquete: string
 [[packages]]
 name = "string"
-version = "1.1.9"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "string.lib"
@@ -97,7 +97,7 @@ license = "MIT"
 # Paquete: time
 [[packages]]
 name = "time"
-version = "1.0.7"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "time.lib"
@@ -107,7 +107,7 @@ license = "MIT"
 # Paquete: windows
 [[packages]]
 name = "windows"
-version = "1.2.1"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "windows.lib"
@@ -117,7 +117,7 @@ license = "MIT"
 # Paquete: x11gui
 [[packages]]
 name = "x11gui"
-version = "0.1.1"
+version = "0.1.0"
 kind = "librería"
 format = "lib1"
 file = "x11gui.lib"

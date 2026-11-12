@@ -12,7 +12,21 @@ import {
     VirtualAlloc,
     VirtualFree,
     VirtualProtect,
-    VirtualQuery
+    VirtualQuery,
+    FILE_ATTRIBUTE_NORMAL,
+    FILE_MAP_READ,
+    FILE_SHARE_READ_WRITE,
+    FILE_SHARE_DELETE,
+    GENERIC_READ,
+    GetFileSizeEx,
+    GetFileType,
+    FILE_TYPE_DISK,
+    OPEN_EXISTING,
+    CreateFileA,
+    CreateFileMappingA,
+    MapViewOfFile,
+    UnmapViewOfFile,
+    CloseHandle
 } from kernel32
 
 ; EN: Reserves and commits a read/write memory region owned by the caller.
@@ -67,6 +81,25 @@ private mold VirtualAddressBits:
     region: MEMORY_REGION
     wide: uint64
 
+private mold WindowsFileSize:
+    native: int64
+    portable: usize
+
+; EN: Closes one owned Windows handle and makes the ownership transfer explicit.
+; ES: Cierra un handle Windows owned y hace explicita la transferencia de ownership.
+@unsafe
+@consume
+public func __close_owned_handle(handle: HANDLE) void:
+    CloseHandle(handle)
+    return
+
+; EN: Unmaps one owned file view and makes the ownership transfer explicit.
+; ES: Desmapea una vista de archivo owned y hace explicita la transferencia de ownership.
+@unsafe
+@consume
+public func __unmap_owned_view(view: MEMORY_REGION) bool:
+    return UnmapViewOfFile(view) != 0
+
 @unsafe
 @consume
 private func address_from_region(region: MEMORY_REGION) usize:
@@ -99,6 +132,91 @@ public func vm_unmap(address: usize, size: usize) bool:
     bits: VirtualAddressBits
     bits.address = address
     return VirtualFree(bits.region, 0, MEM_RELEASE) != 0
+
+; EN: Maps an existing file read-only and returns its view and a liveness marker.
+; The file and mapping handles are closed after the view is created.
+;
+; ES: Mapea un archivo existente en solo lectura y devuelve su vista y un
+; marcador de vida. Los handles se cierran después de crear la vista.
+@unsafe
+public func vm_map_file(
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    byte_count: usize,
+    address *: usize,
+    resource *: usize
+) bool:
+    (address) = 0
+    (resource) = 0
+    if path_size != 1 || path_length < 2 || byte_count == 0:
+        return false
+
+    file_handle: HANDLE = CreateFileA(
+        $path[0],
+        GENERIC_READ,
+        FILE_SHARE_READ_WRITE | FILE_SHARE_DELETE,
+        Null,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        Null
+    )
+    if GetFileType(file_handle) != FILE_TYPE_DISK:
+        __close_owned_handle(file_handle)
+        return false
+
+    actual_size: WindowsFileSize
+    if GetFileSizeEx(file_handle, $actual_size.native) == 0:
+        __close_owned_handle(file_handle)
+        return false
+    if actual_size.native <= 0 || actual_size.portable != byte_count:
+        __close_owned_handle(file_handle)
+        return false
+
+    mapping_handle: HANDLE = CreateFileMappingA(
+        file_handle,
+        Null,
+        PAGE_READONLY,
+        0,
+        0,
+        Null
+    )
+    __close_owned_handle(file_handle)
+
+    view: MEMORY_REGION = MapViewOfFile(
+        mapping_handle,
+        FILE_MAP_READ,
+        0,
+        0,
+        0
+    )
+    view_address: usize = address_from_region(view)
+    if view_address == 0:
+        __close_owned_handle(mapping_handle)
+        return false
+
+    ; MapViewOfFile keeps the view valid after its mapping handle is closed.
+    ; Releasing it here prevents an opaque handle from escaping this function.
+    __close_owned_handle(mapping_handle)
+    result_bits: VirtualAddressBits
+    result_bits.address = view_address
+    (address) = result_bits.address
+    ; resource is a non-zero liveness marker; the mapping handle is already
+    ; closed, and Windows keeps the view alive until UnmapViewOfFile.
+    (resource) = 1
+    return true
+
+; EN: Unmaps a file view. The mapping handle was closed after the view opened.
+; ES: Desmapea una vista de archivo. El handle se cerro al abrir la vista.
+@unsafe
+public func vm_unmap_file(address: usize, size: usize, resource: usize) bool:
+    if address == 0 || size == 0:
+        return false
+    address_bits: VirtualAddressBits
+    address_bits.address = address
+    if not __unmap_owned_view(address_bits.region):
+        return false
+    return true
 
 ; EN: Sets a region read-only or read/write through VirtualProtect.
 ; ES: Cambia proteccion entre solo lectura y lectura/escritura.

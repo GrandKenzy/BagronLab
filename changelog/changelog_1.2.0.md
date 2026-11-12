@@ -14,3 +14,10 @@
 - `io` now exports `arg_count()` and `arg_copy(index, buffer)`. The buffer's
   declared array length is used as the safe copy capacity, and the result
   excludes the terminating NUL byte.
+
+## Memory mapping
+
+- `mmap` now provides `Mapping.open_file(path, size)` for read-only,
+  file-backed mappings on Windows and Linux. The native backend releases its
+  temporary file handle after creating the view, and `close()` releases the
+  active view.

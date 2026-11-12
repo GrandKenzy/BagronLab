@@ -1,0 +1,43 @@
+; File-backed mmap regression test.
+#if OS, "windows"
+clause System "windows"
+clause Arch "amd"
+#elif OS, "linux"
+clause System "linux"
+clause Arch "amd"
+#else
+clause System "auto"
+clause Arch "amd"
+#end
+
+library mmap as MM
+library os as OS
+import { Mapping } from MM
+
+private mold FileSize:
+    native: int64
+    portable: usize
+
+@unsafe
+func main() int32:
+    path: char[64] = "mmap/main.bg"
+    info: OS.FileInfo = OS.stat(path)
+    if info.kind != OS.FileKindFile || info.size <= 0:
+        return 1
+
+    size: FileSize
+    size.native = info.size
+    mapping: Mapping = Mapping()
+    if not mapping.open_file(path, size.portable):
+        return 2
+    if not mapping.is_file_backed():
+        mapping.close()
+        return 3
+
+    first: byte = 0
+    if not mapping.get(0, $first) || first == 0:
+        mapping.close()
+        return 4
+    if not mapping.close() || mapping.is_open():
+        return 5
+    return 0

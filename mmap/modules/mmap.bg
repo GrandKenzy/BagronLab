@@ -8,8 +8,10 @@ public class Mapping:
     func __init__() void:
         self.length: usize = 0
         self.address: usize = 0
+        self.resource: usize = 0
         self.active: bool = false
         self.writable: bool = false
+        self.file_backed: bool = false
 
     ; EN: Maps byte_count anonymous bytes as readable and writable.
     ; ES: Reserva byte_count bytes anonimos de lectura/escritura.
@@ -22,13 +24,54 @@ public class Mapping:
             return false
         self.length = byte_count
         self.address = addr
+        self.resource = 0
         self.active = true
         self.writable = true
+        self.file_backed = false
+        return true
+
+    ; EN: Maps an existing file as a read-only source region.
+    ; The caller must provide the file size in bytes and close the mapping
+    ; before the source path or its native resources are released.
+    ;
+    ; ES: Mapea un archivo existente como una region de solo lectura.
+    ; El llamador proporciona el tamano en bytes y debe cerrar el mapeo antes
+    ; de liberar la ruta o sus recursos nativos.
+    @unsafe
+    func open_file(
+        path: char[],
+        path_length: Len_t,
+        path_size: Size_t,
+        byte_count: usize
+    ) bool:
+        if self.active || byte_count == 0:
+            return false
+        mapped_address: usize = 0
+        mapped_resource: usize = 0
+        if not Platform.vm_map_file(
+            path,
+            byte_count,
+            $mapped_address,
+            $mapped_resource
+        ):
+            return false
+        if mapped_address == 0 || mapped_resource == 0:
+            return false
+        self.length = byte_count
+        self.address = mapped_address
+        self.resource = mapped_resource
+        self.active = true
+        self.writable = false
+        self.file_backed = true
         return true
 
     @unsafe
     func is_open() bool:
         return self.active
+
+    @unsafe
+    func is_file_backed() bool:
+        return self.active && self.file_backed
 
     @unsafe
     func size() usize:
@@ -202,15 +245,50 @@ public class Mapping:
     func close() bool:
         if not self.active:
             return true
-        if not Platform.vm_unmap(self.address, self.length):
+        released: bool = false
+        if self.file_backed:
+            released = Platform.vm_unmap_file(
+                self.address,
+                self.length,
+                self.resource
+            )
+        else:
+            released = Platform.vm_unmap(self.address, self.length)
+        if not released:
             return false
         self.active = false
         self.writable = false
+        self.file_backed = false
         self.length = 0
         self.address = 0
+        self.resource = 0
         return true
 
     @unsafe
     func __deletion__() void:
         self.close()
         return
+
+
+; EN: Operates on a Mapping stored inside another aggregate without copying it.
+; The pointer form preserves the live mapping resource and its ownership.
+;
+; ES: Opera sobre un Mapping almacenado dentro de otro agregado sin copiarlo.
+; La forma por puntero conserva el recurso vivo y su propiedad.
+@unsafe
+public func open_file_at(
+    mapping *: Mapping,
+    path: char[],
+    path_length: Len_t,
+    path_size: Size_t,
+    byte_count: usize
+) bool:
+    return (mapping).open_file(path, byte_count)
+
+@unsafe
+public func get_at(mapping *: Mapping, index: usize, result *: byte) bool:
+    return (mapping).get(index, result)
+
+@unsafe
+public func close_at(mapping *: Mapping) bool:
+    return (mapping).close()

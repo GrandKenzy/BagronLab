@@ -112,6 +112,13 @@ public PAGE_GUARD: const uint32 = 256
 public PAGE_NOCACHE: const uint32 = 512
 public PAGE_WRITECOMBINE: const uint32 = 1024
 
+; EN: Read-only access and file-mapping view constants.
+;
+; ES: Constantes de acceso de solo lectura y vistas de mapeo de archivos.
+public FILE_MAP_COPY: const uint32 = 1
+public FILE_MAP_WRITE: const uint32 = 2
+public FILE_MAP_READ: const uint32 = 4
+
 extern windows "kernel32":
     ; EN: Returns the module handle for a loaded module, or the current executable for Null.
     ; ES: Devuelve el handle de modulo; Null identifica el ejecutable actual.
@@ -140,6 +147,34 @@ extern windows "kernel32":
         flags_and_attributes: uint32,
         template_file *: void
     ) HANDLE
+
+    ; EN: Creates a file-mapping kernel object for an open file handle.
+    ;
+    ; ES: Crea un objeto de mapeo de archivo para un handle abierto.
+    CreateFileMappingA(
+        file_handle: HANDLE,
+        security_attributes *: void,
+        protection: uint32,
+        maximum_size_high: uint32,
+        maximum_size_low: uint32,
+        name *: const char
+    ) HANDLE
+
+    ; EN: Maps a file-mapping object into the process address space.
+    ;
+    ; ES: Mapea un objeto de archivo en el espacio de direcciones del proceso.
+    MapViewOfFile(
+        mapping_handle: HANDLE,
+        desired_access: uint32,
+        file_offset_high: uint32,
+        file_offset_low: uint32,
+        bytes_to_map: usize
+    ) MEMORY_REGION
+
+    ; EN: Unmaps a view previously returned by MapViewOfFile.
+    ;
+    ; ES: Desmapea una vista obtenida previamente mediante MapViewOfFile.
+    UnmapViewOfFile(base_address: MEMORY_REGION) int32
 
     ; EN: Creates or opens a UTF-16 path using the native file-handle ABI.
     ;
