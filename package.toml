@@ -1,0 +1,19 @@
+[package]
+name = "bagronlab"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+description = "BagronLab package hosting repository"
+license = "MIT"
+
+[author]
+name = "Discentra Community"
+signature = "sha256:7adb95de81032806e48352478d3eff0e27a24512d26f3fd8e47fdc780ec6dfc1"
+
+[target]
+system = "all"
+arch = "amd"
+min_bagron = "1.1.4"
+
+[build]
+entry = "main.bg"

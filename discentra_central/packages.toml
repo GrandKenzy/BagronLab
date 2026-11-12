@@ -4,6 +4,16 @@ name = "bagronlab"
 description = "Monorepo con la suite oficial de librerías y utilidades para Bagron"
 author = "Discentra Community"
 
+# Paquete raíz dedicado para Central
+[[packages]]
+name = "bagronlab"
+version = "0.1.0"
+kind = "librería"
+format = "lib1"
+file = "bagronlab.lib"
+description = "BagronLab package hosting repository"
+license = "MIT"
+
 # Paquete: androidlib
 [[packages]]
 name = "androidlib"

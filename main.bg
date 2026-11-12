@@ -1,0 +1,5 @@
+; Root marker for Central's dedicated-package discovery.
+; The individual BagronLab libraries remain hosted in build/.
+clause System "auto"
+clause Arch "amd"
+clause Privacy "public"

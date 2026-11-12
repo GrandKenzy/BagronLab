@@ -4,6 +4,15 @@ format = "bagron-manifest@1"
 hash_algorithm = "sha256"
 author = "Discentra Community"
 
+# Verificación para: bagronlab
+[[packages]]
+name = "bagronlab"
+file = "bagronlab.lib"
+format = "lib1"
+sha256 = "b7e058f8b49634ebc616029588f310bad92bb190695de9be1db6fb6a4c1ede38"
+size_bytes = 6650
+signature = "sha256:7adb95de81032806e48352478d3eff0e27a24512d26f3fd8e47fdc780ec6dfc1"
+
 # Verificación para: androidlib
 [[packages]]
 name = "androidlib"
